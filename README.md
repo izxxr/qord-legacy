@@ -1,4 +1,4 @@
-# qord
+# Qord
 A high level library for building Discord bots.
 
 **💡 Features:**
