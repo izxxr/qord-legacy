@@ -26,14 +26,14 @@ import qord
 
 client = qord.Client()
 
-@client.listener(qord.GatewayEvents.MESSAGE_CREATE)
+@client.event(qord.GatewayEvents.MESSAGE_CREATE)
 async def on_message_create(event):
   message = event.message
-  
+
   if message.author.is_me():
     # Don't respond to ourselves.
     return
-    
+
   if message.content == "!ping":
     await message.channel.send_message("🏓 Pong!")
 
