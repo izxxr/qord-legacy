@@ -145,6 +145,16 @@ class Client:
         return self._shards_count
 
     @property
+    def shards(self) -> typing.List[Shard]:
+        r"""
+        Returns
+        -------
+        List[:class:`Shard`]
+            The list of shards associated to the client.
+        """
+        return self._shards.copy()
+
+    @property
     def max_concurrency(self) -> typing.Optional[int]:
         r"""
         Returns
@@ -439,3 +449,23 @@ class Client:
             loop.run_until_complete(self.close())
         finally:
             loop.close()
+
+    def get_shard(self, shard_id: int, /) -> typing.Optional[Shard]:
+        r"""Resolves a :class:`Shard` by it's ID.
+
+        Parameters
+        ----------
+        shard_id: :class:`builtins.int`
+            The ID of shard to get. See :attr:`Shard.id` documentation for more
+            information about shard ID.
+
+        Returns
+        -------
+        typing.Optional[:class:`Shard`]
+            The resolved shard for the provided ID. If no shard exists
+            with the provided ID, None is returned.
+        """
+        try:
+            return self._shards[shard_id]
+        except IndexError:
+            return None
