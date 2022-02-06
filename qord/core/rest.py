@@ -98,7 +98,7 @@ class RestClient:
         headers["User-Agent"] = f"DiscordBot ({__github__}, {__version__})"
 
         if requires_auth:
-            headers["Authorization"] = token
+            headers["Authorization"] = f"Bot {token}"
         if reason is not None and route.supports_reason:
             headers["X-Audit-Log-Reason"] = reason
 
@@ -136,5 +136,10 @@ class RestClient:
 
     async def get_gateway(self):
         route = Route("GET", "/gateway", requires_auth=False)
+        data = await self.request(route)
+        return data
+
+    async def get_bot_gateway(self):
+        route = Route("GET", "/gateway/bot", requires_auth=True)
         data = await self.request(route)
         return data
