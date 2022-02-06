@@ -361,7 +361,7 @@ class Client:
                     await asyncio.wait_for(waiter, timeout=self.connect_timeout)
                 except asyncio.TimeoutError:
                     # Timed out waiting for a shard to start.
-                    _LOGGER.error("Timed out waiting for a shard to start. Crashing.")
+                    _LOGGER.error("Timed out waiting for a shard to start.")
 
                     # Check if we have an error in the queue
                     try:

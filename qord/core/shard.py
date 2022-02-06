@@ -49,6 +49,12 @@ class GatewayOP:
 
 _LOGGER = logging.getLogger(__name__)
 
+class _SignalResume(Exception):
+    def __init__(self, resume: bool = True, delay: float = None) -> None:
+        self.resume = resume
+        self.delay = delay
+
+
 class Shard:
     r"""Represents a shard that connects to Discord gateway.
 
@@ -88,6 +94,7 @@ class Shard:
         self._inflator = None
         self._buffer = bytearray()
         self._identified = asyncio.Event()
+        self._resume_on_connect = False
 
         self._clear_gateway_data()
 
@@ -231,6 +238,11 @@ class Shard:
                 self._heartbeat_handler(interval),
                 name=f"shard-heartbeat-worker:{self._id}"
             )
+            if self._resume_on_connect:
+                await self._send_resume_packet()
+                self._resume_on_connect = False
+                return True
+
             await self._send_identify_packet()
 
         elif op is GatewayOP.HEARTBEAT_ACK:
@@ -243,15 +255,37 @@ class Shard:
 
             if event == "READY":
                 self._session_id = data["session_id"]
-                self._log(logging.INFO, "Established a connection with Discord gateway. (Session: %s)", self._session_id)
+                self._log(logging.INFO, "Established a new session with Discord gateway. (Session: %s)", self._session_id)
 
                 # Notify waiters that the shard has identified.
                 self._identified.set()
-            print(self._id, event)
+
+            elif event == "RESUMED":
+                self._log(logging.INFO, "Resumed the session %s", self._session_id)
 
         elif op is GatewayOP.HEARTBEAT:
             self._log(logging.DEBUG, "Gateway is requesting a HEARTBEAT.")
             await self._send_heartbeat_packet()
+
+        elif op is GatewayOP.INVALID_SESSION:
+            if self._session_id is None:
+                # If we're here, We more then likely got identify ratelimited
+                # this generally should never happen.
+
+                # Hack to prevent the timeout error.
+                self._identified.set()
+                self._identified.clear()
+
+                self._log(logging.INFO, "Session was prematurely invalidated.")
+                raise _SignalResume(resume=False, delay=5.0)
+
+            self._log(logging.INFO, "Session %s has been invalidated. Attempting to RESUME if possible.", self._session_id)
+            # NOTE: inner payload (`data`) indicates whether the session is resumeable
+            raise _SignalResume(resume=data, delay=5.0)
+
+        elif op is GatewayOP.RECONNECT:
+            self._log(logging.INFO, "Gateway has requested to reconnect the shard.")
+            raise _SignalResume(resume=True)
 
         return True
 
@@ -268,11 +302,20 @@ class Shard:
             self._inflator = zlib.decompressobj()
 
             while True:
-                recv = await self._handle_recv()
+                try:
+                    recv = await self._handle_recv()
+                except _SignalResume as signal:
+                    if signal.delay:
+                        self._log(logging.INFO, "Delaying %s seconds before reconnecting.", signal.delay)
+                        await asyncio.sleep(signal.delay)
 
-                if not recv:
-                    self._running = False
-                    return
+                    self._resume_on_connect = signal.resume
+                    await self._websocket.close(code=4000)
+                    break
+                else:
+                    if not recv:
+                        self._running = False
+                        return
 
     async def _wrapped_launch(self, url: str, exc_queue: asyncio.Queue) -> None:
         try:
@@ -321,3 +364,15 @@ class Shard:
             },
         })
         self._log(logging.DEBUG, "Sent the IDENTIFY packet.")
+
+    async def _send_resume_packet(self):
+        await self._send_data({
+            "op": GatewayOP.RESUME,
+            "d": {
+                "session_id": self._session_id,
+                "token": self._rest.token,
+                "seq": self._sequence,
+            },
+        })
+        self._log(logging.DEBUG, "Sent the RESUME packet.")
+
