@@ -15,6 +15,16 @@ Client
 .. autoclass:: Client
     :members:
 
+Data classes
+------------
+
+Shard
+~~~~~
+
+.. autoclass:: Shard()
+    :members:
+
+
 Exceptions
 ----------
 
