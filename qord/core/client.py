@@ -72,8 +72,8 @@ class Client:
         The session will not be closed upon bot's close. Defaults to ``False``.
     max_retries: :class:`builtins.int`
         The maximum number of re-tries for an unexpectedly failed HTTP request before
-        raising :class:`HTTPException`. This integer cannot be less than 0 and greater
-        than 5.
+        raising :class:`HTTPException`. This integer cannot be less than 5. ``None``
+        or ``0`` means no retries should be done.
     """
 
     def __init__(self,
@@ -83,11 +83,12 @@ class Client:
         max_retries: int = 5,
     ) -> None:
 
-        self._rest = RestClient(
+        self._rest: RestClient = RestClient(
             session=session,
             session_owner=session_owner,
             max_retries=max_retries,
         )
+        self._event_listeners = {}
 
     @property
     def session(self) -> typing.Optional[ClientSession]:

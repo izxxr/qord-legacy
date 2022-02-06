@@ -40,6 +40,12 @@ import typing
 class RestClient:
     r"""REST handling implementation including ratelimits prevention and handling."""
 
+    if typing.TYPE_CHECKING:
+        session: typing.Optional[aiohttp.ClientSession]
+        session_owner: bool
+        token: typing.Optional[str]
+        max_retries: int
+
     def __init__(self, *,
         session: aiohttp.ClientSession = None,
         session_owner: bool = True,
@@ -49,14 +55,14 @@ class RestClient:
         if session and isinstance(session, aiohttp.ClientSession):
             raise TypeError(f"Parameter 'session' must be an instance of aiohttp.ClientSession " \
                             f"object, Not {session.__class__!r}")
-        if max_retries is None:
+        if max_retries is None or max_retries == 0:
             max_retries = 1
         if not isinstance(max_retries, int) or max_retries > 5:
-            raise TypeError(f"Parameter 'max_retries' must be an integer greater than 0 and less " \
-                            f"than 5. {max_retries!r} is not valid.")
+            raise TypeError(f"Parameter 'max_retries' must be an integer less than 5. " \
+                            f"{max_retries!r} is not valid.")
 
         self.session = session
-        self.session_owner = session_owner
+        self.session_owner: bool = session_owner
         self.token = None
         self.max_retries = max_retries or 5
 
