@@ -38,3 +38,6 @@ class :exc:`QordException`.
 .. autoexception:: HTTPForbidden()
 .. autoexception:: HTTPNotFound()
 .. autoexception:: HTTPServerError()
+.. autoexception:: ShardException()
+.. autoexception:: ShardCloseException()
+.. autoexception:: MissingPrivilegedIntents()
