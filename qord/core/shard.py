@@ -190,6 +190,12 @@ class Shard:
 
         return decomp.decode()
 
+    def _notify_waiters(self):
+        # This is a hack to prevent timeout error when initially
+        # starting shards.
+        self._identified.set()
+        self._identified.clear()
+
     async def _receive(self) -> typing.Any:
         message = await self._websocket.receive() # type: ignore
         message = message.data
@@ -271,12 +277,9 @@ class Shard:
             if self._session_id is None:
                 # If we're here, We more then likely got identify ratelimited
                 # this generally should never happen.
-
-                # Hack to prevent the timeout error.
-                self._identified.set()
-                self._identified.clear()
-
+                self._notify_waiters()
                 self._log(logging.INFO, "Session was prematurely invalidated.")
+
                 raise _SignalResume(resume=False, delay=5.0)
 
             self._log(logging.INFO, "Session %s has been invalidated. Attempting to RESUME if possible.", self._session_id)
