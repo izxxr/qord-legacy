@@ -150,6 +150,20 @@ class Client:
         return self._shards.copy()
 
     @property
+    def latency(self) -> float:
+        r"""
+        Returns
+        -------
+        :class:`builtins.float`
+            The websocket latency of the client.
+
+            If the client is running multiple shards, This returns the average of
+            latencies of all shards. See :attr:`Shard.latency` for more info.
+        """
+        latencies = [shard.latency for shard in self._shards]
+        return sum(latencies) / len(self._shards)
+
+    @property
     def max_concurrency(self) -> typing.Optional[int]:
         r"""
         Returns
