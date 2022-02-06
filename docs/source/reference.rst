@@ -33,10 +33,10 @@ Flags
 .. autoclass:: Flags()
     :members:
 
-GatewayIntents
-~~~~~~~~~~~~~~
+Intents
+~~~~~~~
 
-.. autoclass:: GatewayIntents()
+.. autoclass:: Intents()
     :members:
 
 Exceptions
