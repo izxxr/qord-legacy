@@ -163,15 +163,15 @@ class Client:
         except KeyError:
             self._event_listeners[event_name] = [callback]
 
-    def invoke_event(self, event_name: str, event_instance, /) -> None:
+    def invoke_event(self, event_name: str, *args, /) -> None:
         r"""Invokes an event by calling all of it's listeners.
 
         Parameters
         ----------
         event_name: :class:`builtins.str`
             The name of event to invoke.
-        event_instance: :class:`BaseEvent`
-            The :class:`BaseEvent` instance to pass to listeners.
+        *args: :class:`BaseEvent`
+            The arguments to pass to listeners.
         """
         listeners = self._event_listeners.get(event_name)
 
@@ -181,8 +181,7 @@ class Client:
         loop = asyncio.get_running_loop()
 
         for listener in listeners:
-            loop.create_task(listener(event_instance))
-
+            loop.create_task(*args)
 
     def event(self, event_name: str):
         r"""A decorator that registers an event listener for provided event.
