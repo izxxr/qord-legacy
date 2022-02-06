@@ -376,3 +376,66 @@ class Client:
         # block until one of the shards crash
         exc = await exc_queue.get()
         raise exc
+
+    async def close(self, clear_setup: bool = True) -> None:
+        r"""Gracefully closes the client.
+
+        The entire closing process includes:
+
+        - Gracefully closing all the spawned shards.
+        - Closing the HTTP session.
+        - Resetting the client setup.
+
+        Parameters
+        ----------
+        clear_setup: :class:`builtins.bool`
+            Whether to clear the client setup. Defaults to ``True``.
+
+            If set to ``False``, Client setup will not be closed and there
+            will be no need of calling :meth:`.setup` again.
+        """
+        for shard in self._shards:
+            await shard._close(code=1000, _clean=True)
+
+        await self._rest.close()
+
+        if clear_setup:
+            self._rest.token = None
+            self._max_concurrency = None
+            self._shards.clear()
+
+    def start(self, token: str) -> None:
+        r"""Setups the client with provided token and then starts it.
+
+        Unlike :meth:`.launch`, This method is not a coroutine and aims to
+        abstract away the asyncio event loop handling from the user. For a
+        granular control over the event loop, Consider using :meth:`.setup` and
+        :meth:`.launch`
+
+        Parameters
+        ----------
+        token: :class:`builtins.str`
+            The token to setup the client with.
+
+        Raises
+        ------
+        HTTPException
+            Startup failed. Most probably the provided token is invalid. Consider
+            checking for HTTP status code using ``status`` attribute on
+            :attr:`HTTPException.response` object.
+        """
+        async def launcher():
+            await self.setup(token)
+            await self.launch()
+
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+
+        try:
+            loop.run_until_complete(launcher())
+        except KeyboardInterrupt:
+            loop.run_until_complete(self.close())
+        finally:
+            loop.close()

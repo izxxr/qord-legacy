@@ -132,6 +132,10 @@ class RestClient:
                 # unhandleable status code, raise it.
                 raise HTTPException(response, data)
 
+    async def close(self):
+        if not self.session_owner:
+            await self.session.close()
+
     # ----- Gateway -----
 
     async def get_gateway(self):

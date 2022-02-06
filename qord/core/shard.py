@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+from aiohttp import WSMsgType
 import asyncio
 import zlib
 import json
@@ -211,12 +212,15 @@ class Shard:
             self._last_heartbeat = time.time()
             await asyncio.sleep(interval)
 
-    async def _handle_recv(self) -> None:
+    async def _handle_recv(self) -> typing.Any:
         packet = await self._receive()
 
         if isinstance(packet, int):
             # Close code is sent.
             raise Exception(f"Close code: {packet}")
+
+        if packet is None:
+            return False
 
         op = packet["op"]
         data = packet["d"]
@@ -249,6 +253,7 @@ class Shard:
             self._log(logging.DEBUG, "Gateway is requesting a HEARTBEAT.")
             await self._send_heartbeat_packet()
 
+        return True
 
     async def _launch(self, url: str) -> None:
         self._running = True
@@ -260,7 +265,10 @@ class Shard:
             self._inflator = zlib.decompressobj()
 
             while True:
-                await self._handle_recv()
+                recv = await self._handle_recv()
+
+                if not recv:
+                    return
 
     async def _wrapped_launch(self, url: str, exc_queue: asyncio.Queue) -> None:
         try:
@@ -268,6 +276,20 @@ class Shard:
         except Exception as exc:
             self._running = False
             await exc_queue.put(exc)
+
+    async def _close(self, code: int = 1000, _clean: bool = False) -> None:
+        if self._heartbeat_task:
+            self._heartbeat_task.cancel()
+
+        if self._websocket:
+            await self._websocket.close(code=code)
+            self._websocket = None
+
+        self._clear_gateway_data()
+        self._identified.clear()
+        self._worker_task.cancel()
+        self._running = False
+
 
     async def _send_data(self, data: typing.Dict[str, typing.Any]) -> None:
         await self._websocket.send_str(json.dumps(data)) # type: ignore
