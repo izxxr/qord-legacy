@@ -62,6 +62,11 @@ class Flags:
     or flags can be toggled using :class:`builtins.bool`. Accessing a flag from
     non-initialized flags class returns it's raw value.
 
+    .. tip::
+        This class also supports comparison with other :class:`Flags` instances
+        as well as :class:`~builtins.int` casting. On iterating, Yields the flag
+        name and it's toggle as :class:`~builtins.bool`.
+
     .. note::
         The parameters documented below are passed during subclassing this class.
 
@@ -101,7 +106,7 @@ class Flags:
         else:
             raise TypeError(f"{flag} value must be a bool, Not {toggle.__class__!r}")
 
-    def __init_subclass__(cls, ignore_extraneous: bool = False, int_castable: bool = True) -> None:
+    def __init_subclass__(cls, ignore_extraneous: bool = False) -> None:
         nv_map = {}
 
         for name, value in vars(cls).items():
@@ -114,8 +119,19 @@ class Flags:
         cls.__name_value_map__ = nv_map
         cls.__flags_settings__ = {"ignore_extraneous": ignore_extraneous}
 
-        if int_castable:
-            cls.__int__ = lambda self: self.value # type: ignore
+    def __int__(self) -> int:
+        return self.value
+
+    def __iter__(self) -> typing.Iterator[typing.Tuple[str, bool]]:
+        for name in self.__name_value_map__:
+            yield name, getattr(self, name)
+
+    __eq__ = lambda self, other: isinstance(other, self.__class__) and self.value == other.value # type: ignore
+    __ne__ = lambda self, other: isinstance(other, self.__class__) and self.value != other.value # type: ignore
+    __lt__ = lambda self, other: isinstance(other, self.__class__) and self.value < other.value
+    __le__ = lambda self, other: isinstance(other, self.__class__) and self.value <= other.value
+    __gt__ = lambda self, other: isinstance(other, self.__class__) and self.value > other.value
+    __ge__ = lambda self, other: isinstance(other, self.__class__) and self.value >= other.value
 
 class _Flag:
     def __init__(self, name: str, value: int) -> None:
