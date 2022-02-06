@@ -22,7 +22,8 @@
 
 from __future__ import annotations
 
-from aiohttp import WSMsgType
+from qord.exceptions import MissingPrivilegedIntents, ShardCloseException
+
 import asyncio
 import zlib
 import json
@@ -49,6 +50,7 @@ class GatewayOP:
 
 _LOGGER = logging.getLogger(__name__)
 _ZLIB_SUFFIX = b'\x00\x00\xff\xff'
+_UNHANDLEABLE_CODES = (4004, 4010, 4012, 4013, 4014)
 
 class _SignalResume(Exception):
     def __init__(self, resume: bool = True, delay: float = None) -> None:
@@ -235,7 +237,17 @@ class Shard:
 
         if isinstance(packet, int):
             # Close code is sent.
-            raise Exception(f"Close code: {packet}")
+            if not packet in _UNHANDLEABLE_CODES:
+                raise _SignalResume(resume=True, delay=None)
+
+            if packet == 4014:
+                raise MissingPrivilegedIntents(shard=self)
+            else:
+                raise ShardCloseException(
+                    self,
+                    packet,
+                    f"Shard closed with unhandleable close code: {packet}"
+                )
 
         if packet is False:
             return False
@@ -365,7 +377,7 @@ class Shard:
                     "$device": "Qord",
                     "$os": sys.platform,
                 },
-                "intents": 4609333333333,
+                "intents": 4609,
                 "token": self._rest.token,
                 "compress": True,
                 "shard": [self._id, self._client.shards_count],

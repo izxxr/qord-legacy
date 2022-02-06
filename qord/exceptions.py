@@ -25,6 +25,7 @@ from __future__ import annotations
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.core.shard import Shard
     from aiohttp import ClientResponse
 
 
@@ -36,6 +37,9 @@ __all__ = (
     "HTTPForbidden",
     "HTTPNotFound",
     "HTTPServerError",
+    "ShardException",
+    "ShardCloseException",
+    "MissingPrivilegedIntents",
 )
 
 class QordException(Exception):
@@ -89,3 +93,43 @@ class HTTPNotFound(HTTPException):
 
 class HTTPServerError(HTTPException):
     r""":exc:`HTTPException` indicating a 500s response."""
+
+class ShardException(QordException):
+    r"""Base class for all shards related errors.
+
+    Attributes
+    ----------
+    shard: :class:`Shard`
+        The shard that caused the error.
+    """
+    def __init__(self, shard: Shard, *args: object) -> None:
+        self.shard = shard
+        super().__init__(*args)
+
+class ShardCloseException(ShardException):
+    r"""An exception indicating that a shard closed with an unhandleable close code.
+
+    This inherits :exc:`ShardException`.
+
+    Attributes
+    ----------
+    code: :class:`builtins.int`
+        The close code that caused the error.
+    """
+
+    def __init__(self, shard: Shard, code: int, *args) -> None:
+        self.code = code
+        super().__init__(shard, *args)
+
+class MissingPrivilegedIntents(ShardCloseException):
+    r"""An exception indicating that a shard closed because client has requested
+    access to certain *privileged* intents that are not provided by Discord.
+
+    This inherits :exc:`ShardCloseException`, The :attr:`~ShardCloseException.code`
+    attribute is always ``4014`` when this error is raised.
+    """
+    def __init__(self, shard: Shard) -> None:
+        super().__init__(
+            shard, 4014,
+            "Client is not whitelisted to use requested privileged intents.",
+        )
