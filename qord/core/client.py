@@ -163,7 +163,7 @@ class Client:
         except KeyError:
             self._event_listeners[event_name] = [callback]
 
-    def invoke_event(self, event_name: str, *args, /) -> None:
+    def invoke_event(self, event_name: str, /, *args) -> None:
         r"""Invokes an event by calling all of it's listeners.
 
         Parameters
