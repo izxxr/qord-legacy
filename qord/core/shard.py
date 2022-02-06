@@ -268,6 +268,7 @@ class Shard:
                 recv = await self._handle_recv()
 
                 if not recv:
+                    self._running = False
                     return
 
     async def _wrapped_launch(self, url: str, exc_queue: asyncio.Queue) -> None:
