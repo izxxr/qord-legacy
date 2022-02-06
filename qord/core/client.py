@@ -141,38 +141,38 @@ class Client:
 
     @property
     def shards(self) -> typing.List[Shard]:
-        r"""
+        r"""The list of shards associated to the client.
+
         Returns
         -------
         List[:class:`Shard`]
-            The list of shards associated to the client.
         """
         return self._shards.copy()
 
     @property
     def latency(self) -> float:
-        r"""
+        r"""The websocket latency of the client.
+
+        If the client is running multiple shards, This returns the average of
+        latencies of all shards. See :attr:`Shard.latency` for more info.
+
         Returns
         -------
         :class:`builtins.float`
-            The websocket latency of the client.
-
-            If the client is running multiple shards, This returns the average of
-            latencies of all shards. See :attr:`Shard.latency` for more info.
         """
         latencies = [shard.latency for shard in self._shards]
         return sum(latencies) / len(self._shards)
 
     @property
     def max_concurrency(self) -> typing.Optional[int]:
-        r"""
+        r"""The maximum number of shards the client is allowed to start concurrently
+        when :meth:`.launch` is called. This is set during :meth:`.setup`.
+
+        This is retrieved from Discord and cannot be set by the user.
+
         Returns
         -------
         Optional[:class:`builtins.int`]
-            The maximum number of shards the client is allowed to start concurrently when
-            :meth:`.launch` is called. This is set during :meth:`.setup`.
-
-            This is retrieved from Discord and cannot be set by the user.
         """
         return self._max_concurrency
 

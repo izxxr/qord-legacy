@@ -107,76 +107,75 @@ class Shard:
 
     @property
     def id(self) -> int:
-        r"""
+        r"""The ID of the shard. This starts from 0 and for each shard maintained by
+        a client, This ID increments till :attr:`Client.shards_count`.
+
+        In theory, If a client is running 5 shards for example. All shard IDs can
+        be obtained by::
+
+            >>> shard_ids = list(range(client.shards_count)) # shards_count is 5
+            [0, 1, 2, 3, 4]
+
         Returns
         -------
         :class:`builtins.int`
-            The ID of the shard. This starts from 0 and for each shard maintained by a client,
-            This ID increments till :attr:`Client.shards_count`.
-
-            In theory, If a client is running 5 shards for example. All shard IDs can
-            be obtained by::
-
-                >>> shard_ids = list(range(client.shards_count)) # shards_count is 5
-                [0, 1, 2, 3, 4]
         """
         return self._id
 
     @property
     def client(self) -> Client:
-        r"""
+        r"""The client that instansiated the client.
+
         Returns
         -------
         :class:`Client`
-            The client that instansiated the client.
         """
         return self._client
 
     @property
     def latency(self) -> float:
-        r"""
+        r"""The latency of this shard. This is measured on the basis of delay between
+        a heartbeat sent by the shard and it's acknowledgement sent by Discord gateway.
+
         Returns
         -------
         :class:`builtins.float`
-            The latency of this shard. This is measured on the basis of delay between
-            a heartbeat sent by the shard and it's acknowledgement sent by Discord
-            gateway.
         """
         return self._latency
 
     @property
     def heartbeat_interval(self) -> typing.Optional[float]:
-        r"""
+        r"""The heartbeat interval for this shard. This is only available after
+        shard has done the initial websocket handshake.
+
         Returns
         -------
         :class:`builtins.float`
-            The heartbeat interval for this shard. This is only available after
-            shard has done the initial websocket handshake.
         """
         return self._heartbeat_interval
 
     @property
     def session_id(self) -> typing.Optional[str]:
-        r"""
+        r"""The current session ID for the shard. This is only available
+        after shard has successfully connected to gateway.
+
+        The session ID is not same for all shards. Furthermore, The session
+        ID is not guaranteed to be same through the shard lifetime as shard
+        may start new sessions for reconnection purposes.
+
         Returns
         -------
         :class:`builtins.str`
-            The current session ID for the shard. This is only available
-            after shard has successfully connected to gateway.
-
-            The session ID is not same for all shards. Furthermore, The session
-            ID is not guaranteed to be same through the shard lifetime as shard
-            may start new sessions for reconnection purposes.
         """
         return self._session_id
 
     @property
     def sequence(self) -> typing.Optional[int]:
-        r"""
+        r"""The current dispatch sequence number of the shard. This may be None.
+
         Returns
         -------
         :class:`builtins.int`
-            The current dispatch sequence number of the shard. This may be None.
         """
         return self._sequence
 
