@@ -48,6 +48,7 @@ class GatewayOP:
     HEARTBEAT_ACK = 11
 
 _LOGGER = logging.getLogger(__name__)
+_ZLIB_SUFFIX = b'\x00\x00\xff\xff'
 
 class _SignalResume(Exception):
     def __init__(self, resume: bool = True, delay: float = None) -> None:
@@ -200,6 +201,9 @@ class Shard:
         message = message.data
 
         if isinstance(message, bytes):
+            if len(message) > 4 and message[-4:] != _ZLIB_SUFFIX:
+                return
+
             message = self._decompress_message(message)
 
         if isinstance(message, int):
@@ -214,6 +218,8 @@ class Shard:
                 return message
             else:
                 return ret
+
+        return False
 
     async def _heartbeat_handler(self, interval: float):
         self._heartbeat_interval = interval
@@ -231,7 +237,7 @@ class Shard:
             # Close code is sent.
             raise Exception(f"Close code: {packet}")
 
-        if packet is None:
+        if packet is False:
             return False
 
         op = packet["op"]
