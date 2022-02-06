@@ -70,6 +70,11 @@ class Shard:
     if typing.TYPE_CHECKING:
         _worker_task: typing.Optional[asyncio.Task]
         _heartbeat_task: typing.Optional[asyncio.Task]
+        _last_heartbeat: typing.Optional[float]
+        _heartbeat_interval: typing.Optional[float]
+        _session_id: typing.Optional[str]
+        _sequence: typing.Optional[int]
+        _latency: float
 
     def __init__(self, id: int, client: Client) -> None:
         self._id = id
@@ -118,6 +123,54 @@ class Shard:
             The client that instansiated the client.
         """
         return self._client
+
+    @property
+    def latency(self) -> float:
+        r"""
+        Returns
+        -------
+        :class:`builtins.float`
+            The latency of this shard. This is measured on the basis of delay between
+            a heartbeat sent by the shard and it's acknowledgement sent by Discord
+            gateway.
+        """
+        return self._latency
+
+    @property
+    def heartbeat_interval(self) -> typing.Optional[float]:
+        r"""
+        Returns
+        -------
+        :class:`builtins.float`
+            The heartbeat interval for this shard. This is only available after
+            shard has done the initial websocket handshake.
+        """
+        return self._heartbeat_interval
+
+    @property
+    def session_id(self) -> typing.Optional[str]:
+        r"""
+        Returns
+        -------
+        :class:`builtins.str`
+            The current session ID for the shard. This is only available
+            after shard has successfully connected to gateway.
+
+            The session ID is not same for all shards. Furthermore, The session
+            ID is not guaranteed to be same through the shard lifetime as shard
+            may start new sessions for reconnection purposes.
+        """
+        return self._session_id
+
+    @property
+    def sequence(self) -> typing.Optional[int]:
+        r"""
+        Returns
+        -------
+        :class:`builtins.int`
+            The current dispatch sequence number of the shard. This may be None.
+        """
+        return self._sequence
 
     def _log(self, level: int, message: typing.Any, *args: typing.Any) -> None:
         _LOGGER.log(level, f"[Shard {self._id}] {message}", *args)
