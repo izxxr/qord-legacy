@@ -71,7 +71,7 @@ class Client:
         Whether the :attr:`.session` is owned by the user, If set to ``True``,
         The session will not be closed upon bot's close. Defaults to ``False``.
     max_retries: :class:`builtins.int`
-        The maximum number of re-tries for an HTTP request before
+        The maximum number of re-tries for an unexpectedly failed HTTP request before
         raising :class:`HTTPException`. This integer cannot be less than 0 and greater
         than 5.
     """
