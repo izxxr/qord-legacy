@@ -113,6 +113,7 @@ class Client:
             max_retries=max_retries,
         )
         self._event_listeners = {}
+        self._setup = False
 
         self.connect_timeout = connect_timeout
         self.heartbeat_ack_timeout = heartbeat_ack_timeout
@@ -280,7 +281,7 @@ class Client:
         :class:`builtins.bool`
             Indicates whether the client is setup.
         """
-        return self._rest.token is not None
+        return self._setup
 
     async def setup(self, token: str, /) -> None:
         r"""Setups the client with the provided authorization token.
@@ -302,19 +303,12 @@ class Client:
             checking for HTTP status code using ``status`` attribute on
             :attr:`HTTPException.response` object.
         """
-        if self._rest.token is not None:
+        if self.is_setup():
             raise RuntimeError("Client is already setup.")
 
         self._rest.token = token
 
-        try:
-            gateway = await self._rest.get_bot_gateway()
-        except Exception:
-            # failed to fetch the gateway. This most likely
-            # means that specified token is invalid so we want to
-            # ensure that token unsets properly.
-            self._rest.token = None
-            raise
+        gateway = await self._rest.get_bot_gateway()
 
         self._gateway_url = gateway["url"] + "?v=9&encoding=json&compress=zlib-stream"
         self._max_concurrency = gateway["session_start_limit"]["max_concurrency"]
@@ -327,6 +321,7 @@ class Client:
             Shard(id=shard_id, client=self)
             for shard_id in range(self._shards_count) # type: ignore
         ]
+        self._setup = True
 
     async def launch(self) -> None:
         r"""Launches the bot.
@@ -338,7 +333,7 @@ class Client:
         :class:`ClientSetupRequired`
             The client is not setup yet. See :meth:`.setup` for more info.
         """
-        if self._rest.token is None:
+        if not self.is_setup():
             raise ClientSetupRequired("Client is not setup yet. Call Client.setup() first.")
 
         loop = asyncio.get_running_loop()
@@ -422,6 +417,7 @@ class Client:
             self._rest.token = None
             self._max_concurrency = None
             self._shards.clear()
+            self._setup = False
 
     def start(self, token: str) -> None:
         r"""Setups the client with provided token and then starts it.
