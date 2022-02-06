@@ -181,7 +181,7 @@ class Client:
         loop = asyncio.get_running_loop()
 
         for listener in listeners:
-            loop.create_task(*args)
+            loop.create_task(listener(*args))
 
     def event(self, event_name: str):
         r"""A decorator that registers an event listener for provided event.
