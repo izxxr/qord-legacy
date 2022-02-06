@@ -319,12 +319,12 @@ class Shard:
                         self._running = False
                         return
 
-    async def _wrapped_launch(self, url: str, exc_queue: asyncio.Queue) -> None:
+    async def _wrapped_launch(self, url: str, future: asyncio.Future) -> None:
         try:
             await self._launch(url)
         except Exception as exc:
             self._running = False
-            await exc_queue.put(exc)
+            future.set_result(exc)
 
     async def _close(self, code: int = 1000, _clean: bool = False) -> None:
         if self._heartbeat_task:
@@ -359,7 +359,7 @@ class Shard:
                     "$device": "Qord",
                     "$os": sys.platform,
                 },
-                "intents": 4609,
+                "intents": 4609333333333,
                 "token": self._rest.token,
                 "compress": True,
                 "shard": [self._id, self._client.shards_count],

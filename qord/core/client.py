@@ -346,7 +346,7 @@ class Client:
             self._max_concurrency,
             's' if self._max_concurrency > 1 else '',
         )
-        exc_queue = asyncio.Queue()
+        future = asyncio.Future()
 
         while shards:
             # The _max_concurrency attribute is never None here.
@@ -363,7 +363,7 @@ class Client:
                     break
                 else:
                     shard._worker_task = loop.create_task(
-                        shard._wrapped_launch(self._gateway_url, exc_queue), # type: ignore
+                        shard._wrapped_launch(self._gateway_url, future), # type: ignore
                         name=f"shard-worker:{shard._id}"
                     )
                     shards.remove(shard)
@@ -377,18 +377,14 @@ class Client:
                     # Timed out waiting for a shard to start.
                     _LOGGER.error("Timed out waiting for a shard to start.")
 
-                    # Check if we have an error in the queue
-                    try:
-                        exc = exc_queue.get_nowait()
-                    except asyncio.QueueEmpty as exc:
-                        raise TimeoutError("Timed out waiting for a shard to connect.") from exc
-                    else:
-                        raise exc
+                    # Check if we have an error
+                    if future.done():
+                        raise future.result()
 
             await asyncio.sleep(5)
 
         # block until one of the shards crash
-        exc = await exc_queue.get()
+        exc = await asyncio.wait_for(future, timeout=None)
         raise exc
 
     async def close(self, clear_setup: bool = True) -> None:
