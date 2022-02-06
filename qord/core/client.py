@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 from __future__ import annotations
+import asyncio
 
 from qord.core.rest import RestClient
 
@@ -75,10 +76,13 @@ class Client:
         raising :class:`HTTPException`. This integer cannot be less than 5. ``None``
         or ``0`` means no retries should be done.
     """
+    if typing.TYPE_CHECKING:
+        _rest: RestClient
+        _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
 
     def __init__(self,
         *,
-        session: ClientSession,
+        session: ClientSession = None,
         session_owner: bool = False,
         max_retries: int = 5,
     ) -> None:
@@ -101,3 +105,101 @@ class Client:
     @property
     def max_retries(self) -> int:
         return self._rest.max_retries
+
+    def get_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
+        r"""Gets the list of all events listener for the provided event.
+
+        Parameters
+        ----------
+        event_name: :class:`builtins.str`
+            The name of event to get listeners for.
+
+        Returns
+        -------
+        The list of event listeners.
+        """
+        return self._event_listeners.get(event_name, [])
+
+    def clear_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
+        r"""Clears all events listener for the provided event.
+
+        Parameters
+        ----------
+        event_name: :class:`builtins.str`
+            The name of event to clear listeners for.
+
+        Returns
+        -------
+        The list of removed event listeners.
+        """
+        return self._event_listeners.pop(event_name, [])
+
+    def walk_event_listeners(self) -> typing.List[typing.Tuple[str, typing.List[typing.Callable[..., typing.Any]]]]:
+        r"""Returns a list of tuples with first element being event name and second
+        element being the list of event listeners for that event.
+
+        Example::
+
+            for name, listeners in client.walk_event_listeners():
+                print(name, listeners)
+        """
+        return list(self._event_listeners.items())
+
+    def register_event_listener(self, event_name: str, callback: typing.Callable[..., typing.Any], /) -> None:
+        r"""Registers an event listener for provided event.
+
+        Parameters
+        ----------
+        event_name: :class:`builtins.str`
+            The name of event to register listener for.
+        callback:
+            The callback listener. This must be a coroutine.
+        """
+        if not asyncio.iscoroutinefunction(callback):
+            raise TypeError("Parameter 'callback' must be a coroutine.")
+
+        try:
+            self._event_listeners[event_name].append(callback)
+        except KeyError:
+            self._event_listeners[event_name] = [callback]
+
+    def invoke_event(self, event_name: str, event_instance, /) -> None:
+        r"""Invokes an event by calling all of it's listeners.
+
+        Parameters
+        ----------
+        event_name: :class:`builtins.str`
+            The name of event to invoke.
+        event_instance: :class:`BaseEvent`
+            The :class:`BaseEvent` instance to pass to listeners.
+        """
+        listeners = self._event_listeners.get(event_name)
+
+        if not listeners:
+            return
+
+        loop = asyncio.get_running_loop()
+
+        for listener in listeners:
+            loop.create_task(listener(event_instance))
+
+
+    def event(self, event_name: str):
+        r"""A decorator that registers an event listener for provided event.
+
+        The decorated function must be a coroutine. Example::
+
+            @client.event(qord.GatewayEvents.MESSAGE_CREATE)
+            async def on_message_create(event):
+                ...
+
+        Parameters
+        ----------
+        event_name: :class:`builtins.str`
+            The name of event to register listener for.
+        """
+        def wrap(func):
+            self.register_event_listener(event_name, func)
+            return func
+
+        return wrap
