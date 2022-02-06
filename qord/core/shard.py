@@ -256,6 +256,9 @@ class Shard:
         return True
 
     async def _launch(self, url: str) -> None:
+        if self._running:
+            raise RuntimeError("Shard is already running")
+
         self._running = True
 
         while self._running:
