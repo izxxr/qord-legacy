@@ -24,6 +24,8 @@ from __future__ import annotations
 
 import typing
 
+# Thanks to discord.py for being a good base design for Flags.
+# This is inspired by discord.py
 
 class Flags:
     r"""A class that interfaces manipulating bitwise flags.
