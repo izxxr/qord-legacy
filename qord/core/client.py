@@ -90,11 +90,6 @@ class Client:
         the :attr:`Shard.heartbeat_interval`.
     """
     if typing.TYPE_CHECKING:
-        _rest: RestClient
-        _shards_count: typing.Optional[int]
-        _shards: typing.List[Shard]
-        _max_concurrency: typing.Optional[int]
-        _gateway_url: typing.Optional[str]
         _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
 
     def __init__(self,
@@ -123,10 +118,10 @@ class Client:
         self.heartbeat_ack_timeout = heartbeat_ack_timeout
 
         # Following are set during setup()
-        self._shards_count = shards_count
-        self._max_concurrency = None
-        self._gateway_url = None
-        self._shards = []
+        self._shards_count: typing.Optional[int] = shards_count
+        self._max_concurrency: typing.Optional[int] = None
+        self._gateway_url: typing.Optional[str] = None
+        self._shards: typing.List[Shard] = []
 
     @property
     def session(self) -> typing.Optional[ClientSession]:
@@ -394,7 +389,7 @@ class Client:
 
         - Gracefully closing all the spawned shards.
         - Closing the HTTP session.
-        - Resetting the client setup.
+        - Clearing the client setup.
 
         Parameters
         ----------
