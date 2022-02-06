@@ -22,12 +22,19 @@
 
 from __future__ import annotations
 
+from qord.core.rest import RestClient
+
+import logging
 import typing
+
+if typing.TYPE_CHECKING:
+    from aiohttp import ClientSession
 
 __all__ = (
     "Client",
 )
 
+_LOGGER = logging.getLogger(__name__)
 
 class Client:
     r"""A client that interacts with Discord API.
@@ -35,14 +42,7 @@ class Client:
     This is the core class of this library and the main starter point for
     every bot. All parameters passed during initializing are optional and keyword only.
 
-    Common functionality of the class is summarised below:
-
-    - The class should be initialized once only.
-    - Events listeners are registered using :meth:`.event` decorator.
-    - :meth:`.start` is used to setup the client and launch it. It must be called after \
-        all the events listeners are registered as it is a blocking function.
-
-    This is a basic example that describes above points::
+    This is a basic example using this class to build a "Ping Pong" bot::
 
         import qord
 
@@ -61,7 +61,42 @@ class Client:
 
         if __name__ == "__main__":
             client.start(BOT_TOKEN)
+
+    Parameters
+    ----------
+    session: :class:`aiohttp.ClientSession`
+        The client session used for making HTTPs requests. If omitted, Library
+        will initalize a session internally.
+    session_owner: :class:`builtins.bool`
+        Whether the :attr:`.session` is owned by the user, If set to ``True``,
+        The session will not be closed upon bot's close. Defaults to ``False``.
+    max_retries: :class:`builtins.int`
+        The maximum number of re-tries for an HTTP request before
+        raising :class:`HTTPException`. This integer cannot be less than 0 and greater
+        than 5.
     """
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self,
+        *,
+        session: ClientSession,
+        session_owner: bool = False,
+        max_retries: int = 5,
+    ) -> None:
+
+        self._rest = RestClient(
+            session=session,
+            session_owner=session_owner,
+            max_retries=max_retries,
+        )
+
+    @property
+    def session(self) -> typing.Optional[ClientSession]:
+        return self._rest.session
+
+    @property
+    def session_owner(self) -> bool:
+        return self._rest.session_owner
+
+    @property
+    def max_retries(self) -> int:
+        return self._rest.max_retries
