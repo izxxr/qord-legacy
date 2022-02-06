@@ -310,7 +310,7 @@ class Shard:
                         await asyncio.sleep(signal.delay)
 
                     self._resume_on_connect = signal.resume
-                    await self._websocket.close(code=4000)
+                    await self._close(code=4000)
                     break
                 else:
                     if not recv:
@@ -332,11 +332,11 @@ class Shard:
             await self._websocket.close(code=code)
             self._websocket = None
 
-        self._clear_gateway_data()
-        self._identified.clear()
-        self._worker_task.cancel()
-        self._running = False
-
+        if _clean:
+            self._clear_gateway_data()
+            self._identified.clear()
+            self._worker_task.cancel()
+            self._running = False
 
     async def _send_data(self, data: typing.Dict[str, typing.Any]) -> None:
         await self._websocket.send_str(json.dumps(data)) # type: ignore
