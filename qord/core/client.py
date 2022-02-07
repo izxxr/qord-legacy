@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
 from qord.exceptions import ClientSetupRequired
+from qord.flags.intents import Intents
 
 import asyncio
 import logging
@@ -88,6 +89,9 @@ class Client:
         The number of seconds to wait for a heartbeat ack before attempting to
         reconnect the shard. This must be greater then 5. When omitted, Defaults to
         the :attr:`Shard.heartbeat_interval`.
+    intents: :class:`Intents`
+        The intents for this client. By default, Only unprivileged intents are
+        enabled using :meth:`Intents.unprivileged` method.
     """
     if typing.TYPE_CHECKING:
         _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
@@ -100,6 +104,7 @@ class Client:
         shards_count: int = None,
         connect_timeout: float = 5.0,
         heartbeat_ack_timeout: float = None,
+        intents: Intents = None,
     ) -> None:
 
         if shards_count is not None and shards_count < 1:
@@ -117,6 +122,7 @@ class Client:
 
         self.connect_timeout = connect_timeout
         self.heartbeat_ack_timeout = heartbeat_ack_timeout
+        self.intents = intents or Intents.unprivileged()
 
         # Following are set during setup()
         self._shards_count: typing.Optional[int] = shards_count

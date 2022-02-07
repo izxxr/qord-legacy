@@ -285,7 +285,7 @@ class Shard:
 
             elif event == "RESUMED":
                 self._log(logging.INFO, "Resumed the session %s", self._session_id)
-
+            print(event)
         elif op is GatewayOP.HEARTBEAT:
             self._log(logging.DEBUG, "Gateway is requesting a HEARTBEAT.")
             await self._send_heartbeat_packet()
@@ -377,7 +377,7 @@ class Shard:
                     "$device": "Qord",
                     "$os": sys.platform,
                 },
-                "intents": 4609,
+                "intents": self._client.intents.value,
                 "token": self._rest.token,
                 "compress": True,
                 "shard": [self._id, self._client.shards_count],

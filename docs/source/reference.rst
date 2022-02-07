@@ -24,6 +24,20 @@ Shard
 .. autoclass:: Shard()
     :members:
 
+Flags
+-----
+
+Flags
+~~~~~
+
+.. autoclass:: Flags()
+    :members:
+
+Intents
+~~~~~~~
+
+.. autoclass:: Intents()
+    :members:
 
 Exceptions
 ----------
