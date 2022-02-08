@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+from qord.core.dispatch import DispatchHandler
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
 from qord.exceptions import ClientSetupRequired
@@ -117,6 +118,7 @@ class Client:
             session_owner=session_owner,
             max_retries=max_retries,
         )
+        self._dispatch: DispatchHandler = DispatchHandler(client=self)
         self._event_listeners = {}
         self._setup = False
 

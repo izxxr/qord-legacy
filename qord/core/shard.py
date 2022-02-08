@@ -89,7 +89,10 @@ class Shard:
     def __init__(self, id: int, client: Client) -> None:
         self._id = id
         self._client = client
+
+        # For faster attribute accessing
         self._rest = client._rest
+        self._handle_dispatch = client._dispatch.handle
 
         self._running = False
         self._worker_task = None
@@ -285,7 +288,9 @@ class Shard:
 
             elif event == "RESUMED":
                 self._log(logging.INFO, "Resumed the session %s", self._session_id)
-            print(event)
+
+            await self._handle_dispatch(self, event, data)
+
         elif op is GatewayOP.HEARTBEAT:
             self._log(logging.DEBUG, "Gateway is requesting a HEARTBEAT.")
             await self._send_heartbeat_packet()
