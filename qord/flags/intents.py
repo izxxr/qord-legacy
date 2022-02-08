@@ -60,7 +60,7 @@ class Intents(Flags):
     r"""Whether to enable events and caching for guild members. This
     also controls most of bot's user caching.
 
-    This is a privileged intent, See :class:`GatewayIntents` documentation.
+    This is a privileged intent, See :class:`Intents` documentation.
     """
 
     bans = 1 << 2
@@ -84,7 +84,7 @@ class Intents(Flags):
     presences = 1 << 8
     r"""Whether to enable events and for presences.
 
-    This is a privileged intent, See :class:`GatewayIntents` documentation.
+    This is a privileged intent, See :class:`Intents` documentation.
     """
 
     guild_messages = 1 << 9
