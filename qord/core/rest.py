@@ -52,7 +52,7 @@ class RestClient:
         max_retries: int = 5,
     ) -> None:
 
-        if session and isinstance(session, aiohttp.ClientSession):
+        if session and not isinstance(session, aiohttp.ClientSession):
             raise TypeError(f"Parameter 'session' must be an instance of aiohttp.ClientSession " \
                             f"object, Not {session.__class__!r}")
         if max_retries is None or max_retries == 0:
