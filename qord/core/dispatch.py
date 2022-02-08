@@ -69,8 +69,3 @@ class DispatchHandler:
             return
         else:
             await handler(shard, data)
-
-    @event_dispatch_handler("READY")
-    async def on_ready(self, shard, data):
-        print("Handler called.")
-
