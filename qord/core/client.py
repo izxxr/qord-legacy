@@ -35,12 +35,14 @@ import typing
 
 if typing.TYPE_CHECKING:
     from aiohttp import ClientSession
+    from qord.models.users import ClientUser
 
 __all__ = (
     "Client",
 )
 
 _LOGGER = logging.getLogger(__name__)
+
 
 class Client:
     r"""A client that interacts with Discord API.
@@ -125,6 +127,9 @@ class Client:
         self._gateway_url: typing.Optional[str] = None
         self._shards: typing.List[Shard] = []
 
+        # Following are either after connection
+        self._user: typing.Optional[ClientUser] = None
+
     @property
     def session(self) -> typing.Optional[ClientSession]:
         return self._rest.session
@@ -177,6 +182,20 @@ class Client:
         Optional[:class:`builtins.int`]
         """
         return self._max_concurrency
+
+    @property
+    def user(self) -> typing.Optional[ClientUser]:
+        r"""Returns the user associated to the client.
+
+        This is only available after initial connection has been
+        made with the Discord gateway. This is not dependant on the
+        members/users cache and is always available.
+
+        Returns
+        -------
+        typing.Optional[:class:`ClientUser`]
+        """
+        return self._user
 
     def get_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
         r"""Gets the list of all events listener for the provided event.

@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 from qord import events
+from qord.models.users import ClientUser
 from qord.enums import GatewayEvent
 
 import inspect
@@ -69,3 +70,8 @@ class DispatchHandler:
             return
         else:
             await handler(shard, data)
+
+    @event_dispatch_handler("READY")
+    async def on_ready(self, shard: Shard, data: typing.Any) -> None:
+        self.client._user = ClientUser(data["user"], client=self.client)
+        self.invoke(GatewayEvent.SHARD_READY, events.ShardReady(shard=shard))

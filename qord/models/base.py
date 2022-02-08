@@ -22,33 +22,28 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+import typing
 
-class GatewayEvent:
-    r"""An enumeration that details names of various events sent over gateway.
+if typing.TYPE_CHECKING:
+    from qord.core.client import Client
 
-    These events names are commonly passed in :class:`Client.event` decorator for
-    registering a listener for relevant event.
+class BaseModel(ABC):
+    r"""Common base class for all other Discord models.
+
+    It is important to note that most of Discord models are not meant
+    to be initialized by the user. You should either obtain them by using
+    relevant HTTPs methods or from cache when available.
     """
+    __slots__ = ()
 
-    GATEWAY_DISPATCH = "gateway_dispatch"
-    r"""Called whenever gateway sends a dispatch event. See :class:`events.GatewayDispatch`."""
+    _client: Client
 
-    SHARD_READY = "shard_ready"
-    r"""Called whenever a shard successfully connects to Discord gateway."""
+    @property
+    def client(self) -> Client:
+        r"""The :class:`Client` that had instansiated this model."""
+        return self._client
 
-
-class PremiumType:
-    r"""An enumeration that details values for a user's premium aka nitrosubscription.
-
-    Most common place where this enumeration is useful is when working with the
-    :attr:`User.premium_type` attribute.
-    """
-
-    NONE = 0
-    r"""User has no nitro subcription."""
-
-    NITRO_CLASSIC = 1
-    r"""User has nitro classic subscription."""
-
-    NITRO = 2
-    r"""User has nitro subscription."""
+    @abstractmethod
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        raise NotImplementedError
