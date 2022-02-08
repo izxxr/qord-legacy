@@ -42,6 +42,14 @@ GatewayDispatch
 .. autoclass:: qord.events.GatewayDispatch()
     :members:
 
+Enumerations
+------------
+
+These classes details the various enumerations including the integers based enumerations
+sent by Discord.
+
+.. autoclass:: GatewayEvent()
+    :members:
 
 Data classes
 ------------
