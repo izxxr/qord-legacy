@@ -53,7 +53,7 @@ class Client:
 
         client = qord.Client()
 
-        @client.event(qord.GatewayEvents.MESSAGE_CREATE)
+        @client.event(qord.GatewayEvent.MESSAGE_CREATE)
         async def on_message_create(event):
             message = event.message
 
@@ -267,14 +267,15 @@ class Client:
 
         The decorated function must be a coroutine. Example::
 
-            @client.event(qord.GatewayEvents.MESSAGE_CREATE)
+            @client.event(qord.GatewayEvent.MESSAGE_CREATE)
             async def on_message_create(event):
                 ...
 
         Parameters
         ----------
         event_name: :class:`builtins.str`
-            The name of event to register listener for.
+            The name of event to register listener for. See :class:`GatewayEvent` for
+            names of various gateway events.
         """
         def wrap(func):
             self.register_event_listener(event_name, func)

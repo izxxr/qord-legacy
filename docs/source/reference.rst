@@ -24,9 +24,11 @@ documentation describes the structure of various gateway events.
 The recommended way to register an event listener, is to use the :meth:`Client.event`
 decorator to decorate the callback coroutine. Example::
 
-    @client.event(qord.GatewayEvents.MESSAGE_CREATE)
+    @client.event(qord.GatewayEvent.MESSAGE_CREATE)
     async def on_message_create(event):
         pass
+
+Also see :class:`GatewayEvent` that details the events names that are sent over gateway.
 
 BaseEvent
 ~~~~~~~~~

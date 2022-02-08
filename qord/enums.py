@@ -22,38 +22,13 @@
 
 from __future__ import annotations
 
-import typing
-from dataclasses import dataclass
 
-if typing.TYPE_CHECKING:
-    from qord.core.shard import Shard
+class GatewayEvent:
+    r"""An enumeration that details names of various events sent over gateway.
 
-
-@dataclass(frozen=True)
-class GatewayDispatch:
-    r"""Structure of a :attr:`GatewayEvent.gateway_dispatch` event.
-
-    This event is called whenever gateway sends an event dispatch.
-
-    This event purely exists for debugging and experimental purposes and should
-    not generally be used. This event will also call for dispatch events that
-    are not supported by the library.
+    These events names are commonly passed in :class:`Client.event` decorator for
+    registering a listener for relevant event.
     """
 
-    shard: Shard
-    r"""The shard that this dispatch was sent to."""
-
-    title: str
-    r"""The title/name of event.
-
-    This name isn't same as how library defines the events name. See Discord
-    documentation for all events names.
-
-    https://discord.dev/topics/gateway#commands-and-events
-    """
-
-    data: typing.Optional[typing.Dict[str, typing.Any]] = None
-    r"""The raw event data.
-
-    This is mostly raw JSON payload however for some events, This can be ``None``.
-    """
+    GATEWAY_DISPATCH = "gateway_dispatch"
+    r"""Called whenever gateway sends a dispatch event. See :class:`events.GatewayDispatch`."""
