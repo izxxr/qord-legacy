@@ -29,14 +29,12 @@ if typing.TYPE_CHECKING:
 
 
 class BaseEvent:
-    r"""Base class for all events classes.
+    r"""Base class for all events classes."""
 
-    Attributes
-    ----------
-    event_name: :class:`builtins.str`
-        The string representation of event name.
-    shard: :class:`Shard`
-        The shard that received this event.
-    """
+    __slots__ = ()
+
     event_name: str
+    r"""The string representation of event name."""
+
     shard: Shard
+    r"""The shard that received this event."""
