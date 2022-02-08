@@ -30,6 +30,7 @@ from qord.flags.intents import Intents
 
 import asyncio
 import logging
+import traceback
 import typing
 
 if typing.TYPE_CHECKING:
@@ -234,6 +235,12 @@ class Client:
         except KeyError:
             self._event_listeners[event_name] = [callback]
 
+    async def _wrapped_callable(self, _callable: typing.Callable[..., typing.Any], *args) -> None:
+        try:
+            await _callable(*args)
+        except Exception:
+            traceback.print_exc()
+
     def invoke_event(self, event_name: str, /, *args) -> None:
         r"""Invokes an event by calling all of it's listeners.
 
@@ -241,7 +248,7 @@ class Client:
         ----------
         event_name: :class:`builtins.str`
             The name of event to invoke.
-        *args: :class:`BaseEvent`
+        *args:
             The arguments to pass to listeners.
         """
         listeners = self._event_listeners.get(event_name)
@@ -252,7 +259,7 @@ class Client:
         loop = asyncio.get_running_loop()
 
         for listener in listeners:
-            loop.create_task(listener(*args))
+            loop.create_task(self._wrapped_callable(listener, *args))
 
     def event(self, event_name: str):
         r"""A decorator that registers an event listener for provided event.
