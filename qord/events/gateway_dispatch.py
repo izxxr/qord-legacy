@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class GatewayDispatch(BaseEvent):
-    r"""Structure of a :attr:`GatewayEvent.gateway_dispatch` event.
+    r"""Structure of a :attr:`~qord.GatewayEvent.gateway_dispatch` event.
 
     This event is called whenever gateway sends an event dispatch.
 
