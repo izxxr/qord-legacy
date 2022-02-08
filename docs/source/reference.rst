@@ -15,6 +15,32 @@ Client
 .. autoclass:: Client
     :members:
 
+Events
+------
+
+Qord provides a rich interface for handling of events dispatches sent over gateway. Below
+documentation describes the structure of various gateway events.
+
+The recommended way to register an event listener, is to use the :meth:`Client.event`
+decorator to decorate the callback coroutine. Example::
+
+    @client.event(qord.GatewayEvents.MESSAGE_CREATE)
+    async def on_message_create(event):
+        pass
+
+BaseEvent
+~~~~~~~~~
+
+.. autoclass:: qord.events.BaseEvent()
+    :members:
+
+GatewayDispatch
+~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.GatewayDispatch()
+    :members:
+
+
 Data classes
 ------------
 

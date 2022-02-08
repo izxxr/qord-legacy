@@ -31,7 +31,9 @@ if typing.TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class GatewayDispatch:
-    r"""An event that is called whenever gateway sends an event dispatch.
+    r"""Structure of a :attr:`GatewayEvents.gateway_dispatch` event.
+
+    This event is called whenever gateway sends an event dispatch.
 
     This event purely exists for debugging and experimental purposes and should
     not generally be used. This event will also call for dispatch events that
