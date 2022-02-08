@@ -32,3 +32,7 @@ A high level library for building Discord bots.
 - **Documentation?**
 
   Yes. https://qord.readthedocs.io
+
+- **I have more questions**
+
+  Join our Discord server: https://discord.gg/sRmvezKwD4
