@@ -86,10 +86,6 @@ class Client:
         The number of seconds to wait for a shard to connect before timing out.
         Defaults to ``5``. Greater the integer, The longer it will wait and if
         a shard raises an error, It will take longer to raise it.
-    heartbeat_ack_timeout: :class:`builtins.float`
-        The number of seconds to wait for a heartbeat ack before attempting to
-        reconnect the shard. This must be greater then 5. When omitted, Defaults to
-        the :attr:`Shard.heartbeat_interval`.
     intents: :class:`Intents`
         The intents for this client. By default, Only unprivileged intents are
         enabled using :meth:`Intents.unprivileged` method.
@@ -104,14 +100,11 @@ class Client:
         max_retries: int = 5,
         shards_count: int = None,
         connect_timeout: float = 5.0,
-        heartbeat_ack_timeout: float = None,
         intents: Intents = None,
     ) -> None:
 
         if shards_count is not None and shards_count < 1:
             raise ValueError("shards_count must be an integer greater then or equal to 1.")
-        if heartbeat_ack_timeout is not None and heartbeat_ack_timeout < 5:
-            raise ValueError("heartbeat_ack_timeout must be an integer greater then 5.")
 
         self._rest: RestClient = RestClient(
             session=session,
@@ -123,7 +116,6 @@ class Client:
         self._setup = False
 
         self.connect_timeout = connect_timeout
-        self.heartbeat_ack_timeout = heartbeat_ack_timeout
         self.intents = intents or Intents.unprivileged()
 
         # Following are set during setup()
