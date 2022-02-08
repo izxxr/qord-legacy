@@ -23,6 +23,8 @@
 from __future__ import annotations
 
 from qord import events
+from qord.enums import GatewayEvent
+
 import inspect
 import typing
 
@@ -59,7 +61,7 @@ class DispatchHandler:
 
     async def handle(self, shard: Shard, title: str, data: typing.Any) -> None:
         event = events.GatewayDispatch(shard=shard, title=title, data=data)
-        self.invoke("gateway_dispatch", event)
+        self.invoke(GatewayEvent.GATEWAY_DISPATCH, event)
 
         try:
             handler = self._handlers[title]
