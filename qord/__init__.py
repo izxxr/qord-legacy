@@ -13,5 +13,6 @@ from qord.core.client import *
 from qord.core.shard import *
 from qord.flags.base import *
 from qord.flags.intents import *
+from qord.flags.users import *
 from qord.models.base import *
 from qord.models.users import *

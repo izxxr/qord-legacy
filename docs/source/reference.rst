@@ -69,8 +69,8 @@ Shard
 .. autoclass:: Shard()
     :members:
 
-Flags
------
+Bitwise Flags
+-------------
 
 Flags
 ~~~~~
@@ -82,6 +82,12 @@ Intents
 ~~~~~~~
 
 .. autoclass:: Intents()
+    :members:
+
+UserFlags
+~~~~~~~~~
+
+.. autoclass:: UserFlags()
     :members:
 
 Exceptions

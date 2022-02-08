@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
 import typing
 
@@ -73,7 +74,7 @@ class User(BaseModel):
         banner: typing.Optional[str]
 
     __slots__ = ("_client", "id", "name", "discriminator", "bot", "accent_color",
-                "premium_type", "system",  "locale", "avatar", "banner",)
+                "premium_type", "system",  "locale", "avatar", "banner", "flags")
 
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
         self._client = client
@@ -84,6 +85,7 @@ class User(BaseModel):
         self.name = data["username"]
         self.discriminator = data["discriminator"]
         self.bot = data.get("bot", False)
+        self.flags = UserFlags(data.get("flags", 0))
         self.accent_color = data.get("accent_color", 0)
         self.premium_type = data.get("premium_type", 0)
         self.system = data.get("system", False)
