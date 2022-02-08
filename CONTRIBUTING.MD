@@ -1,6 +1,9 @@
 # Contributing to Qord
 As the library is currently under heavy development, Any kind of contribution made by you would be of great value.
 
+By contributing, Not only do you support library but you also get shiny "Contributor" role in our Discord server that grants
+you many perks across the server.
+
 *Before you contribute, You should read this entire guide to get yourself familiar with the internal working of this library.*
 
 ## Usage
