@@ -54,10 +54,28 @@ Enumerations
 These classes details the various enumerations including the integers based enumerations
 sent by Discord.
 
+GatewayEvent
+~~~~~~~~~~~~
+
 .. autoclass:: GatewayEvent()
     :members:
 
+PremiumType
+~~~~~~~~~~~
+
 .. autoclass:: PremiumType()
+    :members:
+
+ImageExtension
+~~~~~~~~~~~~~~
+
+.. autoclass:: ImageExtension()
+    :members:
+
+DefaultAvatar
+~~~~~~~~~~~~~
+
+.. autoclass:: DefaultAvatar()
     :members:
 
 Data classes

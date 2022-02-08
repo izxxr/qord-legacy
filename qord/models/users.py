@@ -24,6 +24,9 @@ from __future__ import annotations
 
 from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
+from qord.enums import DefaultAvatar
+from qord._helpers import create_cdn_url
+
 import typing
 
 if typing.TYPE_CHECKING:
@@ -92,6 +95,136 @@ class User(BaseModel):
         self.locale = data.get("locale", "en-US")
         self.avatar = data.get("avatar")
         self.banner = data.get("banner")
+
+    @property
+    def default_avatar(self) -> int:
+        r"""Returns the default avatar index for this user.
+
+        This index integer is calculated on the basis of user's
+        :attr:`.discriminator`. See :class:`DefaultAvatar` for
+        more information.
+
+        Returns
+        -------
+        :class:`builtins.int`
+        """
+        return int(self.discriminator) % DefaultAvatar.INDEX
+
+    def default_avatar_url(self) -> str:
+        r"""Returns the default avatar URL for this user.
+
+        Note that default avatar is generated on the basis of
+        discriminator and does not implies the user's actual
+        avatar. Consider using :meth:`.avatar_url` method instead
+        if you want to obtain user's actual avatar's URL.
+
+        Unlike other URL generator methods, Default avatars do not support
+        custom sizes and file extension is always PNG.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return create_cdn_url(f"/embed/avatars/{self.default_avatar}", extension="png")
+
+    def avatar_url(self, extension: str = None, size: int = None) -> str:
+        r"""Returns the avatar URL for this user.
+
+        If user has no custom avatar set, This returns the result
+        of :meth:`.default_avatar_url`.
+
+        The ``extension`` parameter only supports following extensions
+        in the case of user avatars:
+
+        - :attr:`ImageExtension.GIF`
+        - :attr:`ImageExtension.PNG`
+        - :attr:`ImageExtension.JPG`
+        - :attr:`ImageExtension.JPEG`
+        - :attr:`ImageExtension.WEBP`
+
+        Parameters
+        ----------
+        extension: :class:`builtins.str`
+            The extension to use in the URL. If not supplied, An ideal
+            extension will be picked depending on whether user has static
+            or animated avatar.
+        size: :class:`builtins.int`
+            The size to append to URL. Can be any power of 2 between
+            64 and 4096.
+
+        Raises
+        ------
+        ValueError
+            Invalid extension or size was passed.
+        """
+        if self.avatar is None:
+            return self.default_avatar_url()
+
+        extension = "gif" if self.is_avatar_animated() else "png"
+        return create_cdn_url(f"/avatars/{self.id}/{self.avatar}", extension=extension, size=size)
+
+    def banner_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+        r"""Returns the banner URL for this user.
+
+        If user has no custom banner set, ``None`` is returned.
+
+        The ``extension`` parameter only supports following extensions
+        in the case of user banners:
+
+        - :attr:`ImageExtension.GIF`
+        - :attr:`ImageExtension.PNG`
+        - :attr:`ImageExtension.JPG`
+        - :attr:`ImageExtension.JPEG`
+        - :attr:`ImageExtension.WEBP`
+
+        Parameters
+        ----------
+        extension: :class:`builtins.str`
+            The extension to use in the URL. If not supplied, An ideal
+            extension will be picked depending on whether user has static
+            or animated banner.
+        size: :class:`builtins.int`
+            The size to append to URL. Can be any power of 2 between
+            64 and 4096.
+
+        Raises
+        ------
+        ValueError
+            Invalid extension or size was passed.
+        """
+        if self.banner is None:
+            return
+
+        extension = "gif" if self.is_banner_animated() else "png"
+        return create_cdn_url(f"/banners/{self.id}/{self.banner}", extension=extension, size=size)
+
+    def is_avatar_animated(self) -> bool:
+        r"""Indicates whether the user has animated avatar.
+
+        Having no custom avatar set will also return ``False``.
+
+        Returns
+        -------
+        :class:`builtins.bool`
+        """
+        if self.avatar is None:
+            return False
+
+        return  self.avatar.startswith("a_")
+
+    def is_banner_animated(self) -> bool:
+        r"""Indicates whether the user has animated banner.
+
+        Having no custom banner set will also return ``False``.
+
+        Returns
+        -------
+        :class:`builtins.bool`
+        """
+        if self.banner is None:
+            return False
+
+        return  self.banner.startswith("a_")
 
 
 class ClientUser(User):
