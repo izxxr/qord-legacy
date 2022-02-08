@@ -22,6 +22,8 @@
 
 from __future__ import annotations
 
+from qord.events.base_event import BaseEvent
+
 import typing
 from dataclasses import dataclass
 
@@ -30,7 +32,7 @@ if typing.TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class GatewayDispatch:
+class GatewayDispatch(BaseEvent):
     r"""Structure of a :attr:`GatewayEvent.gateway_dispatch` event.
 
     This event is called whenever gateway sends an event dispatch.
@@ -41,7 +43,6 @@ class GatewayDispatch:
     """
 
     shard: Shard
-    r"""The shard that this dispatch was sent to."""
 
     title: str
     r"""The title/name of event.

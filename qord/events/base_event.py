@@ -24,18 +24,19 @@ from __future__ import annotations
 
 import typing
 
-@typing.runtime_checkable
-class BaseEvent(typing.Protocol):
-    r"""A :class:`typing.Protocol` that implements common functionality of
-    all the events classes.
+if typing.TYPE_CHECKING:
+    from qord.core.shard import Shard
 
-    This protocol is runtime checkable i.e supports runtime ``isinstance`` and
-    ``issubclass`` checks.
+
+class BaseEvent:
+    r"""Base class for all events classes.
 
     Attributes
     ----------
     event_name: :class:`builtins.str`
         The string representation of event name.
+    shard: :class:`Shard`
+        The shard that received this event.
     """
     event_name: str
-
+    shard: Shard
