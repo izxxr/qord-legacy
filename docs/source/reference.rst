@@ -114,15 +114,54 @@ Exceptions
 These are the exceptions raised by the library. All of these exceptions inherit a common
 class :exc:`QordException`.
 
+QordException
+~~~~~~~~~~~~~
+
 .. autoexception:: QordException()
+
+ClientSetupRequired
+~~~~~~~~~~~~~~~~~~~
+
 .. autoexception:: ClientSetupRequired()
+
+HTTPException
+~~~~~~~~~~~~~
+
 .. autoexception:: HTTPException()
+
+HTTPBadRequest
+~~~~~~~~~~~~~~
+
 .. autoexception:: HTTPBadRequest()
+
+HTTPForbidden
+~~~~~~~~~~~~~
+
 .. autoexception:: HTTPForbidden()
+
+HTTPNotFound
+~~~~~~~~~~~~
+
 .. autoexception:: HTTPNotFound()
+
+HTTPServerError
+~~~~~~~~~~~~~~~
+
 .. autoexception:: HTTPServerError()
+
+ShardException
+~~~~~~~~~~~~~~
+
 .. autoexception:: ShardException()
+
+ShardCloseException
+~~~~~~~~~~~~~~~~~~~
+
 .. autoexception:: ShardCloseException()
+
+MissingPrivilegedIntents
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. autoexception:: MissingPrivilegedIntents()
 
 Discord Models
