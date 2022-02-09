@@ -45,7 +45,7 @@ def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typi
     ret = f"{BASE_CDN_URL}{path}.{extension}"
 
     if size is not None:
-        if size >= 64 and size <= 4096:
+        if size < 64 and size > 4096:
             raise ValueError("size must be between 64 and 4096. Got %s instead." % size)
         if not (size & (size-1) == 0) and (size != 0 and size-1 != 0):
             raise ValueError("size must be a power of 2 between 64 and 4096, %s is invalid." % size)
