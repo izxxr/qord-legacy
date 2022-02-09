@@ -22,9 +22,9 @@
 
 from __future__ import annotations
 
-from qord import events
 from qord.models.users import ClientUser
 from qord.enums import GatewayEvent
+from qord import events
 
 import inspect
 import typing
@@ -62,7 +62,7 @@ class DispatchHandler:
 
     async def handle(self, shard: Shard, title: str, data: typing.Any) -> None:
         event = events.GatewayDispatch(shard=shard, title=title, data=data)
-        self.invoke(GatewayEvent.GATEWAY_DISPATCH, event)
+        self.invoke(event.event_name, event)
 
         try:
             handler = self._handlers[title]
@@ -74,4 +74,5 @@ class DispatchHandler:
     @event_dispatch_handler("READY")
     async def on_ready(self, shard: Shard, data: typing.Any) -> None:
         self.client._user = ClientUser(data["user"], client=self.client)
-        self.invoke(GatewayEvent.SHARD_READY, events.ShardReady(shard=shard))
+        event = events.ShardReady(shard=shard)
+        self.invoke(event.event_name, event)

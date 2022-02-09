@@ -78,6 +78,43 @@ DefaultAvatar
 .. autoclass:: DefaultAvatar()
     :members:
 
+VerificationLevel
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: VerificationLevel()
+    :members:
+
+NSFWLevel
+~~~~~~~~~
+
+.. autoclass:: NSFWLevel()
+    :members:
+
+NotificationLevel
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: NotificationLevel()
+    :members:
+
+ExplicitContentFilter
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ExplicitContentFilter()
+    :members:
+
+
+PremiumTier
+~~~~~~~~~~~
+
+.. autoclass:: PremiumTier()
+    :members:
+
+MFALevel
+~~~~~~~~
+
+.. autoclass:: MFALevel()
+    :members:
+
 Data classes
 ------------
 
@@ -173,7 +210,6 @@ BaseModel
 .. autoclass:: BaseModel()
     :members:
 
-
 User
 ~~~~
 
@@ -188,3 +224,9 @@ ClientUser
     :inherited-members:
     :members:
 
+Guild
+~~~~~
+
+.. autoclass:: Guild()
+    :inherited-members:
+    :members:

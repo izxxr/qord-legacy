@@ -53,3 +53,10 @@ def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typi
         return f"{ret}?size={size}"
 
     return ret
+
+def get_optional_snowflake(data: typing.Dict[str, typing.Any], key: str) -> typing.Optional[int]:
+    r"""Helper to obtain optional or nullable snowflakes from a raw payload."""
+    try:
+        return int(data[key])
+    except (KeyError, ValueError, TypeError):
+        return None

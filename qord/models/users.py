@@ -214,7 +214,7 @@ class User(BaseModel):
         if self.avatar is None:
             return False
 
-        return  self.avatar.startswith("a_")
+        return self.avatar.startswith("a_")
 
     def is_banner_animated(self) -> bool:
         r"""Indicates whether the user has animated banner.
@@ -228,7 +228,7 @@ class User(BaseModel):
         if self.banner is None:
             return False
 
-        return  self.banner.startswith("a_")
+        return self.banner.startswith("a_")
 
 
 class ClientUser(User):
