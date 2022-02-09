@@ -22,7 +22,8 @@
 
 from __future__ import annotations
 
-from qord.events.base_event import BaseEvent
+from qord.events.base import BaseEvent
+from qord.enums import GatewayEvent
 
 import typing
 from dataclasses import dataclass
@@ -33,7 +34,7 @@ if typing.TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class GatewayDispatch(BaseEvent):
-    r"""Structure of a :attr:`~qord.GatewayEvent.gateway_dispatch` event.
+    r"""Structure of a :attr:`~qord.GatewayEvent.GATEWAY_DISPATCH` event.
 
     This event is called whenever gateway sends an event dispatch.
 
@@ -41,7 +42,7 @@ class GatewayDispatch(BaseEvent):
     not generally be used. This event will also call for dispatch events that
     are not supported by the library.
     """
-
+    event_name = GatewayEvent.GATEWAY_DISPATCH
     shard: Shard
 
     title: str
@@ -58,3 +59,13 @@ class GatewayDispatch(BaseEvent):
 
     This is mostly raw JSON payload however for some events, This can be ``None``.
     """
+
+@dataclass(frozen=True)
+class ShardReady(BaseEvent):
+    r"""Structure of a :attr:`~qord.GatewayEvent.SHARD_READY` event.
+
+    This event is called whenever a shard successfully establishes
+    a connection with Discord gateway.
+    """
+    event_name = GatewayEvent.SHARD_READY
+    shard: Shard

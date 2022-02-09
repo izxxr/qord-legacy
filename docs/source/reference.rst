@@ -42,13 +42,40 @@ GatewayDispatch
 .. autoclass:: qord.events.GatewayDispatch()
     :members:
 
+ShardReady
+~~~~~~~~~~
+
+.. autoclass:: qord.events.ShardReady()
+    :members:
+
 Enumerations
 ------------
 
 These classes details the various enumerations including the integers based enumerations
 sent by Discord.
 
+GatewayEvent
+~~~~~~~~~~~~
+
 .. autoclass:: GatewayEvent()
+    :members:
+
+PremiumType
+~~~~~~~~~~~
+
+.. autoclass:: PremiumType()
+    :members:
+
+ImageExtension
+~~~~~~~~~~~~~~
+
+.. autoclass:: ImageExtension()
+    :members:
+
+DefaultAvatar
+~~~~~~~~~~~~~
+
+.. autoclass:: DefaultAvatar()
     :members:
 
 Data classes
@@ -60,8 +87,8 @@ Shard
 .. autoclass:: Shard()
     :members:
 
-Flags
------
+Bitwise Flags
+-------------
 
 Flags
 ~~~~~
@@ -73,6 +100,12 @@ Intents
 ~~~~~~~
 
 .. autoclass:: Intents()
+    :members:
+
+UserFlags
+~~~~~~~~~
+
+.. autoclass:: UserFlags()
     :members:
 
 Exceptions
@@ -91,3 +124,28 @@ class :exc:`QordException`.
 .. autoexception:: ShardException()
 .. autoexception:: ShardCloseException()
 .. autoexception:: MissingPrivilegedIntents()
+
+Discord Models
+--------------
+
+BaseModel
+~~~~~~~~~
+
+.. autoclass:: BaseModel()
+    :members:
+
+
+User
+~~~~
+
+.. autoclass:: User()
+    :inherited-members:
+    :members:
+
+ClientUser
+~~~~~~~~~~
+
+.. autoclass:: ClientUser()
+    :inherited-members:
+    :members:
+
