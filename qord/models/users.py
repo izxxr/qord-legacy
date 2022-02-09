@@ -59,6 +59,8 @@ class User(BaseModel):
         The user's chosen default language.
     flags: :class:`UserFlags`
         The user's flags.
+    public_flags: :class:`UserFlags`
+        The user's public flags.
     premium_type: :class:`builtins.int`
         The user's premium subscription type integer value. See :class:`PremiumType` for
         more information about all values meaning.
@@ -77,7 +79,8 @@ class User(BaseModel):
         banner: typing.Optional[str]
 
     __slots__ = ("_client", "id", "name", "discriminator", "bot", "accent_color",
-                "premium_type", "system",  "locale", "avatar", "banner", "flags")
+                "premium_type", "system",  "locale", "avatar", "banner", "flags",
+                "public_flags")
 
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
         self._client = client
@@ -89,6 +92,7 @@ class User(BaseModel):
         self.discriminator = data["discriminator"]
         self.bot = data.get("bot", False)
         self.flags = UserFlags(data.get("flags", 0))
+        self.public_flags = UserFlags(data.get("public_flags", 0))
         self.accent_color = data.get("accent_color", 0)
         self.premium_type = data.get("premium_type", 0)
         self.system = data.get("system", False)
