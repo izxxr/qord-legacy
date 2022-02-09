@@ -7,8 +7,7 @@ A high level library for building Discord bots.
 
 - **What is this?**
 
-  This is yet another library for Discord Bots API. This is not a finished project and is currently in it's development phase. As it may
-  sound, This is definitely not a personal project.
+  This is yet another library for Discord Bots API. This is not a finished project and is currently in it's development phase.
 
 - **Why create another library?**
 
