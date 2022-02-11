@@ -238,6 +238,9 @@ class Shard:
     async def _handle_recv(self) -> typing.Any:
         packet = await self._receive()
 
+        if not packet:
+            return
+
         if isinstance(packet, int):
             # Close code is sent.
             if not packet in _UNHANDLEABLE_CODES:
