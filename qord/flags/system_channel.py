@@ -28,14 +28,14 @@ from qord.flags.base import Flags
 class SystemChannelFlags(Flags):
     r""":class:`Flags` subclass that details the flags for a guild's system channel."""
 
-    SUPPRESS_JOIN_NOTIFICATIONS = 1 << 0
+    suppress_join_notifications = 1 << 0
     r"""Whether system channel will not receive a random message when a member joins."""
 
-    SUPPRESS_PREMIUM_SUBSCRIPTIONS = 1 << 1
+    suppress_premium_subscriptions = 1 << 1
     r"""Whether system channel will not receive a notification when someone boosts the guild."""
 
-    SUPPRESS_GUILD_REMINDER_NOTIFICATIONS = 1 << 2
+    suppress_guild_reminders = 1 << 2
     r"""Whether system channel will not receive tips for setting up guilds."""
 
-    SUPPRESS_JOIN_NOTIFICATION_REPLIES = 1 << 3
+    suppress_join_notification_replies = 1 << 3
     r"""Whether messages sent on member join in system channel allow replying with stickers."""
