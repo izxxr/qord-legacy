@@ -25,7 +25,7 @@ from qord.core.shard import Shard
 
 from qord.models.base import BaseModel
 from qord.flags.system_channel import SystemChannelFlags
-from qord._helpers import get_optional_snowflake, create_cdn_url
+from qord._helpers import get_optional_snowflake, create_cdn_url, compute_shard_id
 
 from datetime import datetime
 import typing
@@ -287,7 +287,9 @@ class Guild(BaseModel):
         :class:`int`
 
         """
-        return (self.id >> 22) % self._client.shards_count # type: ignore
+        shards_count = self._client.shards_count
+        assert shards_count is not None, "No shards count is available yet."
+        return compute_shard_id(guild_id=self.id, shards_count=shards_count)
 
     @property
     def shard(self) -> typing.Optional[Shard]:

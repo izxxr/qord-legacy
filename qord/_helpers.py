@@ -73,6 +73,10 @@ def get_optional_snowflake(data: typing.Dict[str, typing.Any], key: str) -> typi
     except (KeyError, ValueError, TypeError):
         return None
 
+def compute_shard_id(guild_id: int, shards_count: int) -> int:
+    r"""Computes shard ID for the provided guild ID with respect to given shards count."""
+    return (guild_id >> 22) % shards_count
+
 def get_image_data(img_bytes: bytes) -> str:
     r"""Gets Data URI format for provided image bytes."""
 
