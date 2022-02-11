@@ -7,8 +7,20 @@ VERSION = "0.2.0"
 GITHUB = "https://github.com/nerdguyahmad/qord"
 DOCUMENTATION = "https://qord.readthedocs.io"
 LICENSE = "MIT"
-REQUIREMENTS = []
-PACKAGES = ["qord", "qord.core", "qord.events", "qord.flags"]
+
+with open("requirements.txt", "r") as f:
+    REQUIREMENTS = f.readlines()
+
+    while "\n" in REQUIREMENTS:
+        REQUIREMENTS.remove("\n")
+
+PACKAGES = [
+    "qord",
+    "qord.core",
+    "qord.events",
+    "qord.flags",
+    "qord.models",
+]
 
 setup(
     name="qord",
