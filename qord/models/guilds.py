@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 from __future__ import annotations
+from qord.core.shard import Shard
 
 from qord.models.base import BaseModel
 from qord.flags.system_channel import SystemChannelFlags
@@ -267,6 +268,40 @@ class Guild(BaseModel):
             return None
 
         return f"https://discord.gg/{self.vanity_invite_code}"
+
+    @property
+    def shard_id(self) -> int:
+        r"""The *computed* shard ID for this guild.
+
+        Note that the value returned by this property is just computed
+        using the guild ID and total shards count of the bound client and
+        the actual shard with that ID may not exist in the client's cache.
+        This is generally the case for guilds that are generally not cached
+        by the client.
+
+        This is just calculated on the basis of ID of this guild and total
+        shards count of the associated client.
+
+        Returns
+        -------
+        :class:`int`
+
+        """
+        return (self.id >> 22) % self._client.shards_count # type: ignore
+
+    @property
+    def shard(self) -> typing.Optional[Shard]:
+        r"""The shard associated to this guild.
+
+        This can be ``None`` in some cases, See :attr:`.shard_id` documentation
+        for more information. This is equivalent to calling :meth:`Client.get_shard`
+        using the :attr:`.shard_id`.
+
+        Returns
+        -------
+        Optional[:class:`Shard`]
+        """
+        return self._client.get_shard(self.shard_id)
 
     def icon_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
         r"""Returns the icon URL for this guild.
