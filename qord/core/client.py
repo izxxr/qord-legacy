@@ -28,6 +28,7 @@ from qord.core.shard import Shard
 from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
 from qord.models.users import User
+from qord.models.guilds import Guild
 
 import asyncio
 import logging
@@ -523,3 +524,44 @@ class Client:
         """
         data = await self._rest.get_user(user_id)
         return User(data, client=self)
+
+    async def fetch_guild(self, guild_id: int, /) -> Guild:
+        r"""Fetches a :class:`Guild` by it's ID via REST API.
+
+        Parameters
+        ----------
+        guild_id: :class:`builtins.int`
+            The ID of guild to fetch.
+
+        Returns
+        -------
+        :class:`Guild`
+            The requested guild.
+
+        Raises
+        ------
+        HTTPNotFound
+            The guild of provided ID does not exist.
+        HTTPException
+            HTTP request failed.
+        """
+        data = await self._rest.get_guild(guild_id)
+        return Guild(data, client=self)
+
+    async def leave_guild(self, guild_id: int, /) -> None:
+        r"""Leaves a guild by it's ID.
+
+        Parameters
+        ----------
+        guild_id: :class:`builtins.int`
+            The ID of guild to leave.
+
+        Raises
+        ------
+        HTTPNotFound
+            The guild of provided ID does not exist or user is already
+            not part of such guild.
+        HTTPException
+            HTTP request failed.
+        """
+        await self._rest.leave_guild(guild_id)

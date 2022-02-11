@@ -135,9 +135,58 @@ class Guild(BaseModel):
         The NSFW level value of this guild.  See :class:`NSFWLevel` for more information
         about this.
     """
+    if typing.TYPE_CHECKING:
+        # These are here to avoid cluttering in main code.
+        id: int
+        name: str
+        afk_timeout: int
+        premium_subscription_count: int
+        preferred_locale: str
+        widget_enabled: bool
+        large: bool
+        unavailable: bool
+        premium_progress_bar_enabled: bool
+        features: typing.List[str]
+        system_channel_flags: SystemChannelFlags
+        verification_level: int
+        nsfw_level: int
+        explicit_content_filter: int
+        mfa_level: int
+        notification_level: int
+        premium_tier: int
+        member_count: typing.Optional[int]
+        max_presences: typing.Optional[int]
+        max_members: typing.Optional[int]
+        max_video_channel_users: typing.Optional[int]
+        approximate_member_count: typing.Optional[int]
+        approximate_presence_count: typing.Optional[int]
+        vanity_invite_code: typing.Optional[str]
+        description: typing.Optional[str]
+        joined_at: typing.Optional[datetime]
+        icon: typing.Optional[str]
+        splash: typing.Optional[str]
+        discovery_splash: typing.Optional[str]
+        banner: typing.Optional[str]
+        owner_id: typing.Optional[int]
+        afk_channel_id: typing.Optional[int]
+        application_id: typing.Optional[int]
+        public_updates_channel_id: typing.Optional[int]
+        rules_channel_id: typing.Optional[int]
+        widget_channel_id: typing.Optional[int]
+        system_channel_id: typing.Optional[int]
+
+    __slots__ = ("_client", "_rest", "id", "name", "afk_timeout", "premium_subscription_count",
+                "preferred_locale", "widget_enabled", "large", "unavailable", "system_channel_flags",
+                "premium_progress_bar_enabled", "features", "verification_level", "notification_level",
+                "mfa_level", "premium_tier", "nsfw_level", "member_count", "max_presences", "max_members",
+                "max_video_channel_users", "approximate_member_count", "approximate_presence_count",
+                "vanity_invite_code", "description", "joined_at", "icon", "splash", "discovery_splash",
+                "banner", "owner_id", "afk_channel_id", "widget_channel_id", "application_id", "system_channel_id",
+                "rules_channel_id", "public_updates_channel_id")
 
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
         self._client = client
+        self._rest = client._rest
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
@@ -170,6 +219,14 @@ class Guild(BaseModel):
         self.features = data.get("features", [])
         self.system_channel_flags = SystemChannelFlags(data.get("system_channel_flags", 0))
 
+        # Enums
+        self.verification_level = data.get("verification_level", 0)
+        self.notification_level = data.get("default_message_notifications", 0)
+        self.explicit_content_filter = data.get("explicit_content_filter", 0)
+        self.mfa_level = data.get("mfa_level", 0)
+        self.premium_tier = data.get("premium_tier", 0)
+        self.nsfw_level = data.get("nsfw_level", 0)
+
         # Nullable attributes
         self.member_count = data.get("member_count")
         self.max_presences = data.get("max_presences")
@@ -196,14 +253,6 @@ class Guild(BaseModel):
         self.system_channel_id = get_optional_snowflake(data, "system_channel_id")
         self.rules_channel_id = get_optional_snowflake(data, "rules_channel_id")
         self.public_updates_channel_id = get_optional_snowflake(data, "public_updates_channel_id")
-
-        # Enums
-        self.verification_level = data.get("verification_level", 0)
-        self.notification_level = data.get("default_message_notifications", 0)
-        self.explicit_content_filter = data.get("explicit_content_filter", 0)
-        self.mfa_level = data.get("mfa_level", 0)
-        self.premium_tier = data.get("premium_tier", 0)
-        self.nsfw_level = data.get("nsfw_level", 0)
 
     @property
     def vanity_invite_url(self) -> typing.Optional[str]:
@@ -375,3 +424,17 @@ class Guild(BaseModel):
             return False
 
         return self.icon.startswith("a_")
+
+    # API calls
+
+    async def leave(self) -> None:
+        r"""Leaves the guild.
+
+        Raises
+        ------
+        HTTPNotFound
+            The bot is already not part of this guild.
+        HTTPException
+            HTTP request failed.
+        """
+        await self._rest.leave_guild(guild_id=self.id)
