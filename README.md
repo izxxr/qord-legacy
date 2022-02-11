@@ -1,7 +1,7 @@
 # Qord
 A high level library for building Discord bots.
 
-**🚧 This library is currently in development.**
+**This library is currently in development.**
 
 ## Questions that you are having
 
@@ -15,19 +15,19 @@ A high level library for building Discord bots.
   is definitely not a personal project, See below.
 
 - **Is this going to be a publicly available library?**
-  
+
   Yes, It will be a public library but currently it is not finished and not in state of being released publicly. You can
-  still install a very unstable version of this library (`pip install qord`) and hack it (Instructions in [CONTRIBUTING](CONTRIBUTING.MD#usage) file).
-  
+  still install a very unstable version of this library (`pip install qord`) and hack it (Instructions in [CONTRIBUTING](https://github.com/nerdguyahmad/qord/blob/master/CONTRIBUTING.MD#usage) file).
+
 - **Can I contribute?**
-  
-  That would be much appreciated! See [Contributing Guidelines](CONTRIBUTING.MD) for more information and to get yourself
+
+  That would be much appreciated! See [Contributing Guidelines](https://github.com/nerdguyahmad/qord/blob/master/CONTRIBUTING.MD) for more information and to get yourself
   familiar with the project.
-  
+
 - **When will this be finished?**
-  
+
   No idea yet; but soon:tm:
-  
+
 - **Documentation?**
 
   Yes. https://qord.readthedocs.io
