@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 from qord.models.base import BaseModel
+from qord.flags.system_channel import SystemChannelFlags
 from qord._helpers import get_optional_snowflake, create_cdn_url
 
 from datetime import datetime
@@ -61,6 +62,8 @@ class Guild(BaseModel):
         list of valid features with meanings can be found here:
 
         https://discord.com/developers/docs/resources/guild#guild-object-guild-features
+    system_channel_flags: :class:`SystemChannelFlags`
+        The system channel flags for this guild.
     member_count: typing.Optional[:class:`builtins.int`]
         The member count of this guild.
     max_presences: typing.Optional[:class:`builtins.int`]
@@ -144,7 +147,6 @@ class Guild(BaseModel):
         # - permissions
         # - roles
         # - emojis
-        # - system_channel_flags
         # - voice_states
         # - members
         # - channels
@@ -166,6 +168,7 @@ class Guild(BaseModel):
         self.unavailable = data.get("unavailable", False)
         self.premium_progress_bar_enabled = data.get("premium_progress_bar_enabled", False)
         self.features = data.get("features", [])
+        self.system_channel_flags = SystemChannelFlags(data.get("system_channel_flags", 0))
 
         # Nullable attributes
         self.member_count = data.get("member_count")

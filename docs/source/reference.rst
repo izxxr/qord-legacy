@@ -145,6 +145,12 @@ UserFlags
 .. autoclass:: UserFlags()
     :members:
 
+SystemChannelFlags
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SystemChannelFlags()
+    :members:
+
 Exceptions
 ----------
 
