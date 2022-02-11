@@ -522,13 +522,16 @@ class Client:
         data = await self._rest.get_user(user_id)
         return User(data, client=self)
 
-    async def fetch_guild(self, guild_id: int, /) -> Guild:
+    async def fetch_guild(self, guild_id: int, /, *, with_counts: bool = False) -> Guild:
         r"""Fetches a :class:`Guild` by it's ID via REST API.
 
         Parameters
         ----------
         guild_id: :class:`builtins.int`
             The ID of guild to fetch.
+        with_counts: :class:`builtins.bool`
+            Whether to also include :attr:`~Guild.approximate_member_count` and
+            :attr:`~Guild.approximate_presence_count` in the returned guild.
 
         Returns
         -------
@@ -542,7 +545,7 @@ class Client:
         HTTPException
             HTTP request failed.
         """
-        data = await self._rest.get_guild(guild_id)
+        data = await self._rest.get_guild(guild_id, with_counts=with_counts)
         return Guild(data, client=self)
 
     async def leave_guild(self, guild_id: int, /) -> None:

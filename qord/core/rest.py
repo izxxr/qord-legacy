@@ -167,9 +167,10 @@ class RestClient:
 
     # ---- Guilds ----
 
-    async def get_guild(self, guild_id: int):
+    async def get_guild(self, guild_id: int, with_counts: bool = False):
+        params = {"with_counts": int(with_counts)}
         route = Route("GET", "/guilds/{guild_id}", guild_id=guild_id)
-        data = await self.request(route)
+        data = await self.request(route, params=params)
         return data
 
     async def leave_guild(self, guild_id: int):

@@ -183,7 +183,7 @@ class Guild(BaseModel):
                 "max_video_channel_users", "approximate_member_count", "approximate_presence_count",
                 "vanity_invite_code", "description", "joined_at", "icon", "splash", "discovery_splash",
                 "banner", "owner_id", "afk_channel_id", "widget_channel_id", "application_id", "system_channel_id",
-                "rules_channel_id", "public_updates_channel_id")
+                "rules_channel_id", "public_updates_channel_id", "explicit_content_filter",)
 
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
         self._client = client
