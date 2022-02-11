@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 from __future__ import annotations
-from qord.core.shard import Shard
 
 from qord.models.base import BaseModel
 from qord.flags.system_channel import SystemChannelFlags
@@ -31,6 +30,7 @@ from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.core.shard import Shard
     from qord.core.client import Client
 
 class Guild(BaseModel):
