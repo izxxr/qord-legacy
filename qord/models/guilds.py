@@ -276,16 +276,11 @@ class Guild(BaseModel):
         Note that the value returned by this property is just computed
         using the guild ID and total shards count of the bound client and
         the actual shard with that ID may not exist in the client's cache.
-        This is generally the case for guilds that are generally not cached
-        by the client.
-
-        This is just calculated on the basis of ID of this guild and total
-        shards count of the associated client.
+        This is usually the case for guilds that are not cached by the client.
 
         Returns
         -------
         :class:`int`
-
         """
         shards_count = self._client.shards_count
         assert shards_count is not None, "No shards count is available yet."
