@@ -127,7 +127,7 @@ class Client:
         self._shards_count: typing.Optional[int] = shards_count
         self._max_concurrency: typing.Optional[int] = None
         self._gateway_url: typing.Optional[str] = None
-        self._shards: typing.List[Shard] = []
+        self._shards: typing.Dict[int, Shard] = {}
 
         # Following are either after connection
         self._user: typing.Optional[ClientUser] = None
@@ -156,7 +156,7 @@ class Client:
         -------
         List[:class:`Shard`]
         """
-        return self._shards.copy()
+        return list(self._shards.values())
 
     @property
     def latency(self) -> float:
@@ -169,7 +169,7 @@ class Client:
         -------
         :class:`builtins.float`
         """
-        latencies = [shard.latency for shard in self._shards]
+        latencies = [shard.latency for shard in self._shards.values()]
         return sum(latencies) / len(self._shards)
 
     @property
@@ -346,10 +346,10 @@ class Client:
             self._shards_count = gateway["shards"]
 
         # spawn the shards
-        self._shards = [
-            Shard(id=shard_id, client=self)
+        self._shards = {
+            shard_id: Shard(id=shard_id, client=self)
             for shard_id in range(self._shards_count) # type: ignore
-        ]
+        }
         self._setup = True
 
     async def launch(self) -> None:
@@ -367,7 +367,7 @@ class Client:
 
         loop = asyncio.get_running_loop()
 
-        shards = self._shards.copy()
+        shards = self.shards
 
         _LOGGER.info(
             "Launching %s shards (%s shard%s concurrently per 5 seconds)",
@@ -433,7 +433,7 @@ class Client:
             If set to ``False``, Client setup will not be closed and there
             will be no need of calling :meth:`.setup` again.
         """
-        for shard in self._shards:
+        for shard in self._shards.values():
             await shard._close(code=1000, _clean=True)
 
         await self._rest.close()
@@ -495,10 +495,7 @@ class Client:
             The resolved shard for the provided ID. If no shard exists
             with the provided ID, None is returned.
         """
-        try:
-            return self._shards[shard_id]
-        except IndexError:
-            return None
+        return self._shards.get(shard_id)
 
     # API calls
 
