@@ -27,6 +27,7 @@ from qord.core.rest import RestClient
 from qord.core.shard import Shard
 from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
+from qord.models.users import User
 
 import asyncio
 import logging
@@ -497,3 +498,28 @@ class Client:
             return self._shards[shard_id]
         except IndexError:
             return None
+
+    # API calls
+
+    async def fetch_user(self, user_id: int, /) -> User:
+        r"""Fetches a :class:`User` by it's ID via REST API.
+
+        Parameters
+        ----------
+        user_id: :class:`builtins.int`
+            The ID of user to fetch.
+
+        Returns
+        -------
+        :class:`User`
+            The requested user.
+
+        Raises
+        ------
+        HTTPNotFound
+            The user of provided ID does not exist.
+        HTTPException
+            HTTP request failed.
+        """
+        data = await self._rest.get_user(user_id)
+        return User(data, client=self)
