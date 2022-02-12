@@ -109,3 +109,103 @@ class ImageExtension:
 
     GIF = "gif"
     r"""GIF extension. This is only supported for animated image resources."""
+
+class VerificationLevel:
+    r"""An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.verification_level`
+
+    Verification level defines the requirements for a user account to be member of the guild.
+    """
+
+    NONE = 0
+    r"""No verification level set. Unrestricted."""
+
+    LOW = 1
+    r"""Users must have verified email bound to their account."""
+
+    MEDIUM = 2
+    r"""Users must also be registered to Discord for more then 5 minutes."""
+
+    HIGH = 3
+    r"""Users must also be part of the guild for more then 10 minutes."""
+
+    VERY_HIGH = 4
+    r"""Users must also have a verified phone number bound to their account."""
+
+class NotificationLevel:
+    r"""An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.notification_level`
+
+    Notification level defines the levels of notifications that the members of the
+    guilds will receive upon messages.
+    """
+
+    ALL_MESSAGES = 0
+    r"""Members will receive notifications for every single message sent in the guild."""
+
+    ONLY_MENTIONS = 1
+    r"""Members will receive notifications for only messages that mentions them."""
+
+class ExplicitContentFilter:
+    r"""An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.explicit_content_filter`
+
+    Explicit content filter defines the explicit content checks and filters done on the files
+    sent in the guild messages.
+    """
+
+    DISABLED = 0
+    r"""No scanning on sent files will be done."""
+
+    MEMBERS_WITHOUT_ROLES = 1
+    r"""Scanning will be done for messages sent by members that don't have any role assigned."""
+
+    ALL_MEMBERS = 2
+    r"""Scanning will be done for all messages."""
+
+class NSFWLevel:
+    r"""An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.nsfw_level`
+
+    NSFW level defines whether the guild is marked as Not Safe For Work (NSFW) or
+    age restricted.
+    """
+
+    DEFAULT = 0
+    r"""No explicit NSFW level is set."""
+
+    EXPLICIT = 1
+    r"""Guild is marked as explicit."""
+
+    SAFE = 2
+    r"""Guild is marked as Safe For Work (SFW)."""
+
+    AGE_RESTRICTED = 3
+    r"""Guild is marked as age restricted."""
+
+class PremiumTier:
+    r"""An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.premium_tier`
+
+    Premium tier defines the server boosts level of the guild.
+    """
+
+    NONE = 0
+    r"""No boost level unlocked by the guild yet."""
+
+    TIER_1 = 1
+    r"""Guild has unlocked boost level 1 perks."""
+
+    TIER_2 = 2
+    r"""Guild has unlocked boost level 2 perks."""
+
+    TIER_3 = 3
+    r"""Guild has unlocked boost level 3 perks."""
+
+class MFALevel:
+    r"""An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.mfa_level`
+
+    MFA level defines the 2 factor authentication requirement for the guild moderators
+    for performing moderative actions.
+    """
+
+    DISABLED = 0
+    r"""2FA is not required for performing moderative actions."""
+
+    ELEVATED = 1
+    r"""2FA is required for performing moderative actions.."""

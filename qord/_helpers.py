@@ -24,9 +24,21 @@ r"""*Non-public* internal utilities."""
 
 from __future__ import annotations
 
+from base64 import b64encode
 import typing
 
 BASE_CDN_URL = "https://cdn.discordapp.com"
+
+class _Empty:
+    r"""A sentinel class for optional values in HTTPs requests."""
+
+    def __eq__(self, o: object) -> bool:
+        return False
+
+    def __repr__(self) -> str:
+        return "..."
+
+EMPTY: typing.Any = _Empty()
 
 
 def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typing.List[str] = None):
@@ -53,3 +65,30 @@ def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typi
         return f"{ret}?size={size}"
 
     return ret
+
+def get_optional_snowflake(data: typing.Dict[str, typing.Any], key: str) -> typing.Optional[int]:
+    r"""Helper to obtain optional or nullable snowflakes from a raw payload."""
+    try:
+        return int(data[key])
+    except (KeyError, ValueError, TypeError):
+        return None
+
+def compute_shard_id(guild_id: int, shards_count: int) -> int:
+    r"""Computes shard ID for the provided guild ID with respect to given shards count."""
+    return (guild_id >> 22) % shards_count
+
+def get_image_data(img_bytes: bytes) -> str:
+    r"""Gets Data URI format for provided image bytes."""
+
+    if img_bytes.startswith(b"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"):
+        content_type = "image/png"
+    elif img_bytes[0:3] == b"\xff\xd8\xff" or img_bytes[6:10] in (b"JFIF", b"Exif"):
+        content_type = "image/jpeg"
+    elif img_bytes.startswith((b"\x47\x49\x46\x38\x37\x61", b"\x47\x49\x46\x38\x39\x61")):
+        content_type = "image/gif"
+    elif img_bytes.startswith(b"RIFF") and img_bytes[8:12] == b"WEBP":
+        content_type = "image/webp"
+    else:
+        raise TypeError("Invalid image type was provided.")
+
+    return f"data:{content_type};base64,{b64encode(img_bytes).decode('ascii')}"

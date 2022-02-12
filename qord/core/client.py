@@ -27,6 +27,8 @@ from qord.core.rest import RestClient
 from qord.core.shard import Shard
 from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
+from qord.models.users import User
+from qord.models.guilds import Guild
 
 import asyncio
 import logging
@@ -125,7 +127,7 @@ class Client:
         self._shards_count: typing.Optional[int] = shards_count
         self._max_concurrency: typing.Optional[int] = None
         self._gateway_url: typing.Optional[str] = None
-        self._shards: typing.List[Shard] = []
+        self._shards: typing.Dict[int, Shard] = {}
 
         # Following are either after connection
         self._user: typing.Optional[ClientUser] = None
@@ -154,7 +156,7 @@ class Client:
         -------
         List[:class:`Shard`]
         """
-        return self._shards.copy()
+        return list(self._shards.values())
 
     @property
     def latency(self) -> float:
@@ -167,7 +169,7 @@ class Client:
         -------
         :class:`builtins.float`
         """
-        latencies = [shard.latency for shard in self._shards]
+        latencies = [shard.latency for shard in self._shards.values()]
         return sum(latencies) / len(self._shards)
 
     @property
@@ -344,10 +346,10 @@ class Client:
             self._shards_count = gateway["shards"]
 
         # spawn the shards
-        self._shards = [
-            Shard(id=shard_id, client=self)
+        self._shards = {
+            shard_id: Shard(id=shard_id, client=self)
             for shard_id in range(self._shards_count) # type: ignore
-        ]
+        }
         self._setup = True
 
     async def launch(self) -> None:
@@ -365,7 +367,7 @@ class Client:
 
         loop = asyncio.get_running_loop()
 
-        shards = self._shards.copy()
+        shards = self.shards
 
         _LOGGER.info(
             "Launching %s shards (%s shard%s concurrently per 5 seconds)",
@@ -431,7 +433,7 @@ class Client:
             If set to ``False``, Client setup will not be closed and there
             will be no need of calling :meth:`.setup` again.
         """
-        for shard in self._shards:
+        for shard in self._shards.values():
             await shard._close(code=1000, _clean=True)
 
         await self._rest.close()
@@ -493,7 +495,73 @@ class Client:
             The resolved shard for the provided ID. If no shard exists
             with the provided ID, None is returned.
         """
-        try:
-            return self._shards[shard_id]
-        except IndexError:
-            return None
+        return self._shards.get(shard_id)
+
+    # API calls
+
+    async def fetch_user(self, user_id: int, /) -> User:
+        r"""Fetches a :class:`User` by it's ID via REST API.
+
+        Parameters
+        ----------
+        user_id: :class:`builtins.int`
+            The ID of user to fetch.
+
+        Returns
+        -------
+        :class:`User`
+            The requested user.
+
+        Raises
+        ------
+        HTTPNotFound
+            The user of provided ID does not exist.
+        HTTPException
+            HTTP request failed.
+        """
+        data = await self._rest.get_user(user_id)
+        return User(data, client=self)
+
+    async def fetch_guild(self, guild_id: int, /, *, with_counts: bool = False) -> Guild:
+        r"""Fetches a :class:`Guild` by it's ID via REST API.
+
+        Parameters
+        ----------
+        guild_id: :class:`builtins.int`
+            The ID of guild to fetch.
+        with_counts: :class:`builtins.bool`
+            Whether to also include :attr:`~Guild.approximate_member_count` and
+            :attr:`~Guild.approximate_presence_count` in the returned guild.
+
+        Returns
+        -------
+        :class:`Guild`
+            The requested guild.
+
+        Raises
+        ------
+        HTTPNotFound
+            The guild of provided ID does not exist.
+        HTTPException
+            HTTP request failed.
+        """
+        data = await self._rest.get_guild(guild_id, with_counts=with_counts)
+        return Guild(data, client=self)
+
+    async def leave_guild(self, guild_id: int, /) -> None:
+        r"""Leaves a guild by it's ID.
+
+        Parameters
+        ----------
+        guild_id: :class:`builtins.int`
+            The ID of guild to leave.
+
+        Raises
+        ------
+        HTTPNotFound
+            The guild of provided ID does not exist or user is already
+            not part of such guild.
+        HTTPException
+            HTTP request failed.
+        """
+        await self._rest.leave_guild(guild_id)

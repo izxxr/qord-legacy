@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
-from qord._helpers import create_cdn_url
+from qord._helpers import create_cdn_url, get_image_data, EMPTY
 
 import typing
 
@@ -214,7 +214,7 @@ class User(BaseModel):
         if self.avatar is None:
             return False
 
-        return  self.avatar.startswith("a_")
+        return self.avatar.startswith("a_")
 
     def is_banner_animated(self) -> bool:
         r"""Indicates whether the user has animated banner.
@@ -228,7 +228,7 @@ class User(BaseModel):
         if self.banner is None:
             return False
 
-        return  self.banner.startswith("a_")
+        return self.banner.startswith("a_")
 
 
 class ClientUser(User):
@@ -260,3 +260,35 @@ class ClientUser(User):
         self.email = data.get("email")
         self.verified = data.get("verified")
         self.mfa_enabled = data.get("mfa_enabled", False)
+
+    async def edit(self, *, name: str = None, avatar: typing.Optional[bytes] = EMPTY) -> None:
+        r"""Edits the client user.
+
+        Parameters
+        ----------
+        name: :class:`builtins.int`
+            The new name of user.
+        avatar: typing.Optional[:class:`builtins.int`]
+            The new avatar of user. ``None`` could be used to denote
+            the removal of avatar.
+
+        Raises
+        ------
+        HTTPBadRequest
+            The request body is not valid.
+        HTTPException
+            The editing failed.
+        """
+        payload = {}
+
+        if name is not None:
+            payload["username"] = name
+        if avatar is not EMPTY:
+            if avatar is None:
+                payload["avatar"] = None
+            else:
+                payload["avatar"] = get_image_data(avatar)
+
+        if payload:
+            data = await self._client._rest.edit_current_user(payload=payload)
+            self._update_with_data(data)

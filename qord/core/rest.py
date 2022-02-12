@@ -147,3 +147,32 @@ class RestClient:
         route = Route("GET", "/gateway/bot", requires_auth=True)
         data = await self.request(route)
         return data
+
+    # ----- Users -----
+
+    async def get_current_user(self):
+        route = Route("GET", "/users/@me")
+        data = await self.request(route)
+        return data
+
+    async def edit_current_user(self, payload: typing.Dict[str, typing.Any]):
+        route = Route("PATCH", "/users/@me")
+        data = await self.request(route, json=payload)
+        return data
+
+    async def get_user(self, user_id: int):
+        route = Route("GET", "/users/{user_id}", user_id=user_id)
+        data = await self.request(route)
+        return data
+
+    # ---- Guilds ----
+
+    async def get_guild(self, guild_id: int, with_counts: bool = False):
+        params = {"with_counts": int(with_counts)}
+        route = Route("GET", "/guilds/{guild_id}", guild_id=guild_id)
+        data = await self.request(route, params=params)
+        return data
+
+    async def leave_guild(self, guild_id: int):
+        route = Route("DELETE", "/users/@me/guilds/{guild_id}", guild_id=guild_id)
+        await self.request(route)
