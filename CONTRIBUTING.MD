@@ -11,7 +11,7 @@ This library is fairly new and does not implement a feature rich API yet, So in 
 hacking with the internal components of the library. 
 
 There is no front facing documentation for internal API but don't fret! You don't have to rely on reading the source code, 
-Feel free to ping me (nerdguyahmad#3195) in our [Discord server](https://discord.gg/sRmvezKwD4) and ask me questions.
+Feel free to ping me (nerdguyahmad#3195) in our [Discord server](https://discord.gg/nE9cGtzayA) and ask me questions.
 
 Before usage, Install this library using pip.
 ```
@@ -83,7 +83,7 @@ Again, for summarizing the confusing aspects:
   - You should not put the channel ID directly in path. Always use keyword parameters.
 - `client._rest.request()` performs the actual HTTPs request on the route. `json` is the JSON body of the request.
 
-Note that this might seem confusing at first sight but it's not, Feel free to ask your questions in the [Discord server](https://discord.gg/sRmvezKwD4).
+Note that this might seem confusing at first sight but it's not, Feel free to ask your questions in the [Discord server](https://discord.gg/nE9cGtzayA).
 
 ### Gateway Events
 As described before, gateway events are received and handled using the event mentioned and used above.
@@ -100,11 +100,11 @@ You can contribute in three ways.
 
 - Reporting bugs or suggesting features.
 - Directly contributing to the codebase.
-- Sending a "hi" in our [Discord server](https://discord.gg/sRmvezKwD4). :P
+- Sending a "hi" in our [Discord server](https://discord.gg/nE9cGtzayA) :P
 
 ### Reporting bugs or suggesting features
 You can report the bugs that you found and suggest more features by using [GitHub issues](https://github.com/nerdguyahmad/qord/issues). Simply create a new issue, Describe
-your feature or bug and open the issue. Make sure to properly describe the bug. Again, if you are confused about your issue, Ask in the [Discord server](https://discord.gg/sRmvezKwD4).
+your feature or bug and open the issue. Make sure to properly describe the bug. Again, if you are confused about your issue, Ask in the [Discord server](https://discord.gg/nE9cGtzayA)
 
 ### Directly contributing to the codebase
 Use [GitHub pull request](https://github.com/nerdguyahmad/qord/pulls) for making code contributions. We assume you already know the basics about how pulls and forks
@@ -117,5 +117,5 @@ work on GitHub. However if this is your first time, don't fret! There are severa
 - Open the pull request.
 
 ### Sending a "hi" in our Discord server.
-Want to support this library and stay tuned about super secret updates? [Join the Discord server!](https://discord.gg/sRmvezKwD4). You should also ask your questions
+Want to support this library and stay tuned about super secret updates? [Join the Discord server!](https://discord.gg/nE9cGtzayA). You should also ask your questions
 about the library there.
