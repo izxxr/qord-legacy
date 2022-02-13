@@ -94,6 +94,11 @@ class Client:
         The number of seconds to wait for a shard to connect before timing out.
         Defaults to ``5``. Greater the integer, The longer it will wait and if
         a shard raises an error, It will take longer to raise it.
+    ready_timeout: :class:`builtins.float`
+        The number of seconds to wait for lazy loading guilds cache initially before
+        dispatching the ready event. Defaults to ``2``. Note that setting a very small
+        timeout would cause ready event to fire with incomplete cache or setting
+        too large value will increase the startup time.
     intents: :class:`Intents`
         The intents for this client. By default, Only unprivileged intents are
         enabled using :meth:`Intents.unprivileged` method.
@@ -111,6 +116,7 @@ class Client:
         max_retries: int = 5,
         shards_count: int = None,
         connect_timeout: float = 5.0,
+        ready_timeout: float = 2.0,
         intents: Intents = None,
         cache: Cache = None,
     ) -> None:
@@ -126,7 +132,7 @@ class Client:
             max_retries=max_retries,
         )
         self._cache: Cache = cache or DefaultCache()
-        self._dispatch: DispatchHandler = DispatchHandler(client=self)
+        self._dispatch: DispatchHandler = DispatchHandler(client=self, ready_timeout=ready_timeout)
         self._event_listeners = {}
         self._setup = False
         self._cache.clear()
@@ -158,6 +164,10 @@ class Client:
     @property
     def shards_count(self) -> typing.Optional[int]:
         return self._shards_count
+
+    @property
+    def ready_timeout(self) -> float:
+        return self._dispatch.ready_timeout
 
     @property
     def shards(self) -> typing.List[Shard]:

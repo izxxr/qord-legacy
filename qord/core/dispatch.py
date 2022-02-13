@@ -23,10 +23,12 @@
 from __future__ import annotations
 
 from qord.models.users import ClientUser
-from qord.enums import GatewayEvent
+from qord.models.guilds import Guild
 from qord import events
 
+import asyncio
 import inspect
+import logging
 import typing
 
 if typing.TYPE_CHECKING:
@@ -45,10 +47,12 @@ def event_dispatch_handler(name: str):
 class DispatchHandler:
     r"""Internal class that handles gateway events dispatches."""
 
-    def __init__(self, client: Client) -> None:
+    def __init__(self, client: Client, ready_timeout: float = 2.0) -> None:
         self.client = client
+        self.ready_timeout = ready_timeout
         self.cache = client._cache
         self.invoke = client.invoke_event
+        self._guild_create_waiter = None
         self._update_handlers()
 
     def _update_handlers(self):
@@ -72,12 +76,42 @@ class DispatchHandler:
         else:
             await handler(shard, data)
 
+    async def _prepare_shard_ready(self, event: events.ShardReady):
+        # Wait for guilds cache to fill before invoking
+        # ready event by setting a timeout on the GUILD_CREATE events.
+
+        timeout = self.ready_timeout
+
+        while True:
+            self._guild_create_waiter = asyncio.Future()
+
+            try:
+                await asyncio.wait_for(self._guild_create_waiter, timeout=timeout)
+            except asyncio.TimeoutError:
+                break
+
+        self._guild_create_waiter = None
+        self.invoke(event.event_name, event)
+
     @event_dispatch_handler("READY")
     async def on_ready(self, shard: Shard, data: typing.Any) -> None:
-        event = events.ShardReady(shard=shard)
-
         user = ClientUser(data["user"], client=self.client)
         self.cache.add_user(user)
         self.client._user = user
 
-        self.invoke(event.event_name, event)
+        shard._log(logging.INFO, "Lazy loading cache for ~%s guilds in background." % len(data["guilds"]))
+        event = events.ShardReady(shard=shard)
+        asyncio.create_task(self._prepare_shard_ready(event))
+
+    @event_dispatch_handler("GUILD_CREATE")
+    async def on_guild_create(self, shard: Shard, data: typing.Any) -> None:
+        guild = Guild(data, client=self.client, enable_cache=True)
+
+        if not guild.unavailable:
+            self.cache.add_guild(guild)
+
+        waiter = self._guild_create_waiter
+
+        if waiter and not waiter.done():
+            # Notify the waiters for ready event.
+            waiter.set_result(guild)

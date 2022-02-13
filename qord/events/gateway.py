@@ -65,7 +65,8 @@ class ShardReady(BaseEvent):
     r"""Structure of a :attr:`~qord.GatewayEvent.SHARD_READY` event.
 
     This event is called whenever a shard successfully establishes
-    a connection with Discord gateway.
+    a connection with Discord gateway and lazy loads cache for all guilds
+    associated to that shard.
     """
     event_name = GatewayEvent.SHARD_READY
     shard: Shard
