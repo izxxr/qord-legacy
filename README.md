@@ -34,4 +34,4 @@ A high level library for building Discord bots.
 
 - **I have more questions**
 
-  Join our Discord server: https://discord.gg/sRmvezKwD4
+  Join our Discord Server: https://discord.gg/nE9cGtzayA
