@@ -47,11 +47,12 @@ def event_dispatch_handler(name: str):
 class DispatchHandler:
     r"""Internal class that handles gateway events dispatches."""
 
-    def __init__(self, client: Client, ready_timeout: float = 2.0) -> None:
+    def __init__(self, client: Client, ready_timeout: float = 2.0, debug_events: bool = False) -> None:
         self.client = client
         self.ready_timeout = ready_timeout
+        self.debug_events = debug_events
         self.cache = client._cache
-        self.invoke = client.invoke_event
+        self._invoke = client.invoke_event
         self._guild_create_waiter = None
         self._update_handlers()
 
@@ -65,9 +66,13 @@ class DispatchHandler:
             except AttributeError:
                 pass
 
+    def invoke(self, event: events.BaseEvent) -> None:
+        self._invoke(event.event_name, event)
+
     async def handle(self, shard: Shard, title: str, data: typing.Any) -> None:
-        event = events.GatewayDispatch(shard=shard, title=title, data=data)
-        self.invoke(event.event_name, event)
+        if self.debug_events:
+            event = events.GatewayDispatch(shard=shard, title=title, data=data)
+            self.invoke(event)
 
         try:
             handler = self._handlers[title]
@@ -91,7 +96,7 @@ class DispatchHandler:
                 break
 
         self._guild_create_waiter = None
-        self.invoke(event.event_name, event)
+        self.invoke(event)
 
     @event_dispatch_handler("READY")
     async def on_ready(self, shard: Shard, data: typing.Any) -> None:

@@ -109,6 +109,7 @@ class Cache(ABC):
         -------
         Sequence[:class:`Guild`]
         """
+
     @abstractmethod
     def get_guild(self, guild_id: int) -> typing.Optional[Guild]:
         r"""Gets a :class:`Guild` from the cache with provided guild ID.
@@ -170,7 +171,7 @@ class DefaultCache(Cache):
     r"""In-memory cache implementation.
 
     This is the default cache handler used by the :class:`Client` that
-    implements basic "in memory" caching.
+    implements basic "in memory" caching. Obtainable through :attr:`Client.cache`.
 
     .. tip:: "Custom cache handler"
         If you want to implement custom cache handlers, See the :class:`Cache`

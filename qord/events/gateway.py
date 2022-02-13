@@ -41,6 +41,9 @@ class GatewayDispatch(BaseEvent):
     This event purely exists for debugging and experimental purposes and should
     not generally be used. This event will also call for dispatch events that
     are not supported by the library.
+
+    This event is only called when ``debug_events`` parameter is enabled in
+    :class:`Client`.
     """
     event_name = GatewayEvent.GATEWAY_DISPATCH
     shard: Shard

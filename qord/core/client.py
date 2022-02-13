@@ -99,6 +99,8 @@ class Client:
         dispatching the ready event. Defaults to ``2``. Note that setting a very small
         timeout would cause ready event to fire with incomplete cache or setting
         too large value will increase the startup time.
+    debug_events: :class:`builtins.bool`
+        Whether to enable debug events. Defaults to ``False``.
     intents: :class:`Intents`
         The intents for this client. By default, Only unprivileged intents are
         enabled using :meth:`Intents.unprivileged` method.
@@ -115,6 +117,7 @@ class Client:
         session_owner: bool = False,
         max_retries: int = 5,
         shards_count: int = None,
+        debug_events: bool = False,
         connect_timeout: float = 5.0,
         ready_timeout: float = 2.0,
         intents: Intents = None,
@@ -132,7 +135,11 @@ class Client:
             max_retries=max_retries,
         )
         self._cache: Cache = cache or DefaultCache()
-        self._dispatch: DispatchHandler = DispatchHandler(client=self, ready_timeout=ready_timeout)
+        self._dispatch: DispatchHandler = DispatchHandler(
+            client=self,
+            ready_timeout=ready_timeout,
+            debug_events=debug_events,
+        )
         self._event_listeners = {}
         self._setup = False
         self._cache.clear()
@@ -146,7 +153,7 @@ class Client:
         self._gateway_url: typing.Optional[str] = None
         self._shards: typing.Dict[int, Shard] = {}
 
-        # Following are either after connection
+        # Following are set after initial connection
         self._user: typing.Optional[ClientUser] = None
 
     @property
