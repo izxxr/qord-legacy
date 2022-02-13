@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.core.dispatch import DispatchHandler
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
+from qord.core.cache import DefaultCache, DefaultGuildCache
 from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
 from qord.models.users import User
@@ -38,6 +39,8 @@ import typing
 if typing.TYPE_CHECKING:
     from aiohttp import ClientSession
     from qord.models.users import ClientUser
+    from qord.core.cache import Cache, GuildCache
+
 
 __all__ = (
     "Client",
@@ -94,6 +97,9 @@ class Client:
     intents: :class:`Intents`
         The intents for this client. By default, Only unprivileged intents are
         enabled using :meth:`Intents.unprivileged` method.
+    cache: :class:`Cache`
+        The cache handler to use for the client. If not provided, Defaults to
+        :class:`DefaultCache`.
     """
     if typing.TYPE_CHECKING:
         _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
@@ -106,19 +112,24 @@ class Client:
         shards_count: int = None,
         connect_timeout: float = 5.0,
         intents: Intents = None,
+        cache: Cache = None,
     ) -> None:
 
         if shards_count is not None and shards_count < 1:
-            raise ValueError("shards_count must be an integer greater then or equal to 1.")
+            raise ValueError("Parameter shards_count must be an integer greater then or equal to 1.")
+        if cache is not None and not isinstance(cache, Cache):
+            raise TypeError("Parameter cache must be an instance of Cache. Not %r" % cache.__class__)
 
         self._rest: RestClient = RestClient(
             session=session,
             session_owner=session_owner,
             max_retries=max_retries,
         )
+        self._cache: Cache = cache or DefaultCache()
         self._dispatch: DispatchHandler = DispatchHandler(client=self)
         self._event_listeners = {}
         self._setup = False
+        self._cache.clear()
 
         self.connect_timeout = connect_timeout
         self.intents = intents or Intents.unprivileged()
@@ -198,6 +209,40 @@ class Client:
         typing.Optional[:class:`ClientUser`]
         """
         return self._user
+
+    @property
+    def cache(self) -> Cache:
+        r"""Returns the cache handler associated to this client.
+
+        Returns
+        -------
+        :class:`Cache`
+        """
+        return self._cache
+
+    def get_guild_cache(self, guild: Guild) -> GuildCache:
+        r"""Returns the cache handler for the provided guild.
+
+        This method is not meant to be called by the user. It is called by the
+        library. By default, this returns the :class:`DefaultGuildCache`. However,
+        When implementing custom handlers, You may return instance of custom subclasses
+        of :class:`GuildCache`.
+
+        Example::
+
+            class MyGuildCache(qord.GuildCache):
+                # implement abstract methods here.
+                ...
+
+            class Client(qord.Client):
+                def get_guild_cache(self, guild):
+                    return MyGuildCache(guild=guild)
+
+        Returns
+        -------
+        :class:`GuildCache`
+        """
+        return DefaultGuildCache(guild=guild)
 
     def get_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
         r"""Gets the list of all events listener for the provided event.
@@ -546,7 +591,7 @@ class Client:
             HTTP request failed.
         """
         data = await self._rest.get_guild(guild_id, with_counts=with_counts)
-        return Guild(data, client=self)
+        return Guild(data, client=self, enable_cache=False)
 
     async def leave_guild(self, guild_id: int, /) -> None:
         r"""Leaves a guild by it's ID.

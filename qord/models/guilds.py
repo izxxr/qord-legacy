@@ -30,6 +30,7 @@ from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.core.cache import GuildCache
     from qord.core.shard import Shard
     from qord.core.client import Client
 
@@ -176,7 +177,7 @@ class Guild(BaseModel):
         widget_channel_id: typing.Optional[int]
         system_channel_id: typing.Optional[int]
 
-    __slots__ = ("_client", "_rest", "id", "name", "afk_timeout", "premium_subscription_count",
+    __slots__ = ("_client", "_rest", "_cache", "id", "name", "afk_timeout", "premium_subscription_count",
                 "preferred_locale", "widget_enabled", "large", "unavailable", "system_channel_flags",
                 "premium_progress_bar_enabled", "features", "verification_level", "notification_level",
                 "mfa_level", "premium_tier", "nsfw_level", "member_count", "max_presences", "max_members",
@@ -185,9 +186,25 @@ class Guild(BaseModel):
                 "banner", "owner_id", "afk_channel_id", "widget_channel_id", "application_id", "system_channel_id",
                 "rules_channel_id", "public_updates_channel_id", "explicit_content_filter",)
 
-    def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
+    def __init__(self, data: typing.Dict[str, typing.Any], client: Client, enable_cache: bool = False) -> None:
         self._client = client
         self._rest = client._rest
+        self._cache = None
+
+        if enable_cache:
+            from qord.core.cache import GuildCache # Hack for circular imports.
+
+            cache = client.get_guild_cache(guild=self)
+
+            if not isinstance(cache, GuildCache):
+                raise TypeError(
+                    f"Client.get_guild_cache() returned an unexpected object of type " \
+                    f"{cache.__class__!r}, Expected a GuildCache instance."
+                )
+
+            cache.clear()
+            self._cache = cache
+
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
@@ -254,6 +271,21 @@ class Guild(BaseModel):
         self.system_channel_id = get_optional_snowflake(data, "system_channel_id")
         self.rules_channel_id = get_optional_snowflake(data, "rules_channel_id")
         self.public_updates_channel_id = get_optional_snowflake(data, "public_updates_channel_id")
+
+    @property
+    def cache(self) -> typing.Optional[GuildCache]:
+        r"""Returns the cache handler associated to this guild.
+
+        This property would return ``None`` if guild is not cacheable i.e
+        when the guild is not obtained by the gateway. For example when
+        obtaining a guild through :meth:`Client.fetch_guild`, This property
+        would be ``None`` for resulting guild.
+
+        Returns
+        -------
+        Optional[:class:`GuildCache`]
+        """
+        return self._cache
 
     @property
     def vanity_invite_url(self) -> typing.Optional[str]:

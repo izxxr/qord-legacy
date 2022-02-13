@@ -47,6 +47,7 @@ class DispatchHandler:
 
     def __init__(self, client: Client) -> None:
         self.client = client
+        self.cache = client._cache
         self.invoke = client.invoke_event
         self._update_handlers()
 
@@ -73,6 +74,10 @@ class DispatchHandler:
 
     @event_dispatch_handler("READY")
     async def on_ready(self, shard: Shard, data: typing.Any) -> None:
-        self.client._user = ClientUser(data["user"], client=self.client)
         event = events.ShardReady(shard=shard)
+
+        user = ClientUser(data["user"], client=self.client)
+        self.cache.add_user(user)
+        self.client._user = user
+
         self.invoke(event.event_name, event)
