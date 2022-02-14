@@ -279,16 +279,16 @@ class ClientUser(User):
         HTTPException
             The editing failed.
         """
-        payload = {}
+        json = {}
 
         if name is not None:
-            payload["username"] = name
+            json["username"] = name
         if avatar is not EMPTY:
             if avatar is None:
-                payload["avatar"] = None
+                json["avatar"] = None
             else:
-                payload["avatar"] = get_image_data(avatar)
+                json["avatar"] = get_image_data(avatar)
 
-        if payload:
-            data = await self._client._rest.edit_current_user(payload=payload)
+        if json:
+            data = await self._client._rest.edit_current_user(json=json)
             self._update_with_data(data)

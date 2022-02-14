@@ -155,9 +155,9 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def edit_current_user(self, payload: typing.Dict[str, typing.Any]):
+    async def edit_current_user(self, json: typing.Dict[str, typing.Any]):
         route = Route("PATCH", "/users/@me")
-        data = await self.request(route, json=payload)
+        data = await self.request(route, json=json)
         return data
 
     async def get_user(self, user_id: int):
