@@ -173,7 +173,7 @@ class DefaultCache(Cache):
     This is the default cache handler used by the :class:`Client` that
     implements basic "in memory" caching. Obtainable through :attr:`Client.cache`.
 
-    .. tip:: "Custom cache handler"
+    .. tip::
         If you want to implement custom cache handlers, See the :class:`Cache`
         documentation.
     """
@@ -232,7 +232,7 @@ class DefaultGuildCache(GuildCache):
     implements basic "in memory" caching for entities related to :class:`Guild`. Obtainable
     through :attr:`Guild.cache`.
 
-    .. tip:: "Custom cache handler"
+    .. tip::
         If you want to implement custom cache handlers, See the :class:`GuildCache`
         documentation.
     """
