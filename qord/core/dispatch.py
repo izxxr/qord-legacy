@@ -83,7 +83,7 @@ class DispatchHandler:
         else:
             await handler(shard, data)
 
-    async def _prepare_ready(self, shard: typing.Optional[Shard]):
+    async def _prepare_ready(self, shard: typing.Optional[Shard] = None):
         # Setting a timeout for GUILD_CREATE to allow the given shards
         # to lazy load the guilds before dispatching ready event.
         timeout = self.ready_timeout
@@ -122,7 +122,7 @@ class DispatchHandler:
 
         if self._ready_task is None:
             # Wait for all shards to backfill guilds in background.
-            coro = self._prepare_ready(None)
+            coro = self._prepare_ready()
             self._ready_task = asyncio.create_task(coro)
 
     @event_dispatch_handler("GUILD_CREATE")
