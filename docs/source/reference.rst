@@ -15,6 +15,48 @@ Client
 .. autoclass:: Client
     :members:
 
+
+Cache Handlers
+--------------
+
+The classes documented below implement the logic of caching for various entities sent
+by Discord over gateway like users and guilds etc.
+
+By default the library provides cache handlers that implement "in memory" caching
+usually suitable for most use cases. However if you want to write custom cache handlers
+for a specific use case, Qord also allows you to do that too. Following abstract classes
+will help you achieve that:
+
+- :class:`Cache`
+- :class:`GuildCache`
+
+Cache
+~~~~~
+
+.. autoclass:: Cache()
+    :members:
+
+GuildCache
+~~~~~~~~~~
+
+.. autoclass:: GuildCache()
+    :members:
+
+DefaultCache
+~~~~~~~~~~~~
+
+.. autoclass:: DefaultCache()
+    :inherited-members:
+    :members:
+
+DefaultGuildCache
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: DefaultGuildCache()
+    :inherited-members:
+    :members:
+
+
 Events
 ------
 
@@ -47,6 +89,13 @@ ShardReady
 
 .. autoclass:: qord.events.ShardReady()
     :members:
+
+Ready
+~~~~~
+
+.. autoclass:: qord.events.Ready()
+    :members:
+
 
 Enumerations
 ------------
