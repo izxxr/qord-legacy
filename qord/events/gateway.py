@@ -73,3 +73,15 @@ class ShardReady(BaseEvent):
     """
     event_name = GatewayEvent.SHARD_READY
     shard: Shard
+
+@dataclass(frozen=True)
+class Ready(BaseEvent):
+    r"""Structure of a :attr:`~qord.GatewayEvent.READY` event.
+
+    This event is called when all shards associated to the client
+    have completely prepared their guilds cache and client is in ready state.
+
+    This event is not shard specific as such :attr:`.shard` is always ``None``.
+    """
+    event_name = GatewayEvent.READY
+    shard = None

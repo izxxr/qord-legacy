@@ -36,6 +36,8 @@ class GatewayEvent:
     SHARD_READY = "shard_ready"
     r"""Called whenever a shard is in ready state. See :class:`events.ShardReady` for more info."""
 
+    READY = "ready"
+    r"""Called whenever all shards are ready. See :class:`events.Ready` for more info."""
 
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.

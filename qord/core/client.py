@@ -374,6 +374,15 @@ class Client:
         """
         return self._setup
 
+    def _notify_shards_launch(self) -> None:
+        self._dispatch._shards_connected.set()
+
+    def _reset_setup(self) -> None:
+        self._rest.token = None
+        self._max_concurrency = None
+        self._shards.clear()
+        self._setup = False
+
     async def setup(self, token: str, /) -> None:
         r"""Setups the client with the provided authorization token.
 
@@ -472,9 +481,11 @@ class Client:
                     if future.done():
                         raise future.result()
 
-            await asyncio.sleep(5)
+            if shards:
+                await asyncio.sleep(5)
 
         # block until one of the shards crash
+        self._notify_shards_launch()
         exc = await asyncio.wait_for(future, timeout=None)
         raise exc
 
@@ -495,16 +506,15 @@ class Client:
             If set to ``False``, Client setup will not be closed and there
             will be no need of calling :meth:`.setup` again.
         """
+        _LOGGER.info("Gracefully closing %s shards.", self._shards_count)
+
         for shard in self._shards.values():
             await shard._close(code=1000, _clean=True)
 
         await self._rest.close()
 
         if clear_setup:
-            self._rest.token = None
-            self._max_concurrency = None
-            self._shards.clear()
-            self._setup = False
+            self._reset_setup()
 
     def start(self, token: str) -> None:
         r"""Setups the client with provided token and then starts it.
