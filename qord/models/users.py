@@ -80,7 +80,7 @@ class User(BaseModel):
 
     __slots__ = ("_client", "id", "name", "discriminator", "bot", "accent_color",
                 "premium_type", "system",  "locale", "avatar", "banner", "flags",
-                "public_flags")
+                "public_flags", "__weakref__")
 
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
         self._client = client

@@ -31,11 +31,13 @@ class GatewayEvent:
     """
 
     GATEWAY_DISPATCH = "gateway_dispatch"
-    r"""Called whenever gateway sends a dispatch event. See :class:`events.GatewayDispatch`."""
+    r"""Called whenever gateway sends a dispatch event. See :class:`events.GatewayDispatch` for more info."""
 
     SHARD_READY = "shard_ready"
-    r"""Called whenever a shard successfully connects to Discord gateway."""
+    r"""Called whenever a shard is in ready state. See :class:`events.ShardReady` for more info."""
 
+    READY = "ready"
+    r"""Called whenever all shards are ready. See :class:`events.Ready` for more info."""
 
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.

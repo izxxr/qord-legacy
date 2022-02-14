@@ -41,6 +41,9 @@ class GatewayDispatch(BaseEvent):
     This event purely exists for debugging and experimental purposes and should
     not generally be used. This event will also call for dispatch events that
     are not supported by the library.
+
+    This event is only called when ``debug_events`` parameter is enabled in
+    :class:`Client`.
     """
     event_name = GatewayEvent.GATEWAY_DISPATCH
     shard: Shard
@@ -65,7 +68,20 @@ class ShardReady(BaseEvent):
     r"""Structure of a :attr:`~qord.GatewayEvent.SHARD_READY` event.
 
     This event is called whenever a shard successfully establishes
-    a connection with Discord gateway.
+    a connection with Discord gateway and lazy loads cache for all guilds
+    associated to that shard.
     """
     event_name = GatewayEvent.SHARD_READY
     shard: Shard
+
+@dataclass(frozen=True)
+class Ready(BaseEvent):
+    r"""Structure of a :attr:`~qord.GatewayEvent.READY` event.
+
+    This event is called when all shards associated to the client
+    have completely prepared their guilds cache and client is in ready state.
+
+    This event is not shard specific as such :attr:`.shard` is always ``None``.
+    """
+    event_name = GatewayEvent.READY
+    shard = None

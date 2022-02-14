@@ -36,5 +36,9 @@ class BaseEvent:
     event_name: str
     r"""The string representation of event name."""
 
-    shard: Shard
-    r"""The shard that received this event."""
+    shard: typing.Optional[Shard]
+    r"""The shard that received this event.
+
+    This attribute can be ``None`` in events that are not shard specific and are
+    not invoked by a shard. The most common example is :class:`events.Ready`.
+    """

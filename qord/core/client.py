@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.core.dispatch import DispatchHandler
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
+from qord.core.cache import DefaultCache, DefaultGuildCache
 from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
 from qord.models.users import User
@@ -38,6 +39,8 @@ import typing
 if typing.TYPE_CHECKING:
     from aiohttp import ClientSession
     from qord.models.users import ClientUser
+    from qord.core.cache import Cache, GuildCache
+
 
 __all__ = (
     "Client",
@@ -91,9 +94,19 @@ class Client:
         The number of seconds to wait for a shard to connect before timing out.
         Defaults to ``5``. Greater the integer, The longer it will wait and if
         a shard raises an error, It will take longer to raise it.
+    ready_timeout: :class:`builtins.float`
+        The number of seconds to wait for lazy loading guilds cache initially before
+        dispatching the ready event. Defaults to ``2``. Note that setting a very small
+        timeout would cause ready event to fire with incomplete cache or setting
+        too large value will increase the startup time.
+    debug_events: :class:`builtins.bool`
+        Whether to enable debug events. Defaults to ``False``.
     intents: :class:`Intents`
         The intents for this client. By default, Only unprivileged intents are
         enabled using :meth:`Intents.unprivileged` method.
+    cache: :class:`Cache`
+        The cache handler to use for the client. If not provided, Defaults to
+        :class:`DefaultCache`.
     """
     if typing.TYPE_CHECKING:
         _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
@@ -104,21 +117,32 @@ class Client:
         session_owner: bool = False,
         max_retries: int = 5,
         shards_count: int = None,
+        debug_events: bool = False,
         connect_timeout: float = 5.0,
+        ready_timeout: float = 2.0,
         intents: Intents = None,
+        cache: Cache = None,
     ) -> None:
 
         if shards_count is not None and shards_count < 1:
-            raise ValueError("shards_count must be an integer greater then or equal to 1.")
+            raise ValueError("Parameter shards_count must be an integer greater then or equal to 1.")
+        if cache is not None and not isinstance(cache, Cache):
+            raise TypeError("Parameter cache must be an instance of Cache. Not %r" % cache.__class__)
 
         self._rest: RestClient = RestClient(
             session=session,
             session_owner=session_owner,
             max_retries=max_retries,
         )
-        self._dispatch: DispatchHandler = DispatchHandler(client=self)
+        self._cache: Cache = cache or DefaultCache()
+        self._dispatch: DispatchHandler = DispatchHandler(
+            client=self,
+            ready_timeout=ready_timeout,
+            debug_events=debug_events,
+        )
         self._event_listeners = {}
         self._setup = False
+        self._cache.clear()
 
         self.connect_timeout = connect_timeout
         self.intents = intents or Intents.unprivileged()
@@ -129,7 +153,7 @@ class Client:
         self._gateway_url: typing.Optional[str] = None
         self._shards: typing.Dict[int, Shard] = {}
 
-        # Following are either after connection
+        # Following are set after initial connection
         self._user: typing.Optional[ClientUser] = None
 
     @property
@@ -147,6 +171,10 @@ class Client:
     @property
     def shards_count(self) -> typing.Optional[int]:
         return self._shards_count
+
+    @property
+    def ready_timeout(self) -> float:
+        return self._dispatch.ready_timeout
 
     @property
     def shards(self) -> typing.List[Shard]:
@@ -198,6 +226,40 @@ class Client:
         typing.Optional[:class:`ClientUser`]
         """
         return self._user
+
+    @property
+    def cache(self) -> Cache:
+        r"""Returns the cache handler associated to this client.
+
+        Returns
+        -------
+        :class:`Cache`
+        """
+        return self._cache
+
+    def get_guild_cache(self, guild: Guild) -> GuildCache:
+        r"""Returns the cache handler for the provided guild.
+
+        This method is not meant to be called by the user. It is called by the
+        library. By default, this returns the :class:`DefaultGuildCache`. However,
+        When implementing custom handlers, You may return instance of custom subclasses
+        of :class:`GuildCache`.
+
+        Example::
+
+            class MyGuildCache(qord.GuildCache):
+                # implement abstract methods here.
+                ...
+
+            class Client(qord.Client):
+                def get_guild_cache(self, guild):
+                    return MyGuildCache(guild=guild)
+
+        Returns
+        -------
+        :class:`GuildCache`
+        """
+        return DefaultGuildCache(guild=guild)
 
     def get_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
         r"""Gets the list of all events listener for the provided event.
@@ -312,6 +374,15 @@ class Client:
         """
         return self._setup
 
+    def _notify_shards_launch(self) -> None:
+        self._dispatch._shards_connected.set()
+
+    def _reset_setup(self) -> None:
+        self._rest.token = None
+        self._max_concurrency = None
+        self._shards.clear()
+        self._setup = False
+
     async def setup(self, token: str, /) -> None:
         r"""Setups the client with the provided authorization token.
 
@@ -410,9 +481,11 @@ class Client:
                     if future.done():
                         raise future.result()
 
-            await asyncio.sleep(5)
+            if shards:
+                await asyncio.sleep(5)
 
         # block until one of the shards crash
+        self._notify_shards_launch()
         exc = await asyncio.wait_for(future, timeout=None)
         raise exc
 
@@ -433,16 +506,15 @@ class Client:
             If set to ``False``, Client setup will not be closed and there
             will be no need of calling :meth:`.setup` again.
         """
+        _LOGGER.info("Gracefully closing %s shards.", self._shards_count)
+
         for shard in self._shards.values():
             await shard._close(code=1000, _clean=True)
 
         await self._rest.close()
 
         if clear_setup:
-            self._rest.token = None
-            self._max_concurrency = None
-            self._shards.clear()
-            self._setup = False
+            self._reset_setup()
 
     def start(self, token: str) -> None:
         r"""Setups the client with provided token and then starts it.
@@ -546,7 +618,7 @@ class Client:
             HTTP request failed.
         """
         data = await self._rest.get_guild(guild_id, with_counts=with_counts)
-        return Guild(data, client=self)
+        return Guild(data, client=self, enable_cache=False)
 
     async def leave_guild(self, guild_id: int, /) -> None:
         r"""Leaves a guild by it's ID.

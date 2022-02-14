@@ -284,10 +284,8 @@ class Shard:
 
             if event == "READY":
                 self._session_id = data["session_id"]
-                self._log(logging.INFO, "Established a new session with Discord gateway. (Session: %s)", self._session_id)
-
-                # Notify waiters that the shard has identified.
                 self._identified.set()
+                self._log(logging.INFO, "Established a new session with Discord gateway. (Session: %s)", self._session_id)
 
             elif event == "RESUMED":
                 self._log(logging.INFO, "Resumed the session %s", self._session_id)
