@@ -255,6 +255,9 @@ class Client:
                 def get_guild_cache(self, guild):
                     return MyGuildCache(guild=guild)
 
+        The returned value must be an instance of :class:`GuildCache` otherwise
+        :exc:`TypeError` would be raised upon guild creations.
+
         Returns
         -------
         :class:`GuildCache`
