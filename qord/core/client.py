@@ -553,6 +553,7 @@ class Client:
         except KeyboardInterrupt:
             loop.run_until_complete(self.close())
         finally:
+            loop.stop()
             loop.close()
 
     def get_shard(self, shard_id: int, /) -> typing.Optional[Shard]:

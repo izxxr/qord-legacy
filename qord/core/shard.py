@@ -262,17 +262,20 @@ class Shard:
         data = packet["d"]
 
         if op is GatewayOP.HELLO:
+            if self._resume_on_connect:
+                await self._send_resume_packet()
+                self._resume_on_connect = False
+            else:
+                await self._send_identify_packet()
+
             interval = data["heartbeat_interval"] // 1000
             self._heartbeat_task = asyncio.create_task(
                 self._heartbeat_handler(interval),
                 name=f"shard-heartbeat-worker:{self._id}"
             )
-            if self._resume_on_connect:
-                await self._send_resume_packet()
-                self._resume_on_connect = False
-                return True
+            return True
 
-            await self._send_identify_packet()
+
 
         elif op is GatewayOP.HEARTBEAT_ACK:
             self._latency = time.time() - self._last_heartbeat # type: ignore
