@@ -27,6 +27,7 @@ from qord.models.guilds import Guild
 from qord import events
 
 import asyncio
+import copy
 import inspect
 import logging
 import typing
@@ -129,17 +130,71 @@ class DispatchHandler:
 
     @event_dispatch_handler("GUILD_CREATE")
     async def on_guild_create(self, shard: Shard, data: typing.Any) -> None:
+        unavailable = data.get("unavailable")
+
+        if unavailable is True:
+            # TODO: Not sure about what to do about joining an unavailable
+            # guild but for now, Do nothing
+            return
+
         guild = Guild(data, client=self.client, enable_cache=True)
+        self.cache.add_guild(guild)
 
-        if not guild.unavailable:
-            self.cache.add_guild(guild)
-
+        # Notify waiters for dispatching ready event
         waiter = self._guild_create_waiter
 
         if waiter and not waiter.done():
-            # Notify the waiters for ready event.
             waiter.set_result(guild)
+
+        # unavailable being False means that an unavailable guild
+        # either because of outage or from READY event has became available.
+        # And unavailable not being included in payload
+        # means that bot has joined a new guild.
+        # https://github.com/discord/discord-api-docs/issues/4518
+        if unavailable is False:
+            event = events.GuildAvailable(guild=guild, shard=shard)
+        elif unavailable is None:
+            event = events.GuildJoin(guild=guild, shard=shard)
+
+        self.invoke(event) # type: ignore
 
     @event_dispatch_handler("GUILD_UPDATE")
     async def on_guild_update(self, shard: Shard, data: typing.Any) -> None:
-        pass
+        guild_id = int(data["id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        before = copy.copy(guild)
+        guild._update_with_data(data)
+
+        event = events.GuildUpdate(before=before, after=guild, shard=shard)
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_DELETE")
+    async def on_guild_delete(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        unavailable = data.get("unavailable")
+
+        if unavailable is None:
+            # Bot is removed from the guild.
+            guild = self.cache.delete_guild(guild_id)
+            if guild is None:
+                # already removed?
+                return
+            event = events.GuildLeave(shard=shard, guild=guild)
+        else:
+            # Guild became unavailable due to an outage
+            # TODO: Evict guild here?
+            guild.unavailable = True
+            event = events.GuildUnavailable(shard=shard, guild=guild)
+
+        self.invoke(event)

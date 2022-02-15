@@ -96,6 +96,37 @@ Ready
 .. autoclass:: qord.events.Ready()
     :members:
 
+GuildAvailable
+~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.GuildAvailable()
+    :members:
+
+GuildUnavailable
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.GuildUnavailable()
+    :members:
+
+GuildJoin
+~~~~~~~~~
+
+.. autoclass:: qord.events.GuildJoin()
+    :members:
+
+
+GuildLeave
+~~~~~~~~~~
+
+.. autoclass:: qord.events.GuildLeave()
+    :members:
+
+GuildUpdate
+~~~~~~~~~~~
+
+.. autoclass:: qord.events.GuildUpdate()
+    :members:
+
 
 Enumerations
 ------------

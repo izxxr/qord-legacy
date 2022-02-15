@@ -55,7 +55,7 @@ class Guild(BaseModel):
     large: :class:`builtins.bool`
         Whether guild is marked as large.
     unavailable: :class:`builtins.bool`
-        Whether guild is unavailable due to an outage, This is almost never ``True``.
+        Whether guild is unavailable due to an outage.
     premium_progress_bar_enabled: :class:`builtins.bool`
         Whether guild has premium progress bar or server boosts progress
         bar enabled.
@@ -205,7 +205,19 @@ class Guild(BaseModel):
             cache.clear()
             self._cache = cache
 
+        self._create_guild(data)
         self._update_with_data(data)
+
+    def _create_guild(self, data: typing.Dict[str, typing.Any]) -> None:
+        # These fields are only sent during initial GUILD_CREATE fields.
+        # To avoid overwriting them in _update_with_data() method, These
+        # are assigned here instead.
+
+        joined_at = data.get("joined_at")
+        self.joined_at = datetime.fromisoformat(joined_at) if joined_at is not None else None
+        self.large = data.get("large", False)
+        self.unavailable = data.get("unavailable", False)
+        self.member_count = data.get("member_count")
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # I'm documenting these attributes here for future reference when we
@@ -231,8 +243,6 @@ class Guild(BaseModel):
         self.premium_subscription_count = data.get("premium_subscription_count", 0)
         self.preferred_locale = data.get("preferred_locale", "en-US")
         self.widget_enabled = data.get("widget_enabled", False)
-        self.large = data.get("large", False)
-        self.unavailable = data.get("unavailable", False)
         self.premium_progress_bar_enabled = data.get("premium_progress_bar_enabled", False)
         self.features = data.get("features", [])
         self.system_channel_flags = SystemChannelFlags(data.get("system_channel_flags", 0))
@@ -246,7 +256,6 @@ class Guild(BaseModel):
         self.nsfw_level = data.get("nsfw_level", 0)
 
         # Nullable attributes
-        self.member_count = data.get("member_count")
         self.max_presences = data.get("max_presences")
         self.max_members = data.get("max_presences")
         self.max_video_channel_users = data.get("max_video_channel_users")
@@ -254,8 +263,6 @@ class Guild(BaseModel):
         self.approximate_presence_count = data.get("approximate_presence_count")
         self.vanity_invite_code = data.get("vanity_url_code")
         self.description = data.get("description")
-        joined_at = data.get("joined_at")
-        self.joined_at = datetime.fromisoformat(joined_at) if joined_at is not None else None
 
         # CDN resources
         self.icon = data.get("icon") or data.get("icon_hash")

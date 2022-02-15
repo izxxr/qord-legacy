@@ -39,6 +39,22 @@ class GatewayEvent:
     READY = "ready"
     r"""Called whenever all shards are ready. See :class:`events.Ready` for more info."""
 
+    GUILD_AVAILABLE = "guild_available"
+    r"""Called whenever a guild becomes available to the client. See :class:`events.GuildAvailable` for more info."""
+
+    GUILD_UNAVAILABLE = "guild_unavailable"
+    r"""Called whenever a guild becomes unavailable to the client. See :class:`events.GuildUnavailable` for more info."""
+
+    GUILD_JOIN = "guild_join"
+    r"""Called whenever the bot joins a new guild. See :class:`events.GuildJoin` for more info."""
+
+    GUILD_LEAVE = "guild_leave"
+    r"""Called whenever the bot leaves a guild. See :class:`events.GuildLeave` for more info."""
+
+    GUILD_UPDATE = "guild_update"
+    r"""Called whenever a guild is updated. See :class:`events.GuildUpdate` for more info."""
+
+
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.
 
