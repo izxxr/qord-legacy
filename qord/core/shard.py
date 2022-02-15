@@ -356,6 +356,7 @@ class Shard:
     async def _close(self, code: int = 1000, _clean: bool = False) -> None:
         if self._heartbeat_task:
             self._heartbeat_task.cancel()
+            self._heartbeat_task = None
 
         if self._websocket:
             await self._websocket.close(code=code)
