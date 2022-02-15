@@ -54,6 +54,7 @@ class DispatchHandler:
         self.cache = client._cache
         self._invoke = client.invoke_event
         self._shards_connected = asyncio.Event()
+        self._shards_ready = asyncio.Event()
         self._guild_create_waiter = None
         self._ready_task = None
         self._update_handlers()
@@ -106,6 +107,7 @@ class DispatchHandler:
         self.invoke(event)
 
         if shard is None:
+            self._shards_ready.set()
             self._ready_task = None
 
     @event_dispatch_handler("READY")
@@ -137,3 +139,7 @@ class DispatchHandler:
         if waiter and not waiter.done():
             # Notify the waiters for ready event.
             waiter.set_result(guild)
+
+    @event_dispatch_handler("GUILD_UPDATE")
+    async def on_guild_update(self, shard: Shard, data: typing.Any) -> None:
+        pass

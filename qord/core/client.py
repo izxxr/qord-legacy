@@ -514,6 +514,9 @@ class Client:
         for shard in self._shards.values():
             await shard._close(code=1000, _clean=True)
 
+        dispatch_handler = self._dispatch
+        dispatch_handler._shards_connected.clear()
+        dispatch_handler._shards_ready.clear()
         await self._rest.close()
 
         if clear_setup:
@@ -555,6 +558,21 @@ class Client:
         finally:
             loop.stop()
             loop.close()
+
+    def is_ready(self) -> bool:
+        r"""Indicates whether the client is ready.
+
+        This returns ``True`` only when all shards are ready.
+
+        Returns
+        -------
+        :class:`builtins.bool`
+        """
+        return self._dispatch._shards_ready.is_set()
+
+    async def wait_until_ready(self) -> None:
+        r"""A coroutine that blocks until all shards are ready."""
+        await self._dispatch._shards_ready.wait()
 
     def get_shard(self, shard_id: int, /) -> typing.Optional[Shard]:
         r"""Resolves a :class:`Shard` by it's ID.
