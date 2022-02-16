@@ -24,7 +24,13 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.flags.permissions import Permissions
-from qord._helpers import get_optional_snowflake, create_cdn_url, BASIC_STATIC_EXTS
+from qord._helpers import (
+    get_image_data,
+    get_optional_snowflake,
+    create_cdn_url,
+    BASIC_STATIC_EXTS,
+    EMPTY,
+)
 
 import typing
 
@@ -86,13 +92,14 @@ class Role(BaseModel):
         integration_id: typing.Optional[int]
         premium_subscriber: bool
 
-    __slots__ = ("_client", "guild", "id", "name", "position", "color", "hoist",
+    __slots__ = ("_client", "_rest", "guild", "id", "name", "position", "color", "hoist",
                 "managed", "mentionable", "icon", "unicode_emoji", "bot_id",
                 "integration_id", "premium_subscriber", "permissions")
 
     def __init__(self, data: typing.Dict[str, typing.Any], guild: Guild) -> None:
         self.guild = guild
         self._client = guild._client
+        self._rest = guild._client._rest
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
@@ -206,3 +213,102 @@ class Role(BaseModel):
         :class:`builtins.bool`
         """
         return (self.id == self.guild.id)
+
+    async def delete(self, *, reason: str = None) -> None:
+        r"""Deletes this role.
+
+        This operation requires the :attr:`~Permissions.manage_roles` permission
+        for the client user in the guild.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for performing this operation that shows up on the
+            audit log entry.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are missing the :attr:`~Permissions.manage_roles` permissions.
+        HTTPException
+            The deletion failed failed.
+        """
+        await self._rest.delete_role(guild_id=self.guild.id, role_id=self.id, reason=reason)
+
+    async def edit(self, *,
+        name: str = None,
+        permissions: Permissions = None,
+        hoist: bool = None,
+        mentionable: bool = None,
+        icon: typing.Optional[bytes] = EMPTY,
+        unicode_emoji: typing.Optional[str] = EMPTY,
+        color: typing.Optional[int] = EMPTY,
+        reason: str = None,
+    ) -> None:
+        r"""Edits this role.
+
+        This operation requires the :attr:`~Permissions.manage_roles` permission
+        for the client user in the parent guild.
+
+        When the request is successful, This role is updated in place with
+        the returned data.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of this role.
+        permissions: :class:`Permissions`
+            The permissions for this role.
+        color: typing.Optional[:class:`builtins.int`]
+            The color value of this role. ``None`` can be used
+            to reset the role color to default.
+        hoist: :class:`builtins.bool`
+            Whether this role should appear hoisted from other roles.
+        icon: typing.Optional[:class:`builtins.bytes`]
+            The bytes representing the icon of this role. The guild
+            must have ``ROLES_ICON`` feature to set this. This parameter
+            cannot be mixed with ``unicode_emoji``. ``None`` can be used
+            to remove the icon.
+        unicode_emoji: typing.Optional[:class:`builtins.str`]
+            The unicode emoji used as icon for this role. The guild
+            must have ``ROLES_ICON`` feature to set this. This
+            parameter cannot be mixed with ``icon``. ``None`` can be used
+            to remove the icon.
+        mentionable: :class:`builtins.bool`
+            Whether this role is mentionable.
+        reason: :class:`builtins.str`
+            The reason for performing this action that shows up on
+            the audit log entry.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are missing the :attr:`~Permissions.manage_roles` permissions.
+        HTTPException
+            The editing failed.
+        """
+        json = {}
+
+        if name is not None:
+            json["name"] = name
+        if permissions is not None:
+            json["permissions"] = str(permissions.value)
+        if hoist is not None:
+            json["hoist"] = hoist
+        if mentionable is not None:
+            json["mentionable"] = mentionable
+        if color is not EMPTY:
+            json["color"] = 0 if color is None else color # '0' is default.
+        if icon is not EMPTY:
+            json["icon"] = None if icon is None else get_image_data(icon)
+        if unicode_emoji is not EMPTY:
+            json["unicode_emoji"] = unicode_emoji
+
+        if json:
+            data = await self._rest.edit_role(
+                guild_id=self.guild.id,
+                role_id=self.id,
+                json=json,
+                reason=reason
+            )
+            self._update_with_data(data)

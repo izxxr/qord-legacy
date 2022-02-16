@@ -29,6 +29,7 @@ from qord.flags.system_channel import SystemChannelFlags
 from qord._helpers import (
     get_optional_snowflake,
     create_cdn_url,
+    get_image_data,
     compute_shard_id,
     BASIC_STATIC_EXTS,
     BASIC_EXTS,
@@ -40,6 +41,7 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.core.client import Client
+    from qord.flags.permissions import Permissions
 
 class Guild(BaseModel):
     r"""Representation of a Discord guild entity often referred as "Server" in the UI.
@@ -539,3 +541,93 @@ class Guild(BaseModel):
             HTTP request failed.
         """
         await self._rest.leave_guild(guild_id=self.id)
+
+    # Roles
+
+    async def fetch_roles(self) -> typing.List[Role]:
+        r"""Fetches the list of roles associated to this guild.
+
+        Returns
+        -------
+        List[:class:`Role`]
+            The list of fetched roles.
+
+        Raises
+        ------
+        HTTPException
+            HTTPs request failed.
+        """
+        roles = await self._rest.get_roles(guild_id=self.id)
+        return [Role(role, guild=self) for role in roles]
+
+    async def create_role(self, *,
+        name: str = None,
+        permissions: Permissions = None,
+        color: int = None,
+        hoist: bool = None,
+        icon: bytes = None,
+        unicode_emoji: str = None,
+        mentionable: bool = None,
+        reason: str = None,
+    ) -> Role:
+        r"""Creates a role in this guild.
+
+        This operation requires the :attr:`~Permissions.manage_roles` permission
+        for the client user in the guild.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of this role. Defaults to ``"new role"``.
+        permissions: :class:`Permissions`
+            The permissions for this role. Defaults to @everyone role's permissions
+            in the guild.
+        color: :class:`builtins.int`
+            The color value of this role.
+        hoist: :class:`builtins.bool`
+            Whether this role should appear hoisted from other roles.
+        icon: :class:`builtins.bytes`
+            The bytes representing the icon of this role. The guild
+            must have ``ROLES_ICON`` feature to set this. This parameter
+            cannot be mixed with ``unicode_emoji``.
+        unicode_emoji: :class:`builtins.str`
+            The unicode emoji used as icon for this role. The guild
+            must have ``ROLES_ICON`` feature to set this. This
+            parameter cannot be mixed with ``icon``.
+        mentionable: :class:`builtins.bool`
+            Whether this role is mentionable.
+        reason: :class:`builtins.str`
+            The reason for performing this action that shows up on
+            the audit log entry.
+
+        Returns
+        -------
+        :class:`Role`
+            The created role.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are missing the :attr:`~Permissions.manage_roles` permissions.
+        HTTPException
+            The creation failed.
+        """
+        json = {}
+
+        if name is not None:
+            json["name"] = name
+        if permissions is not None:
+            json["permissions"] = str(permissions.value)
+        if color is not None:
+            json["color"] = color
+        if hoist is not None:
+            json["hoist"] = hoist
+        if icon is not None:
+            json["icon"] = get_image_data(icon)
+        if unicode_emoji is not None:
+            json["unicode_emoji"] = unicode_emoji
+        if mentionable is not None:
+            json["mentionable"] = mentionable
+
+        data = await self._rest.create_role(guild_id=self.id, json=json, reason=reason)
+        return Role(data, guild=self)

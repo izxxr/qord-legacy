@@ -176,3 +176,35 @@ class RestClient:
     async def leave_guild(self, guild_id: int):
         route = Route("DELETE", "/users/@me/guilds/{guild_id}", guild_id=guild_id)
         await self.request(route)
+
+    # ---- Guilds Roles ----
+
+    async def get_roles(self, guild_id: int):
+        route = Route("GET", "/guilds/{guild_id}/roles", guild_id=guild_id)
+        data = await self.request(route)
+        return data
+
+    async def create_role(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route("POST", "/guilds/{guild_id}/roles", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def edit_role_positions(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route("PATCH", "/guilds/{guild_id}/roles", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def edit_role(self, guild_id: int, role_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route(
+            "PATCH", "/guilds/{guild_id}/roles/{role_id}",
+            guild_id=guild_id, role_id=role_id
+        )
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def delete_role(self, guild_id: int, role_id: int, reason: str = None):
+        route =  Route(
+            "DELETE", "/guilds/{guild_id}/roles/{role_id}",
+            guild_id=guild_id, role_id=role_id
+        )
+        await self.request(route, reason=reason)
