@@ -111,7 +111,7 @@ class Role(BaseModel):
         self.hoist = data.get("hoist", False)
         self.managed = data.get("managed", False)
         self.mentionable = data.get("mentionable", False)
-        self.permissions = Permissions(data.get("permissions", 0))
+        self.permissions = Permissions(int(data.get("permissions", 0)))
 
         self.icon = data.get("icon")
         self.unicode_emoji = data.get("unicode_emoji")
