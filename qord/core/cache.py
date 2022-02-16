@@ -22,13 +22,13 @@
 
 from __future__ import annotations
 
-from qord.models.users import User
-from qord.models.guilds import Guild
-
 from abc import ABC, abstractmethod
-import weakref
 import typing
 
+if typing.TYPE_CHECKING:
+    from qord.models.users import User
+    from qord.models.guilds import Guild
+    from qord.models.roles import Role
 
 class Cache(ABC):
     r"""Base class for creating custom cache handlers.
@@ -159,6 +159,11 @@ class GuildCache(ABC):
     You can use this class to implement custom cache handlers for caching guild
     related entities and configure them in a :class:`Client` by overriding the
     :meth:`.get_guild_cache` method.
+
+    Parameters
+    ----------
+    guild: :class:`Guild`
+        The guild that this cache handler belongs to.
     """
     def __init__(self, guild: Guild) -> None:
         self.guild = guild
@@ -167,75 +172,53 @@ class GuildCache(ABC):
     def clear(self) -> None:
         r"""Clears the entire cache."""
 
-class DefaultCache(Cache):
-    r"""In-memory cache implementation.
+    @abstractmethod
+    def roles(self) -> typing.Sequence[Role]:
+        r"""Returns all roles that are currently cached.
 
-    This is the default cache handler used by the :class:`Client` that
-    implements basic "in memory" caching. Obtainable through :attr:`Client.cache`.
+        Returns
+        -------
+        Sequence[:class:`Role`]
+        """
 
-    .. tip::
-        If you want to implement custom cache handlers, See the :class:`Cache`
-        documentation.
-    """
+    @abstractmethod
+    def get_role(self, role_id: int) -> typing.Optional[Role]:
+        r"""Gets a :class:`Role` from the cache with provided role ID.
 
-    def clear(self) -> None:
-        self._users = weakref.WeakValueDictionary()
-        self._guilds = dict()
+        Parameters
+        ----------
+        role_id: :class:`builtins.int`
+            The ID of role to get.
 
-    def users(self) -> typing.Sequence[User]:
-        return list(self._users.values())
+        Returns
+        -------
+        Optional[:class:`Role`]
+            The gotten role if found. If no role existed with provided ID,
+            ``None`` is returned.
+        """
 
-    def get_user(self, user_id: int) -> typing.Optional[User]:
-        if not isinstance(user_id, int):
-            raise TypeError("Parameter user_id must be an integer.")
+    @abstractmethod
+    def add_role(self, role: Role) -> None:
+        r"""Adds a :class:`Role` to the cache.
 
-        return self._users.get(user_id)
+        Parameters
+        ----------
+        role: :class:`Role`
+            The role to add in the cache.
+        """
 
-    def add_user(self, user: User) -> None:
-        if not isinstance(user, User):
-            raise TypeError("Parameter user must be an instance of User.")
+    @abstractmethod
+    def delete_role(self, role_id: int) -> typing.Optional[Role]:
+        r"""Removes a :class:`Role` from the cache from the given ID.
 
-        self._users[user.id] = user
+        Parameters
+        ----------
+        role_id: :class:`builtins.int`
+            The ID of role to delete.
 
-    def delete_user(self, user_id: int) -> typing.Optional[User]:
-        if not isinstance(user_id, int):
-            raise TypeError("Parameter user_id must be an integer.")
-
-        return self._users.pop(user_id, None)
-
-    def guilds(self) -> typing.Sequence[Guild]:
-        return list(self._guilds.values())
-
-    def get_guild(self, guild_id: int) -> typing.Optional[Guild]:
-        if not isinstance(guild_id, int):
-            raise TypeError("Parameter guild_id must be an integer.")
-
-        return self._guilds.get(guild_id)
-
-    def add_guild(self, guild: Guild) -> None:
-        if not isinstance(guild, Guild):
-            raise TypeError("Parameter guild must be an instance of Guild.")
-
-        self._guilds[guild.id] = guild
-
-    def delete_guild(self, guild_id: int) -> typing.Optional[Guild]:
-        if not isinstance(guild_id, int):
-            raise TypeError("Parameter guild_id must be an integer.")
-
-        return self._guilds.pop(guild_id, None)
-
-
-class DefaultGuildCache(GuildCache):
-    r"""In-memory cache implementation for guilds.
-
-    This is the default cache handler used by the :class:`Client` that
-    implements basic "in memory" caching for entities related to :class:`Guild`. Obtainable
-    through :attr:`Guild.cache`.
-
-    .. tip::
-        If you want to implement custom cache handlers, See the :class:`GuildCache`
-        documentation.
-    """
-
-    def clear(self) -> None:
-        ...
+        Returns
+        -------
+        Optional[:class:`Role`]
+            The deleted role if any. If no role existed with provided ID,
+            ``None`` is returned.
+        """

@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.core.dispatch import DispatchHandler
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
-from qord.core.cache import DefaultCache, DefaultGuildCache
+from qord.core.cache_impl import DefaultCache, DefaultGuildCache
 from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
 from qord.models.users import User

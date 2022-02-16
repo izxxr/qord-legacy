@@ -22,15 +22,22 @@
 
 from __future__ import annotations
 
+from qord.core.cache import GuildCache
 from qord.models.base import BaseModel
+from qord.models.roles import Role
 from qord.flags.system_channel import SystemChannelFlags
-from qord._helpers import get_optional_snowflake, create_cdn_url, compute_shard_id
+from qord._helpers import (
+    get_optional_snowflake,
+    create_cdn_url,
+    compute_shard_id,
+    BASIC_STATIC_EXTS,
+    BASIC_EXTS,
+)
 
 from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
-    from qord.core.cache import GuildCache
     from qord.core.shard import Shard
     from qord.core.client import Client
 
@@ -189,22 +196,13 @@ class Guild(BaseModel):
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client, enable_cache: bool = False) -> None:
         self._client = client
         self._rest = client._rest
-        self._cache = None
-
-        if enable_cache:
-            from qord.core.cache import GuildCache # Hack for circular imports.
-
-            cache = client.get_guild_cache(guild=self)
-
-            if not isinstance(cache, GuildCache):
-                raise TypeError(
-                    f"Client.get_guild_cache() returned an unexpected object of type " \
-                    f"{cache.__class__!r}, Expected a GuildCache instance."
-                )
-
-            cache.clear()
-            self._cache = cache
-
+        self._cache = client.get_guild_cache(guild=self)
+        if not isinstance(self._cache, GuildCache):
+            raise TypeError(
+                f"Client.get_guild_cache() returned an unexpected object of type " \
+                f"{self._cache.__class__!r}, Expected a GuildCache instance."
+            )
+        self._cache.clear()
         self._create_guild(data)
         self._update_with_data(data)
 
@@ -219,12 +217,22 @@ class Guild(BaseModel):
         self.unavailable = data.get("unavailable", False)
         self.member_count = data.get("member_count")
 
+        cache = self._cache
+
+        if cache is None:
+            # No cache handler is set. Caching is disabled
+            # for this guild.
+            return
+
+        for raw_role in data.get("roles", []):
+            role = Role(raw_role, guild=self)
+            cache.add_role(role)
+
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # I'm documenting these attributes here for future reference when we
         # eventually implement these features.
         #
         # - permissions
-        # - roles
         # - emojis
         # - voice_states
         # - members
@@ -280,17 +288,12 @@ class Guild(BaseModel):
         self.public_updates_channel_id = get_optional_snowflake(data, "public_updates_channel_id")
 
     @property
-    def cache(self) -> typing.Optional[GuildCache]:
+    def cache(self) -> GuildCache:
         r"""Returns the cache handler associated to this guild.
-
-        This property would return ``None`` if guild is not cacheable i.e
-        when the guild is not obtained by the gateway. For example when
-        obtaining a guild through :meth:`Client.fetch_guild`, This property
-        would be ``None`` for resulting guild.
 
         Returns
         -------
-        Optional[:class:`GuildCache`]
+        :class:`GuildCache`
         """
         return self._cache
 
@@ -339,6 +342,21 @@ class Guild(BaseModel):
         """
         return self._client.get_shard(self.shard_id)
 
+    @property
+    def default_role(self) -> typing.Optional[Role]:
+        r"""The default (@everyone) role of this guild.
+
+        This property returns the result of :meth:`GuildCache.get_role`
+        with ``role_id`` set to the guild ID. This returns ``None``
+        for the guilds fetched over REST API.
+
+        Returns
+        -------
+        Optional[:class:`Role`]
+        """
+        role_id = self.id
+        return self._cache.get_role(role_id)
+
     def icon_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
         r"""Returns the icon URL for this guild.
 
@@ -370,9 +388,15 @@ class Guild(BaseModel):
         """
         if self.icon is None:
             return None
+        if extension is None:
+            extension = "gif" if self.is_icon_animated() else "png"
 
-        extension = "gif" if self.is_icon_animated() else "png"
-        return create_cdn_url(f"/icons/{self.id}/{self.icon}", extension=extension, size=size)
+        return create_cdn_url(
+            f"/icons/{self.id}/{self.icon}",
+            extension=extension,
+            size=size,
+            valid_exts=BASIC_EXTS,
+        )
 
     def banner_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
         r"""Returns the banner URL for this guild.
@@ -402,12 +426,14 @@ class Guild(BaseModel):
         """
         if self.banner is None:
             return
+        if extension is None:
+            extension = "png"
 
         return create_cdn_url(
             f"/banners/{self.id}/{self.banner}",
-            extension=extension or "png",
+            extension=extension,
             size=size,
-            valid_exts=["jpg", "jpeg", "png", "webp"] # Doesn't support GIF.
+            valid_exts=BASIC_STATIC_EXTS,
         )
 
     def splash_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
@@ -438,12 +464,14 @@ class Guild(BaseModel):
         """
         if self.splash is None:
             return
+        if extension is None:
+            extension = "png"
 
         return create_cdn_url(
             f"/splashes/{self.id}/{self.splash}",
-            extension=extension or "png",
+            extension=extension,
             size=size,
-            valid_exts=["jpg", "jpeg", "png", "webp"] # Doesn't support GIF.
+            valid_exts=BASIC_STATIC_EXTS,
         )
 
     def discovery_splash_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
@@ -474,12 +502,14 @@ class Guild(BaseModel):
         """
         if self.discovery_splash is None:
             return
+        if extension is None:
+            extension = "png"
 
         return create_cdn_url(
             f"/splashes/{self.id}/{self.discovery_splash}",
-            extension=extension or "png",
+            extension=extension,
             size=size,
-            valid_exts=["jpg", "jpeg", "png", "webp"] # Doesn't support GIF.
+            valid_exts=BASIC_STATIC_EXTS,
         )
 
     def is_icon_animated(self) -> bool:

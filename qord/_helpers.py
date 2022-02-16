@@ -28,6 +28,8 @@ from base64 import b64encode
 import typing
 
 BASE_CDN_URL = "https://cdn.discordapp.com"
+BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
+BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
 
 class _Empty:
     r"""A sentinel class for optional values in HTTPs requests."""
@@ -46,7 +48,7 @@ def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typi
 
     if valid_exts is None:
         # Defaulting to general formats used on most endpoints which
-        # are currently gif, png, jpg, webp.
+        # are currently png, jpg, webp.
         # When using with endpoints that have special formats
         # consider passing the valid formats explicitly.
         valid_exts = ["png", "jpeg", "jpg", "webp"]

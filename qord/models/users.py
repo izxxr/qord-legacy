@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
-from qord._helpers import create_cdn_url, get_image_data, EMPTY
+from qord._helpers import create_cdn_url, get_image_data, EMPTY, BASIC_EXTS
 
 import typing
 
@@ -114,6 +114,26 @@ class User(BaseModel):
         """
         return int(self.discriminator) % DefaultAvatar.INDEX
 
+    @property
+    def proper_name(self) -> str:
+        r"""Returns the proper name for this user as ``username#discriminator``.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return f"{self.name}#{self.discriminator}"
+
+    @property
+    def mention(self) -> str:
+        r"""Returns the string used for mentioning this user in Discord.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return f"<@!{self.id}>"
+
     def default_avatar_url(self) -> str:
         r"""Returns the default avatar URL for this user.
 
@@ -165,7 +185,12 @@ class User(BaseModel):
             return self.default_avatar_url()
 
         extension = "gif" if self.is_avatar_animated() else "png"
-        return create_cdn_url(f"/avatars/{self.id}/{self.avatar}", extension=extension, size=size)
+        return create_cdn_url(
+            f"/avatars/{self.id}/{self.avatar}",
+            extension=extension,
+            size=size,
+            valid_exts=BASIC_EXTS,
+        )
 
     def banner_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
         r"""Returns the banner URL for this user.
@@ -198,9 +223,15 @@ class User(BaseModel):
         """
         if self.banner is None:
             return
+        if extension is None:
+            extension = "gif" if self.is_banner_animated() else "png"
 
-        extension = "gif" if self.is_banner_animated() else "png"
-        return create_cdn_url(f"/banners/{self.id}/{self.banner}", extension=extension, size=size)
+        return create_cdn_url(
+            f"/banners/{self.id}/{self.banner}",
+            extension=extension,
+            size=size,
+            valid_exts=BASIC_EXTS,
+        )
 
     def is_avatar_animated(self) -> bool:
         r"""Indicates whether the user has animated avatar.

@@ -316,3 +316,10 @@ Guild
 .. autoclass:: Guild()
     :inherited-members:
     :members:
+
+Role
+~~~~
+
+.. autoclass:: Role()
+    :inherited-members:
+    :members:
