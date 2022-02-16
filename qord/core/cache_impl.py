@@ -102,10 +102,21 @@ class DefaultGuildCache(GuildCache):
     """
 
     def clear(self) -> None:
-        self._roles = {}
+        self._roles: typing.Dict[int, Role] = {}
 
     def roles(self) -> typing.Sequence[Role]:
-        return list(self._roles.values())
+        r"""Returns all roles that are currently cached.
+
+        This implementation sorts the returned sequence of roles
+        in ascending order according to their :attr:`~Role.position`.
+
+        Returns
+        -------
+        Sequence[:class:`Role`]
+        """
+        roles = list(self._roles.values())
+        roles.sort(key=lambda role: role.position)
+        return roles
 
     def add_role(self, role: Role) -> None:
         if not isinstance(role, Role):

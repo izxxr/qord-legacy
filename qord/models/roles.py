@@ -43,7 +43,7 @@ class Role(BaseModel):
     name: :class:`builtins.str`
         The name of this role.
     position: :class:`builtins.int`
-        The position of this role.
+        The position of this role in the roles hierarchy.
     color: :class:`builtins.int`
         The integer representation of color of this role.
     hoist: :class:`builtins.bool`
@@ -69,6 +69,20 @@ class Role(BaseModel):
         Whether this role is the guild's "Server Booster" role and
         is given to members that boost the guild.
     """
+    if typing.TYPE_CHECKING:
+        id: int
+        name: str
+        position: int
+        color: int
+        hoist: bool
+        managed: bool
+        mentionable: bool
+        icon: typing.Optional[str]
+        unicode_emoji: typing.Optional[str]
+        bot_id: typing.Optional[int]
+        integration_id: typing.Optional[int]
+        premium_subscriber: bool
+
     __slots__ = ("_client", "guild", "id", "name", "position", "color", "hoist",
                 "managed", "mentionable", "icon", "unicode_emoji", "bot_id",
                 "integration_id", "premium_subscriber")
@@ -99,7 +113,6 @@ class Role(BaseModel):
 
         # If this field is present (always `null`), It indicates `true` and it's
         # absence indicates `false`
-        # No idea about this behaviour.
         if "premium_subscriber" in data:
             self.premium_subscriber = True
         else:
