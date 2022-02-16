@@ -127,6 +127,23 @@ GuildUpdate
 .. autoclass:: qord.events.GuildUpdate()
     :members:
 
+RoleCreate
+~~~~~~~~~~
+
+.. autoclass:: RoleCreate()
+    :members:
+
+RoleUpdate
+~~~~~~~~~~
+
+.. autoclass:: RoleUpdate()
+    :members:
+
+RoleDelete
+~~~~~~~~~~
+
+.. autoclass:: RoleDelete()
+    :members:
 
 Enumerations
 ------------

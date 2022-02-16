@@ -54,6 +54,15 @@ class GatewayEvent:
     GUILD_UPDATE = "guild_update"
     r"""Called whenever a guild is updated. See :class:`events.GuildUpdate` for more info."""
 
+    ROLE_CREATE = "role_create"
+    r"""Called whenever a guild role is created. See :class:`events.RoleCreate` for more info."""
+
+    ROLE_UPDATE = "role_update"
+    r"""Called whenever a guild role is updated. See :class:`events.RoleUpdate` for more info."""
+
+    ROLE_DELETE = "role_delete"
+    r"""Called whenever a guild role is deleted. See :class:`events.RoleDelete` for more info."""
+
 
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.

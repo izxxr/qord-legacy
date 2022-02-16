@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from qord.models.users import ClientUser
 from qord.models.guilds import Guild
+from qord.models.roles import Role
 from qord import events
 
 import asyncio
@@ -197,4 +198,62 @@ class DispatchHandler:
             guild.unavailable = True
             event = events.GuildUnavailable(shard=shard, guild=guild)
 
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_ROLE_CREATE")
+    async def on_guild_role_create(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_ROLE_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        role = Role(data["role"], guild=guild)
+        event = events.RoleCreate(role=role, guild=guild, shard=shard)
+
+        guild._cache.add_role(role)
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_ROLE_UPDATE")
+    async def on_guild_role_update(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_ROLE_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        raw_role = data["role"]
+        role_id = int(raw_role["id"])
+
+        role = guild._cache.get_role(role_id)
+
+        if role is None:
+            shard._log(logging.DEBUG, "GUILD_ROLE_UPDATE: Unknown role with ID %s", role_id)
+            return
+
+        before = copy.copy(role)
+        role._update_with_data(raw_role)
+        event = events.RoleUpdate(before=before, after=role, guild=guild, shard=shard)
+
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_ROLE_DELETE")
+    async def on_guild_role_delete(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_ROLE_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        role_id = int(data["role_id"])
+        role = guild._cache.delete_role(role_id)
+
+        if role is None:
+            shard._log(logging.DEBUG, "GUILD_ROLE_DELETE: Unknown role with ID %s", role_id)
+            return
+
+        event = events.RoleDelete(role=role, guild=guild, shard=shard)
         self.invoke(event)
