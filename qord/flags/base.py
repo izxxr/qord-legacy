@@ -106,6 +106,10 @@ class Flags:
         else:
             raise TypeError(f"{flag} value must be a bool, Not {toggle.__class__!r}")
 
+    def _has(self, flag: str) -> bool:
+        value = self.__name_value_map__[flag]
+        return (self.value & value) > 0
+
     def __init_subclass__(cls, ignore_extraneous: bool = False) -> None:
         nv_map = {}
 
@@ -125,6 +129,11 @@ class Flags:
     def __iter__(self) -> typing.Iterator[typing.Tuple[str, bool]]:
         for name in self.__name_value_map__:
             yield name, getattr(self, name)
+
+    def __repr__(self) -> str:
+        flags = list(self.__name_value_map__.keys())
+        ret = f"{self.__class__.__name__}(%s)"
+        return ret % (", ".join(f"{k}={self._has(k)}" for k in flags))
 
     __eq__ = lambda self, other: isinstance(other, self.__class__) and self.value == other.value # type: ignore
     __ne__ = lambda self, other: isinstance(other, self.__class__) and self.value != other.value # type: ignore

@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 from qord.models.base import BaseModel
+from qord.flags.permissions import Permissions
 from qord._helpers import get_optional_snowflake, create_cdn_url, BASIC_STATIC_EXTS
 
 import typing
@@ -85,7 +86,7 @@ class Role(BaseModel):
 
     __slots__ = ("_client", "guild", "id", "name", "position", "color", "hoist",
                 "managed", "mentionable", "icon", "unicode_emoji", "bot_id",
-                "integration_id", "premium_subscriber")
+                "integration_id", "premium_subscriber", "permissions")
 
     def __init__(self, data: typing.Dict[str, typing.Any], guild: Guild) -> None:
         self.guild = guild
@@ -93,7 +94,6 @@ class Role(BaseModel):
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
-        # TODO: permissions
         self.id = int(data["id"])
         self.name = data["name"]
 
@@ -102,6 +102,7 @@ class Role(BaseModel):
         self.hoist = data.get("hoist", False)
         self.managed = data.get("managed", False)
         self.mentionable = data.get("mentionable", False)
+        self.permissions = Permissions(data.get("permissions", 0))
 
         self.icon = data.get("icon")
         self.unicode_emoji = data.get("unicode_emoji")
