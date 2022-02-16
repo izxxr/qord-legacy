@@ -47,6 +47,8 @@ class Role(BaseModel):
         The position of this role in the roles hierarchy.
     color: :class:`builtins.int`
         The integer representation of color of this role.
+    permissions: :class:`Permissions`
+        The permissions of this role.
     hoist: :class:`builtins.bool`
         Whether members with this role are shown separately from
         other online members in the members list.

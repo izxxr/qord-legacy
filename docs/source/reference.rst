@@ -230,6 +230,12 @@ Flags
 .. autoclass:: Flags()
     :members:
 
+Permissions
+~~~~~~~~~~~
+
+.. autoclass:: Permissions()
+    :members:
+
 Intents
 ~~~~~~~
 
