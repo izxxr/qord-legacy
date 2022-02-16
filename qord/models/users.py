@@ -183,8 +183,9 @@ class User(BaseModel):
         """
         if self.avatar is None:
             return self.default_avatar_url()
+        if extension is None:
+            extension = "gif" if self.is_avatar_animated() else "png"
 
-        extension = "gif" if self.is_avatar_animated() else "png"
         return create_cdn_url(
             f"/avatars/{self.id}/{self.avatar}",
             extension=extension,
