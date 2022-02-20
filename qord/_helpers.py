@@ -25,6 +25,7 @@ r"""*Non-public* internal utilities."""
 from __future__ import annotations
 
 from base64 import b64encode
+from datetime import datetime
 import typing
 
 BASE_CDN_URL = "https://cdn.discordapp.com"
@@ -94,3 +95,6 @@ def get_image_data(img_bytes: bytes) -> str:
         raise TypeError("Invalid image type was provided.")
 
     return f"data:{content_type};base64,{b64encode(img_bytes).decode('ascii')}"
+
+def parse_iso_timestamp(timestamp: str) -> datetime:
+    return datetime.fromisoformat(timestamp)

@@ -145,6 +145,24 @@ RoleDelete
 .. autoclass:: RoleDelete()
     :members:
 
+GuildMemberAdd
+~~~~~~~~~~~~~~
+
+.. autoclass:: GuildMemberAdd()
+    :members:
+
+GuildMemberUpdate
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: GuildMemberUpdate()
+    :members:
+
+GuildMemberRemove
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: GuildMemberRemove()
+    :members:
+
 Enumerations
 ------------
 
@@ -337,6 +355,13 @@ Guild
 ~~~~~
 
 .. autoclass:: Guild()
+    :inherited-members:
+    :members:
+
+GuildMember
+~~~~~~~~~~~
+
+.. autoclass:: GuildMember()
     :inherited-members:
     :members:
 

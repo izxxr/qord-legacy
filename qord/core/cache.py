@@ -29,6 +29,7 @@ if typing.TYPE_CHECKING:
     from qord.models.users import User
     from qord.models.guilds import Guild
     from qord.models.roles import Role
+    from qord.models.guild_members import GuildMember
 
 class Cache(ABC):
     r"""Base class for creating custom cache handlers.
@@ -220,5 +221,56 @@ class GuildCache(ABC):
         -------
         Optional[:class:`Role`]
             The deleted role if any. If no role existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def members(self) -> typing.Sequence[GuildMember]:
+        r"""Returns all members that are currently cached.
+
+        Returns
+        -------
+        Sequence[:class:`GuildMember`]
+        """
+
+    @abstractmethod
+    def get_member(self, user_id: int) -> typing.Optional[GuildMember]:
+        r"""Gets a :class:`GuildMember` from the cache for provided user ID.
+
+        Parameters
+        ----------
+        user_id: :class:`builtins.int`
+            The ID of user to get member of.
+
+        Returns
+        -------
+        Optional[:class:`GuildMember`]
+            The gotten member if found. If no member existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def add_member(self, member: GuildMember) -> None:
+        r"""Adds a :class:`GuildMember` to the cache.
+
+        Parameters
+        ----------
+        member: :class:`GuildMember`
+            The member to add in the cache.
+        """
+
+    @abstractmethod
+    def delete_member(self, user_id: int) -> typing.Optional[GuildMember]:
+        r"""Removes a :class:`GuildMember` from the cache for provided user ID.
+
+        Parameters
+        ----------
+        user_id: :class:`builtins.int`
+            The ID of user to delete the member of.
+
+        Returns
+        -------
+        Optional[:class:`GuildMember`]
+            The deleted member if any. If no member existed with provided ID,
             ``None`` is returned.
         """

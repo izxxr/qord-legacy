@@ -26,6 +26,7 @@ from qord.core.cache import Cache, GuildCache
 from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.roles import Role
+from qord.models.guild_members import GuildMember
 
 import weakref
 import typing
@@ -103,6 +104,7 @@ class DefaultGuildCache(GuildCache):
 
     def clear(self) -> None:
         self._roles: typing.Dict[int, Role] = {}
+        self._members: typing.Dict[int, GuildMember] = {}
 
     def roles(self) -> typing.Sequence[Role]:
         r"""Returns all roles that are currently cached.
@@ -135,3 +137,24 @@ class DefaultGuildCache(GuildCache):
             raise TypeError("Parameter role_id must be an integer.")
 
         return self._roles.pop(role_id, None)
+
+    def members(self) -> typing.Sequence[GuildMember]:
+        return list(self._members.values())
+
+    def add_member(self, member: GuildMember) -> None:
+        if not isinstance(member, GuildMember):
+            raise TypeError("Parameter member must be an instance of GuildMember.")
+
+        self._members[member.user.id] = member
+
+    def get_member(self, user_id: int) -> typing.Optional[GuildMember]:
+        if not isinstance(user_id, int):
+            raise TypeError("Parameter user_id must be an integer.")
+
+        return self._members.get(user_id)
+
+    def delete_member(self, user_id: int) -> typing.Optional[GuildMember]:
+        if not isinstance(user_id, int):
+            raise TypeError("Parameter user_id must be an integer.")
+
+        return self._members.pop(user_id)

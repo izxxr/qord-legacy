@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.users import ClientUser
 from qord.models.guilds import Guild
 from qord.models.roles import Role
+from qord.models.guild_members import GuildMember
 from qord import events
 
 import asyncio
@@ -256,4 +257,70 @@ class DispatchHandler:
             return
 
         event = events.RoleDelete(role=role, guild=guild, shard=shard)
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_MEMBER_ADD")
+    async def on_guild_member_add(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_MEMBER_ADD: Unknown guild with ID %s", guild_id)
+            return
+
+        member = GuildMember(data, guild=guild)
+
+        guild._cache.add_member(member)
+        self.cache.add_user(member.user)
+
+        if guild.member_count is not None:
+            guild.member_count += 1
+
+        event = events.GuildMemberAdd(shard=shard, guild=guild, member=member)
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_MEMBER_UPDATE")
+    async def on_guild_member_update(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_MEMBER_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        user_id = int(data["user"]["id"])
+        member = guild._cache.get_member(user_id)
+
+        if member is None:
+            shard._log(logging.DEBUG, "GUILD_MEMBER_UPDATE: Unknown user with ID %s", user_id)
+            return
+
+        before = copy.copy(member)
+        member._update_with_data(data)
+
+        event = events.GuildMemberUpdate(shard=shard, guild=guild, before=before, after=member)
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_MEMBER_REMOVE")
+    async def on_guild_member_remove(self, shard: Shard, data: typing.Any) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_MEMBER_REMOVE: Unknown guild with ID %s", guild_id)
+            return
+
+        user_id = int(data["user"]["id"])
+        member = guild._cache.delete_member(user_id)
+
+        if member is None:
+            shard._log(logging.DEBUG, "GUILD_MEMBER_REMOVE: Unknown user with ID %s", user_id)
+            return
+
+        self.cache.delete_user(user_id)
+
+        if guild.member_count is not None:
+            guild.member_count -= 1
+
+        event = events.GuildMemberRemove(shard=shard, guild=guild, member=member)
         self.invoke(event)

@@ -63,6 +63,14 @@ class GatewayEvent:
     ROLE_DELETE = "role_delete"
     r"""Called whenever a guild role is deleted. See :class:`events.RoleDelete` for more info."""
 
+    GUILD_MEMBER_ADD = "guild_member_join"
+    r"""Called whenever a member joins a guild. See :class:`events.GuildMemberAdd` for more info."""
+
+    GUILD_MEMBER_REMOVE = "guild_member_remove"
+    r"""Called whenever a member is removed i.e left, kicked or banned from a guild. See :class:`events.GuildMemberRemove` for more info."""
+
+    GUILD_MEMBER_UPDATE = "guild_member_update"
+    r"""Called whenever a member is updated. See :class:`events.GuildMemberUpdate` for more info."""
 
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.

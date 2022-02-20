@@ -75,6 +75,9 @@ class User(BaseModel):
         accent_color: int
         locale: str
         premium_type: int
+        flags: UserFlags
+        public_flags: UserFlags
+        premium_type: int
         avatar: typing.Optional[str]
         banner: typing.Optional[str]
 

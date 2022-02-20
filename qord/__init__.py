@@ -21,4 +21,5 @@ from qord.flags.system_channel import *
 from qord.models.base import *
 from qord.models.users import *
 from qord.models.guilds import *
+from qord.models.guild_members import *
 from qord.models.roles import *

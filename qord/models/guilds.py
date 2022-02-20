@@ -25,20 +25,22 @@ from __future__ import annotations
 from qord.core.cache import GuildCache
 from qord.models.base import BaseModel
 from qord.models.roles import Role
+from qord.models.guild_members import GuildMember
 from qord.flags.system_channel import SystemChannelFlags
 from qord._helpers import (
     get_optional_snowflake,
     create_cdn_url,
     get_image_data,
     compute_shard_id,
+    parse_iso_timestamp,
     BASIC_STATIC_EXTS,
     BASIC_EXTS,
 )
 
-from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
+    from datetime import datetime
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
@@ -186,7 +188,7 @@ class Guild(BaseModel):
         widget_channel_id: typing.Optional[int]
         system_channel_id: typing.Optional[int]
 
-    __slots__ = ("_client", "_rest", "_cache", "id", "name", "afk_timeout", "premium_subscription_count",
+    __slots__ = ("_client", "_rest", "_cache", "_client_cache", "id", "name", "afk_timeout", "premium_subscription_count",
                 "preferred_locale", "widget_enabled", "large", "unavailable", "system_channel_flags",
                 "premium_progress_bar_enabled", "features", "verification_level", "notification_level",
                 "mfa_level", "premium_tier", "nsfw_level", "member_count", "max_presences", "max_members",
@@ -199,6 +201,7 @@ class Guild(BaseModel):
         self._client = client
         self._rest = client._rest
         self._cache = client.get_guild_cache(guild=self)
+        self._client_cache = client._cache
         if not isinstance(self._cache, GuildCache):
             raise TypeError(
                 f"Client.get_guild_cache() returned an unexpected object of type " \
@@ -214,21 +217,22 @@ class Guild(BaseModel):
         # are assigned here instead.
 
         joined_at = data.get("joined_at")
-        self.joined_at = datetime.fromisoformat(joined_at) if joined_at is not None else None
+        self.joined_at = parse_iso_timestamp(joined_at) if joined_at is not None else None
         self.large = data.get("large", False)
         self.unavailable = data.get("unavailable", False)
         self.member_count = data.get("member_count")
 
         cache = self._cache
-
-        if cache is None:
-            # No cache handler is set. Caching is disabled
-            # for this guild.
-            return
+        client_cache = self._client_cache
 
         for raw_role in data.get("roles", []):
             role = Role(raw_role, guild=self)
             cache.add_role(role)
+
+        for raw_member in data.get("members", []):
+            member = GuildMember(raw_member, guild=self)
+            cache.add_member(member)
+            client_cache.add_user(member.user)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # I'm documenting these attributes here for future reference when we
