@@ -33,7 +33,6 @@ if typing.TYPE_CHECKING:
     from qord.models.roles import Role
     from qord.models.guilds import Guild
 
-T = typing.TypeVar("T")
 
 class GuildMember(BaseModel):
     r"""Representation of a guild member.
