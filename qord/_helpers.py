@@ -97,4 +97,5 @@ def get_image_data(img_bytes: bytes) -> str:
     return f"data:{content_type};base64,{b64encode(img_bytes).decode('ascii')}"
 
 def parse_iso_timestamp(timestamp: str) -> datetime:
+    r"""Parse ISO timestamp string to a datetime.datetime instance."""
     return datetime.fromisoformat(timestamp)
