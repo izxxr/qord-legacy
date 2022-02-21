@@ -635,3 +635,56 @@ class Guild(BaseModel):
 
         data = await self._rest.create_role(guild_id=self.id, json=json, reason=reason)
         return Role(data, guild=self)
+
+    async def fetch_member(self, user_id: int) -> GuildMember:
+        r"""Fetches a member from this guild for the provided user ID.
+
+        Parameters
+        ----------
+        user_id: :class:`builtins.int`
+            The ID of user to get member for.
+
+        Raises
+        ------
+        HTTPNotFound
+            Member not found.
+        HTTPException
+            Failed to fetch the member.
+
+        Returns
+        -------
+        :class:`GuildMember`
+            The requested member.
+        """
+        data = await self._rest.get_guild_member(guild_id=self.id, user_id=user_id)
+        return GuildMember(data, guild=self)
+
+    async def search_members(self, query: str, *, limit: int = 1) -> typing.Iterator[GuildMember]:
+        r"""Fetches the members whose username or nickname start with the provided query.
+
+        Parameters
+        ----------
+        query: :class:`builtins.str`
+            The query to search with.
+        limit: :class:`builtins.int`
+            The maximum number of members to return. Defaults to ``1``. Provided
+            integer cannot be larger then ``1000``.
+
+        Raises
+        ------
+        HTTPException
+            The fetching failed.
+
+        Returns
+        -------
+        Iterator[:class:`GuildMember`]
+        """
+        if limit < 1 or limit > 1000:
+            raise ValueError("Parameter 'limit' cannot be lesser then 0 or greater then 1000.")
+
+        params = {"query": query, "limit": limit}
+        data = await self._rest.search_guild_members(guild_id=self.id, params=params)
+
+        for member in data:
+            yield GuildMember(data, guild=self)
+

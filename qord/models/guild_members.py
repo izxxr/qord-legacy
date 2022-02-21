@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord._helpers import parse_iso_timestamp
+from qord._helpers import parse_iso_timestamp, EMPTY
 from datetime import datetime
 
 import typing
@@ -214,3 +214,232 @@ class GuildMember(BaseModel):
             return False
         now = datetime.now()
         return now < timeout_until
+
+    async def kick(self, *, reason: str = None) -> None:
+        r"""Kicks the member from the associated guild.
+
+        Bot requires the :attr:`~Permissions.kick_members` permission in the
+        relevant guild to perform this action.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for this action that shows up on audit log.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            Failed to perform this action.
+        """
+        guild = self.guild
+        await guild._rest.kick_guild_member(guild_id=guild.id, user_id=self.user.id, reason=reason)
+
+    async def edit(
+        self,
+        *,
+        nickname: typing.Optional[str] = EMPTY,
+        roles: typing.List[Role] = EMPTY,
+        mute: bool = EMPTY,
+        deaf: bool = EMPTY,
+        timeout_until: datetime = EMPTY,
+        reason: str = None,
+    ):
+        r"""Edits this member.
+
+        When successfully edited, The member instance would be updated with new
+        data in place.
+
+        Parameters
+        ----------
+        nickname: :class:`builtins.str`
+            The member's guild nickname. ``None`` could be used to remove the nickname
+            and reset guild name to the default username.
+        roles: List[:class:`Role`]
+            The list of roles to apply on members. ``None`` can be used to remove all
+            roles. It is important to note that the roles provided in this parameter are
+            overwritten to the existing roles.
+            To work with roles in an efficient way, Consider using :meth:`.add_roles` and
+            :meth:`.remove_roles` methods.
+        mute: :class:`builtins.bool`
+            Whether the member is muted in the voice channels.
+        deaf: :class:`builtins.bool`
+            Whether the member is deafened in the voice channels.
+        timeout_until: :class:`datetime.datetime`
+            The time until the member will be timed out. ``None`` can be used
+            to remove timeout.
+        reason: :class:`builtins.str`
+            The reason for this action that shows up on audit log.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            Failed to perform this action.
+        """
+        json = {}
+
+        if nickname is not EMPTY:
+            json["nick"] = nickname
+
+        if roles is not EMPTY:
+            if roles is None:
+                roles = []
+            json["roles"] = [role.id for role in roles]
+
+        if mute is not EMPTY:
+            json["mute"] = mute
+
+        if deaf is not EMPTY:
+            json["deaf"] = deaf
+
+        if timeout_until is not EMPTY:
+            json["communication_disabled_until"] = (
+                timeout_until.isoformat() if timeout_until is not None else None
+            )
+
+        if json:
+            guild = self.guild
+            data = await guild._rest.edit_guild_member(
+                guild_id=guild.id,
+                user_id=self.user.id,
+                json=json,
+                reason=reason,
+            )
+            self._update_with_data(data)
+
+    async def add_roles(
+        self,
+        *roles: Role,
+        overwrite: bool = False,
+        ignore_extra: bool = True,
+        reason: str = None,
+    ) -> typing.List[Role]:
+        r"""Adds the provided roles to the members.
+
+        The behaviour of this method is summarized as:
+
+        - The default behaviour is, roles to add are passed as positional \
+        arguments and they are added to the user without overwriting \
+        the previous roles.
+
+        - When ``overwrite`` keyword parameter is set to ``True``, The provided \
+        roles will be bulkly added and previous roles of the member would be overwritten. \
+        This is equivalent to ``roles`` parameter in :meth:`.edit`.
+
+        - When ``ignore_extra`` is ``False``, Will always attempt to add the role regardless \
+        of whether the role already exists on the member. This would cause unnecessary API calls.
+
+        - Returns the list of roles that were added to the member.
+
+        Parameters
+        ----------
+        *roles: :class:`Role`
+            The roles to add, passed as positional arguments.
+        overwrite: :class:`builtins.bool`
+            Whether to overwrite existing roles with new ones.
+        ignore_extra: :class:`builtins.bool`
+            Whether to ignore extra roles that already exist on members. Defaults to ``True``.
+        reason: :class:`builtins.str`
+            The reason for performing this action.
+
+        Returns
+        -------
+        List[:class:`Role`]
+            The list of added roles. This only includes roles that were actually
+            added and not the ones that were provided but weren't added because they
+            already exist on member.
+        """
+        if roles and overwrite:
+            await self.edit(roles=roles, reason=reason) # type: ignore
+            return self.roles
+
+        ret: typing.List[Role] = []
+        existing_roles = [r.id for r in self.roles]
+
+        rest = self.guild._rest
+        guild_id = self.guild.id
+        user_id = self.user.id
+
+        for role in roles:
+            if role.id in existing_roles and ignore_extra:
+                # Role already exists, ignore.
+                continue
+
+            await rest.add_guild_member_role(
+                guild_id=guild_id,
+                user_id=user_id,
+                role_id=role.id,
+                reason=reason,
+            )
+            ret.append(role)
+
+        return ret
+
+    async def remove_roles(
+        self,
+        *roles: Role,
+        ignore_extra: bool = True,
+        reason: str = None,
+    ) -> typing.List[Role]:
+        r"""Removes the provided roles from the members.
+
+        The behaviour of this method is summarized as:
+
+        - The default behaviour is, roles to remove are passed as positional \
+        arguments and they are added to the user without overwriting \
+        the previous roles.
+
+        - Calling this method without any roles passed will remove all roles from \
+        the member.
+
+        - When ``ignore_extra`` is ``False``, Will always attempt to remove the role \
+        regardless of whether the role is already not on the member. This would cause
+        unnecessary API calls.
+
+        - Returns the list of roles that were removed to the member.
+
+        Parameters
+        ----------
+        *roles: :class:`Role`
+            The roles to remove, passed as positional arguments.
+        ignore_extra: :class:`builtins.bool`
+            Whether to ignore extra roles that are already not on member. Defaults
+            to ``True``.
+        reason: :class:`builtins.str`
+            The reason for performing this action.
+
+        Returns
+        -------
+        List[:class:`Role`]
+            The list of added roles. This only includes roles that were actually
+            added and not the ones that were provided but weren't added because they
+            already exist on member.
+        """
+        if not roles:
+            await self.edit(roles=[], reason=reason) # type: ignore
+            return self.roles
+
+        ret: typing.List[Role] = []
+        existing_roles = [r.id for r in self.roles]
+
+        rest = self.guild._rest
+        guild_id = self.guild.id
+        user_id = self.user.id
+
+        for role in roles:
+            if role.id not in existing_roles and ignore_extra:
+                # Role already removed, ignore.
+                continue
+
+            await rest.remove_guild_member_role(
+                guild_id=guild_id,
+                user_id=user_id,
+                role_id=role.id,
+                reason=reason,
+            )
+            ret.append(role)
+
+        return ret
