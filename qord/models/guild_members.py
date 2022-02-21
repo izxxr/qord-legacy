@@ -357,7 +357,7 @@ class GuildMember(BaseModel):
             return self.roles
 
         ret: typing.List[Role] = []
-        existing_roles = [r.id for r in self.roles]
+        existing_roles = self.role_ids
 
         rest = self.guild._rest
         guild_id = self.guild.id
@@ -423,7 +423,7 @@ class GuildMember(BaseModel):
             return self.roles
 
         ret: typing.List[Role] = []
-        existing_roles = [r.id for r in self.roles]
+        existing_roles = self.role_ids
 
         rest = self.guild._rest
         guild_id = self.guild.id
