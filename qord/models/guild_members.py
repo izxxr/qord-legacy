@@ -322,15 +322,15 @@ class GuildMember(BaseModel):
         The behaviour of this method is summarized as:
 
         - The default behaviour is, roles to add are passed as positional \
-        arguments and they are added to the user without overwriting \
-        the previous roles.
+          arguments and they are added to the user without overwriting \
+          the previous roles.
 
         - When ``overwrite`` keyword parameter is set to ``True``, The provided \
-        roles will be bulkly added and previous roles of the member would be overwritten. \
-        This is equivalent to ``roles`` parameter in :meth:`.edit`.
+          roles will be bulkly added and previous roles of the member would be overwritten. \
+          This is equivalent to ``roles`` parameter in :meth:`.edit`.
 
         - When ``ignore_extra`` is ``False``, Will always attempt to add the role regardless \
-        of whether the role already exists on the member. This would cause unnecessary API calls.
+          of whether the role already exists on the member. This would cause unnecessary API calls.
 
         - Returns the list of roles that were added to the member.
 
@@ -389,15 +389,15 @@ class GuildMember(BaseModel):
         The behaviour of this method is summarized as:
 
         - The default behaviour is, roles to remove are passed as positional \
-        arguments and they are added to the user without overwriting \
-        the previous roles.
+          arguments and they are added to the user without overwriting \
+          the previous roles.
 
         - Calling this method without any roles passed will remove all roles from \
-        the member.
+          the member.
 
         - When ``ignore_extra`` is ``False``, Will always attempt to remove the role \
-        regardless of whether the role is already not on the member. This would cause
-        unnecessary API calls.
+          regardless of whether the role is already not on the member. This would cause
+          unnecessary API calls.
 
         - Returns the list of roles that were removed to the member.
 
@@ -414,8 +414,8 @@ class GuildMember(BaseModel):
         Returns
         -------
         List[:class:`Role`]
-            The list of added roles. This only includes roles that were actually
-            added and not the ones that were provided but weren't added because they
+            The list of removed roles. This only includes roles that were actually
+            removed and not the ones that were provided but weren't removed because they
             already exist on member.
         """
         if not roles:
