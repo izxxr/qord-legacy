@@ -123,7 +123,9 @@ class GuildMember(BaseModel):
 
         for role_id in role_ids:
             role = guild.cache.get_role(role_id)
-            roles.append(role)
+
+            if role is not None:
+                roles.append(role)
 
         self.role_ids = role_ids
         self.roles = roles
