@@ -103,7 +103,7 @@ class GuildMember(BaseModel):
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
-        self.user = user = User(data["user"], client=self._client)
+        self.user = User(data["user"], client=self._client)
         self.nickname = data.get("nick")
         self.avatar = data.get("avatar")
         self.deaf = data.get("deaf", False)
