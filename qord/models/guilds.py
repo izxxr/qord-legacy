@@ -26,7 +26,7 @@ from qord.core.cache import GuildCache
 from qord.models.base import BaseModel
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
-from qord.models.channels import _guild_channel_factory
+from qord.models.channels import _channel_factory
 from qord.flags.system_channel import SystemChannelFlags
 from qord._helpers import (
     get_optional_snowflake,
@@ -236,7 +236,7 @@ class Guild(BaseModel):
             client_cache.add_user(member.user)
 
         for raw_channel in data.get("channels", []):
-            cls = _guild_channel_factory(raw_channel["type"])
+            cls = _channel_factory(raw_channel["type"])
             channel = cls(raw_channel, guild=self)
             cache.add_channel(channel)
 

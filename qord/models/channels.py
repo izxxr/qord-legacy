@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.enums import ChannelType
-from qord._helpers import get_optional_snowflake, parse_iso_timestamp
+from qord._helpers import get_optional_snowflake, parse_iso_timestamp, EMPTY
 
 import abc
 import typing
@@ -43,6 +43,8 @@ class GuildChannel(BaseModel, abc.ABC):
 
     Attributes
     ----------
+    guild: :class:`Guild`
+        The guild associated to this channel.
     id: :class:`builtins.int`
         The ID of this channel.
     type: :class:`builtins.int`
@@ -102,6 +104,28 @@ class GuildChannel(BaseModel, abc.ABC):
         """
         return f"<#{self.id}>"
 
+    async def delete(self, *, reason: str = None) -> None:
+        r"""Deletes this channel.
+
+        Requires the :attr:`~Permissions.manage_channels` on the bot
+        in the parent :attr:`~GuildChannel.guild` for performing this action.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for performing this action.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            Failed to perform this action.
+        """
+        await self._rest.delete_channel(channel_id=self.id, reason=reason)
+
+    async def edit(self, **kwargs) -> None:
+        raise NotImplementedError("edit() must be implemented by subclasses.")
 
 class TextChannel(GuildChannel):
     r"""Represents a text messages based channel in a guild.
@@ -160,8 +184,96 @@ class TextChannel(GuildChannel):
         """
         return self.type is ChannelType.NEWS
 
+    async def edit(
+        self,
+        *,
+        name: str = EMPTY,
+        type: int = EMPTY,
+        position: int = EMPTY,
+        topic: bool = EMPTY,
+        slowmode_delay: int = EMPTY,
+        default_auto_archive_duration: int = EMPTY,
+        reason: str = None,
+    ) -> None:
+        r"""Edits the channel.
 
-def _guild_channel_factory(type: int) -> typing.Type[GuildChannel]:
+        This operation requires the :attr:`~Permissions.manage_channels` permission
+        for the client user in the parent guild.
+
+        When the request is successful, This channel is updated in place with
+        the returned data.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of this channel.
+        type: :class:`builtins.int`
+            The type of this channel. In this case, Only :attr:`~ChannelType.NEWS`
+            and :attr:`~ChannelType.TEXT` are supported.
+        position: :class:`builtins.int`
+            The position of this channel in channels list.
+        topic: :class:`builtins.str`
+            The topic of this channel. ``None`` can be used to remove the topic.
+        slowmode_delay: :class:`builtins.int`
+            The slowmode delay of this channel (in seconds). ``None`` can be used to
+            disable it. Cannot be greater then 21600 seconds.
+        default_auto_archive_duration: :class:`builtins.int`
+            The default auto archive duration after which in active threads
+            are archived automatically (in minutes). Can be ``None`` to reset
+            the default.
+            Valid values are 60, 1440, 4320 and 10080.
+        reason: :class:`builtins.str`
+            The reason for performing this action that shows up on guild's audit log.
+
+        Raises
+        ------
+        ValueError
+            Invalid values supplied in some arguments.
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            Failed to perform this action.
+        """
+        json = {}
+
+        if name is not EMPTY:
+            json["name"] = name
+
+        if type is not EMPTY:
+            if not type in (ChannelType.NEWS, ChannelType.TEXT):
+                raise ValueError("type parameter only supports ChannelType.NEWS and TEXT.")
+
+            json["type"] = type
+
+        if position is not EMPTY:
+            json["position"] = position
+
+        if topic is not EMPTY:
+            json["topic"] = topic
+
+        if slowmode_delay is not EMPTY:
+            if slowmode_delay is None:
+                slowmode_delay = 0
+
+            json["rate_limit_per_user"] = slowmode_delay
+
+        if default_auto_archive_duration is not EMPTY:
+            if not default_auto_archive_duration in (60, 1440, 4320, 10080):
+                raise ValueError("Invalid value given for default_auto_archive_duration " \
+                                "supported values are 60, 1440, 4320 and 10080.")
+
+            json["default_auto_archive_duration"] = default_auto_archive_duration
+
+        if json:
+            data = await self._rest.edit_channel(
+                channel_id=self.id,
+                json=json,
+                reason=reason
+            )
+            if data:
+                self._update_with_data(data)
+
+def _channel_factory(type: int) -> typing.Type[GuildChannel]:
     if type in (ChannelType.NEWS, ChannelType.TEXT):
         return TextChannel
 

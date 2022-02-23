@@ -290,3 +290,22 @@ class RestClient:
         )
         data = await self.request(route, reason=reason)
         return data
+
+    # --- Channels --- #
+
+    async def get_channel(self, channel_id: int):
+        route = Route("GET", "/channels/{channel_id}", channel_id=channel_id)
+        data = await self.request(route)
+        return data
+
+    async def delete_channel(self, channel_id: int, reason: str = None):
+        route = Route("DELETE", "/channels/{channel_id}", channel_id=channel_id)
+        data = await self.request(route, reason=reason)
+        return data
+
+    async def edit_channel(self, channel_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route("PATCH", "/channels/{channel_id}", channel_id=channel_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+
