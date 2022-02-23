@@ -27,6 +27,7 @@ from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
+from qord.models.channels import GuildChannel
 
 import weakref
 import typing
@@ -105,6 +106,7 @@ class DefaultGuildCache(GuildCache):
     def clear(self) -> None:
         self._roles: typing.Dict[int, Role] = {}
         self._members: typing.Dict[int, GuildMember] = {}
+        self._channels: typing.Dict[int, GuildChannel] = {}
 
     def roles(self) -> typing.Sequence[Role]:
         r"""Returns all roles that are currently cached.
@@ -158,3 +160,24 @@ class DefaultGuildCache(GuildCache):
             raise TypeError("Parameter user_id must be an integer.")
 
         return self._members.pop(user_id)
+
+    def channels(self) -> typing.Sequence[GuildChannel]:
+        return list(self._channels.values())
+
+    def get_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._channels.get(channel_id)
+
+    def add_channel(self, channel: GuildChannel) -> None:
+        if not isinstance(channel, GuildChannel):
+            raise TypeError("Parameter channel must be an instance of GuildChannel.")
+
+        self._channels[channel.id] = channel
+
+    def delete_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._channels.pop(channel_id)

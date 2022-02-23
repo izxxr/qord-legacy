@@ -30,6 +30,7 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.models.roles import Role
     from qord.models.guild_members import GuildMember
+    from qord.models.channels import GuildChannel
 
 class Cache(ABC):
     r"""Base class for creating custom cache handlers.
@@ -272,5 +273,57 @@ class GuildCache(ABC):
         -------
         Optional[:class:`GuildMember`]
             The deleted member if any. If no member existed with provided ID,
+            ``None`` is returned.
+        """
+
+
+    @abstractmethod
+    def channels(self) -> typing.Sequence[GuildChannel]:
+        r"""Returns all channels that are currently cached.
+
+        Returns
+        -------
+        Sequence[:class:`GuildChannel`]
+        """
+
+    @abstractmethod
+    def get_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        r"""Gets a :class:`GuildChannel` from the cache for provided channel ID.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The ID of channel to get.
+
+        Returns
+        -------
+        Optional[:class:`GuildChannel`]
+            The gotten channel if found. If no channel existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def add_channel(self, channel: GuildChannel) -> None:
+        r"""Adds a :class:`GuildChannel` to the cache.
+
+        Parameters
+        ----------
+        channel: :class:`GuildChannel`
+            The channel to add in the cache.
+        """
+
+    @abstractmethod
+    def delete_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        r"""Removes a :class:`GuildChannel` from the cache for provided channel ID.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The ID of channel to delete.
+
+        Returns
+        -------
+        Optional[:class:`GuildChannel`]
+            The deleted channel if any. If no channel existed with provided ID,
             ``None`` is returned.
         """

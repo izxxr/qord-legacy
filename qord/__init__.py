@@ -19,6 +19,7 @@ from qord.flags.permissions import *
 from qord.flags.users import *
 from qord.flags.system_channel import *
 from qord.models.base import *
+from qord.models.channels import *
 from qord.models.users import *
 from qord.models.guilds import *
 from qord.models.guild_members import *

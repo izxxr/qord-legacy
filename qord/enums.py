@@ -244,3 +244,39 @@ class MFALevel:
 
     ELEVATED = 1
     r"""2FA is required for performing moderative actions.."""
+
+class ChannelType:
+    r"""An enumeration that details the types of channels."""
+
+    TEXT = 0
+    r"""The channel is a guild's text channel."""
+
+    DIRECT = 1
+    r"""The channel is a private DM between two users."""
+
+    VOICE = 2
+    r"""The channel is a guild's voice channel."""
+
+    GROUP = 3
+    r"""The channel is a private group DM channel."""
+
+    CATEGORY = 4
+    r"""The channel is a guild's category that holds other channels."""
+
+    NEWS = 5
+    r"""The channel is a guild's news channel."""
+
+    STORE = 6
+    r"""The channel is a guild's store channel."""
+
+    NEWS_THREAD = 10
+    r"""The channel is a thread created inside a news channel."""
+
+    PUBLIC_THREAD = 11
+    r"""The channel is a public thread."""
+
+    PRIVATE_THREAD = 12
+    r"""The channel is a private thread."""
+
+    STAGE = 13
+    r"""The channel is a guild's stage channel."""
