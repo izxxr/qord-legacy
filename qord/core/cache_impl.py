@@ -109,17 +109,10 @@ class DefaultGuildCache(GuildCache):
         self._channels: typing.Dict[int, GuildChannel] = {}
 
     def roles(self) -> typing.Sequence[Role]:
-        r"""Returns all roles that are currently cached.
-
-        This implementation sorts the returned sequence of roles
-        in ascending order according to their :attr:`~Role.position`.
-
-        Returns
-        -------
-        Sequence[:class:`Role`]
-        """
         roles = list(self._roles.values())
-        roles.sort(key=lambda role: role.position)
+        # Multiple roles may share same positions so
+        # we cannot rely on this behaviour.
+        roles.sort(key=lambda role: role.position) # Undocumented, see above
         return roles
 
     def add_role(self, role: Role) -> None:
@@ -162,7 +155,11 @@ class DefaultGuildCache(GuildCache):
         return self._members.pop(user_id)
 
     def channels(self) -> typing.Sequence[GuildChannel]:
-        return list(self._channels.values())
+        ret = list(self._channels.values())
+        # Multiple channels may share the same position so
+        # we cannot rely on this behaviour.
+        ret.sort(key=lambda c: c.position) # Undocumented, see above
+        return ret
 
     def get_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
         if not isinstance(channel_id, int):
