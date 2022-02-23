@@ -71,6 +71,7 @@ class GuildChannel(BaseModel, abc.ABC):
         "_rest",
         "guild",
         "id",
+        "type",
         "name",
         "position",
         "nsfw",
@@ -100,6 +101,51 @@ class GuildChannel(BaseModel, abc.ABC):
         :class:`builtins.str`
         """
         return f"<#{self.id}>"
+
+    def is_higher_than(self, other: GuildChannel) -> bool:
+        r"""Compares this channel with another channel of the same guild
+        and checks whether this channel is higher than the other in the
+        channels list.
+
+        Parameters
+        ----------
+        other: :class:`GuildChannel`
+            The channel to check against.
+
+        Raises
+        -------
+        RuntimeError
+            The provided channel is not associated to the guild
+            that this channel is associated to.
+        """
+        if not isinstance(other, GuildChannel):
+            raise TypeError("Parameter other must be an instance of GuildChannel.")
+        if self.guild.id != other.guild.id:
+            raise RuntimeError("Cannot compare against channels of different guild.")
+
+        if self.position == other.position:
+            return self.id > other.id
+
+        return self.position > other.position
+
+    def is_lower_than(self, other: GuildChannel) -> bool:
+        r"""Compares this channel with another channel of the same guild
+        and checks whether this channel is lower than the other in the
+        channels list.
+
+        Parameters
+        ----------
+        other: :class:`GuildChannel`
+            The channel to check against.
+
+        Raises
+        -------
+        RuntimeError
+            The provided channel is not associated to the guild
+            that this channel is associated to.
+        """
+        return (not self.is_higher_than(other))
+
 
 class TextChannel(GuildChannel):
     r"""Represents a text messages based channel in a guild.
