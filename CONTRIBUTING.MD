@@ -57,7 +57,7 @@ We will extend the above example!
 
 Let's first import the `Route` class that help us define a structure to specific endpoint.
 ```py
-from qord.core.rest import Route
+from qord.core.routes import Route
 ```
 
 Now let us create a new `on_gateway_dispatch` event for messages handling. (You can do that in existing event too if you want).
