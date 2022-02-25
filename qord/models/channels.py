@@ -190,9 +190,9 @@ class TextChannel(GuildChannel):
         name: str = EMPTY,
         type: int = EMPTY,
         position: int = EMPTY,
-        topic: bool = EMPTY,
-        slowmode_delay: int = EMPTY,
-        default_auto_archive_duration: int = EMPTY,
+        topic: typing.Optional[str] = EMPTY,
+        slowmode_delay: typing.Optional[int] = EMPTY,
+        default_auto_archive_duration: typing.Optional[int] = EMPTY,
         reason: str = None,
     ) -> None:
         r"""Edits the channel.
