@@ -219,9 +219,7 @@ class TextChannel(GuildChannel):
             disable it. Cannot be greater then 21600 seconds.
         default_auto_archive_duration: Optional[:class:`builtins.int`]
             The default auto archive duration after which in active threads
-            are archived automatically (in minutes). Can be ``None`` to reset
-            the default.
-            Valid values are 60, 1440, 4320 and 10080.
+            are archived automatically (in minutes). Valid values are 60, 1440, 4320 and 10080.
         reason: :class:`builtins.str`
             The reason for performing this action that shows up on guild's audit log.
 
