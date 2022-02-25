@@ -212,12 +212,12 @@ class TextChannel(GuildChannel):
             and :attr:`~ChannelType.TEXT` are supported.
         position: :class:`builtins.int`
             The position of this channel in channels list.
-        topic: :class:`builtins.str`
+        topic: Optional[:class:`builtins.str`]
             The topic of this channel. ``None`` can be used to remove the topic.
-        slowmode_delay: :class:`builtins.int`
+        slowmode_delay: Optional[:class:`builtins.int`]
             The slowmode delay of this channel (in seconds). ``None`` can be used to
             disable it. Cannot be greater then 21600 seconds.
-        default_auto_archive_duration: :class:`builtins.int`
+        default_auto_archive_duration: Optional[:class:`builtins.int`]
             The default auto archive duration after which in active threads
             are archived automatically (in minutes). Can be ``None`` to reset
             the default.
