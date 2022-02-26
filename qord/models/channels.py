@@ -192,7 +192,7 @@ class TextChannel(GuildChannel):
         position: int = EMPTY,
         topic: typing.Optional[str] = EMPTY,
         slowmode_delay: typing.Optional[int] = EMPTY,
-        default_auto_archive_duration: typing.Optional[int] = EMPTY,
+        default_auto_archive_duration: int = EMPTY,
         reason: str = None,
     ) -> None:
         r"""Edits the channel.
@@ -217,7 +217,7 @@ class TextChannel(GuildChannel):
         slowmode_delay: Optional[:class:`builtins.int`]
             The slowmode delay of this channel (in seconds). ``None`` can be used to
             disable it. Cannot be greater then 21600 seconds.
-        default_auto_archive_duration: Optional[:class:`builtins.int`]
+        default_auto_archive_duration: :class:`builtins.int`
             The default auto archive duration after which in active threads
             are archived automatically (in minutes). Valid values are 60, 1440, 4320 and 10080.
         reason: :class:`builtins.str`
