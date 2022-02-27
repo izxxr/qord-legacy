@@ -280,3 +280,12 @@ class ChannelType:
 
     STAGE = 13
     r"""The channel is a guild's stage channel."""
+
+class VideoQualityMode:
+    r"""An enumeration that details the video quality mode of a :class:`VoiceChannel`."""
+
+    AUTO = 1
+    r"""Automatic quality. Discord will chose the best quality for optimal performance."""
+
+    FULL = 2
+    r"""720p quality."""
