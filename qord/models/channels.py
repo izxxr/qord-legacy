@@ -292,6 +292,8 @@ class NewsChannel(TextChannel):
     Currently this class has no extra functionality compared to :class:`TextChannel`.
     """
 
+    __slots__ = ()
+
 class CategoryChannel(GuildChannel):
     r"""Represents a category channel that holds other guild channels.
 
@@ -506,8 +508,8 @@ class StageChannel(VoiceChannel):
     More functionality will be included when stage instances are supported
     by the library.
     """
-    # TODO: This is currently empty, Implement methods here when stage instances
-    # are implemented.
+
+    __slots__ = ()
 
 
 def _channel_factory(type: int) -> typing.Type[GuildChannel]:
