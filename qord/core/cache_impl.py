@@ -152,7 +152,7 @@ class DefaultGuildCache(GuildCache):
         if not isinstance(user_id, int):
             raise TypeError("Parameter user_id must be an integer.")
 
-        return self._members.pop(user_id)
+        return self._members.pop(user_id, None)
 
     def channels(self) -> typing.Sequence[GuildChannel]:
         ret = list(self._channels.values())
@@ -177,4 +177,4 @@ class DefaultGuildCache(GuildCache):
         if not isinstance(channel_id, int):
             raise TypeError("Parameter channel_id must be an integer.")
 
-        return self._channels.pop(channel_id)
+        return self._channels.pop(channel_id, None)

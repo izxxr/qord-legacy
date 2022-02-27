@@ -26,6 +26,7 @@ from qord.models.users import ClientUser
 from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
+from qord.models.channels import _channel_factory
 from qord import events
 
 import asyncio
@@ -324,3 +325,75 @@ class DispatchHandler:
 
         event = events.GuildMemberRemove(shard=shard, guild=guild, member=member)
         self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_CREATE")
+    async def on_channel_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "CHANNEL_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        cls = _channel_factory(data["type"])
+        channel = cls(data, guild=guild)
+        event = events.ChannelCreate(shard=shard, channel=channel, guild=guild)
+
+        guild.cache.add_channel(channel)
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_UPDATE")
+    async def on_channel_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "CHANNEL_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        channel_id = int(data["id"])
+        channel = guild.cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "CHANNEL_UPDATE: Unknown channel with ID %s", channel_id)
+            return
+
+        before = copy.copy(channel)
+        channel._update_with_data(data)
+
+        event = events.ChannelUpdate(shard=shard, before=before, after=channel, guild=guild)
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_DELETE")
+    async def on_channel_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "CHANNEL_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        channel_id = int(data["id"])
+        channel = guild.cache.delete_channel(channel_id)
+
+        # XXX: data is a complete channel object, maybe create a new instance
+        # if older isn't available?
+        if channel is None:
+            shard._log(logging.DEBUG, "CHANNEL_DELETE: Unknown channel with ID %s", channel_id)
+            return
+
+        event = events.ChannelDelete(shard=shard, channel=channel, guild=guild)
+        self.invoke(event)
+

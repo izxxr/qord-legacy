@@ -72,6 +72,15 @@ class GatewayEvent:
     GUILD_MEMBER_UPDATE = "guild_member_update"
     r"""Called whenever a member is updated. See :class:`events.GuildMemberUpdate` for more info."""
 
+    CHANNEL_CREATE = "channel_create"
+    r"""Called whenever a channel is created. See :class:`events.ChannelCreate` for more info."""
+
+    CHANNEL_UPDATE = "channel_update"
+    r"""Called whenever a channel is updated. See :class:`events.ChannelUpdate` for more info."""
+
+    CHANNEL_DELETE = "channel_delete"
+    r"""Called whenever a channel is deleted. See :class:`events.ChannelDelete` for more info."""
+
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.
 
