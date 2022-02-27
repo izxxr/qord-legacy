@@ -163,6 +163,28 @@ GuildMemberRemove
 .. autoclass:: qord.events.GuildMemberRemove()
     :members:
 
+
+ChannelCreate
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ChannelCreate()
+    :members:
+
+
+ChannelUpdate
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ChannelUpdate()
+    :members:
+
+
+ChannelDelete
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ChannelDelete()
+    :members:
+
+
 Enumerations
 ------------
 
@@ -217,6 +239,17 @@ ExplicitContentFilter
 .. autoclass:: ExplicitContentFilter()
     :members:
 
+ChannelType
+~~~~~~~~~~~
+
+.. autoclass:: ChannelType()
+    :members:
+
+VideoQualityMode
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: VideoQualityMode()
+    :members:
 
 PremiumTier
 ~~~~~~~~~~~
@@ -369,5 +402,47 @@ Role
 ~~~~
 
 .. autoclass:: Role()
+    :inherited-members:
+    :members:
+
+GuildChannel
+~~~~~~~~~~~~
+
+.. autoclass:: GuildChannel()
+    :inherited-members:
+    :members:
+
+CategoryChannel
+~~~~~~~~~~~~~~~
+
+.. autoclass:: CategoryChannel()
+    :inherited-members:
+    :members:
+
+TextChannel
+~~~~~~~~~~~
+
+.. autoclass:: TextChannel()
+    :inherited-members:
+    :members:
+
+NewsChannel
+~~~~~~~~~~~
+
+.. autoclass:: NewsChannel()
+    :inherited-members:
+    :members:
+
+VoiceChannel
+~~~~~~~~~~~~
+
+.. autoclass:: VoiceChannel()
+    :inherited-members:
+    :members:
+
+StageChannel
+~~~~~~~~~~~~
+
+.. autoclass:: StageChannel()
     :inherited-members:
     :members:
