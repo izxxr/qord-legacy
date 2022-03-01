@@ -75,9 +75,17 @@ def _user_features(cls):
 class GuildMember(BaseModel):
     r"""Representation of a guild member.
 
-    A guild member is simply a user that is part of a specific :class:`Guild`. This
-    class bundles the properties associated to a guild member and also provides
-    shorthands to access the properties of underlying user.
+    A guild member is simply a user that is part of a specific :class:`Guild`.
+    Every guild member has an underlying :class:`User` object attached to it.
+
+    .. note::
+        This class provides shorthand properties to access the underlying user's
+        data however certain properties like :attr:`.name` and :attr:`.avatar`
+        have different behaviour in this class.
+
+        For example, :attr:`.avatar` and other avatar related methods and attributes
+        also consider the guild specific avatar of member for relevant functionality
+        with addition to user's global avatar.
 
     Attributes
     ----------
@@ -89,7 +97,7 @@ class GuildMember(BaseModel):
         The nickname of this member in the guild. If member has no guild
         specific nickname set, This is ``None``. See :attr:`.display_name` property
         that aids in retrieving the name more efficiently.
-    avatar: Optional[:class:`builtins.str`]
+    guild_avatar: Optional[:class:`builtins.str`]
         The hash of avatar for this member in the guild. If member has no
         guild specific avatar set, This is ``None``. See :attr:`.display_avatar` property
         that aids in retrieving the avatar more efficiently.
