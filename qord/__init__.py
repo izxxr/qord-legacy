@@ -24,3 +24,4 @@ from qord.models.users import *
 from qord.models.guilds import *
 from qord.models.guild_members import *
 from qord.models.roles import *
+from qord.models.messages import *

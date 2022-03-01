@@ -11,3 +11,4 @@ from qord.events.gateway import *
 from qord.events.guild_members import *
 from qord.events.guilds import *
 from qord.events.roles import *
+from qord.events.messages import *

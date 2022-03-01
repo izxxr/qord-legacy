@@ -247,8 +247,6 @@ class Guild(BaseModel):
         # - permissions
         # - emojis
         # - voice_states
-        # - members
-        # - channels
         # - threads
         # - presences
         # - welcome_screen

@@ -27,6 +27,7 @@ from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _channel_factory
+from qord.models.messages import Message
 from qord import events
 
 import asyncio
@@ -397,3 +398,25 @@ class DispatchHandler:
         event = events.ChannelDelete(shard=shard, channel=channel, guild=guild)
         self.invoke(event)
 
+    @event_dispatch_handler("MESSAGE_CREATE")
+    async def on_message_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        channel_id = int(data["channel_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+        else:
+            guild = self.cache.get_guild(guild_id)
+            if guild is None:
+                shard._log(logging.DEBUG, "MESSAGE_CREATE: Unknown guild with ID %s", guild_id)
+                return
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "MESSAGE_CREATE: Unknown channel with ID %s", channel_id)
+            return
+
+        message = Message(data, channel=channel) # type: ignore
+        event = events.MessageCreate(shard=shard, message=message)
+        self.invoke(event)

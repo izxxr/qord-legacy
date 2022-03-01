@@ -153,9 +153,9 @@ class GuildMember(BaseModel):
         public_flags: UserFlags
         premium_type: int
         banner: typing.Optional[str]
-        mention = User.mention
-        proper_name = User.proper_name
-        default_avatar = User.default_avatar
+        mention: str
+        proper_name: str
+        default_avatar: str
         default_avatar_url = User.default_avatar_url
         banner_url = User.banner_url
         is_banner_animated = User.is_banner_animated

@@ -81,6 +81,9 @@ class GatewayEvent:
     CHANNEL_DELETE = "channel_delete"
     r"""Called whenever a channel is deleted. See :class:`events.ChannelDelete` for more info."""
 
+    MESSAGE_CREATE = "message_create"
+    r"""Called whenever a message is sent. See :class:`events.MessageCreate` for more info."""
+
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.
 
