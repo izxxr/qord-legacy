@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord._helpers import parse_iso_timestamp, EMPTY
+from qord._helpers import parse_iso_timestamp, create_cdn_url, EMPTY, BASIC_EXTS
 from datetime import datetime
 
 import typing
@@ -40,6 +40,7 @@ def _user_features(cls):
         "avatar",
         "name",
         "is_avatar_animated",
+        "avatar_url",
     )
 
     def _create_property(name: str) -> property:
@@ -144,6 +145,12 @@ class GuildMember(BaseModel):
         public_flags: UserFlags
         premium_type: int
         banner: typing.Optional[str]
+        mention = User.mention
+        proper_name = User.proper_name
+        default_avatar = User.default_avatar
+        default_avatar_url = User.default_avatar_url
+        banner_url = User.banner_url
+        is_banner_animated = User.is_banner_animated
 
     __slots__ = ("guild", "_client", "user", "nickname", "guild_avatar", "deaf", "mute", "pending",
                 "joined_at", "premium_since", "timeout_until", "role_ids", "roles")
@@ -215,36 +222,67 @@ class GuildMember(BaseModel):
             return guild_avatar
         return self.user.avatar
 
-    def is_avatar_animated(self, guild_only: bool = False) -> bool:
-        r"""Checks whether the member's avatar is animated.
+    def avatar_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+        r"""Returns the avatar URL for this member.
 
-        When ``guild_only`` is ``True``, Checks for only the guild's
-        :attr:`.avatar`. Otherwise checks if for the :attr:`.avatar`
-        i.e either one of guild avatar or associated :attr:`.user` avatar
-        is animated.
+        This method returns URL for the member's displayed :attr:`.avatar`
+        i.e use the guild specific member avatar if present otherwise
+        user's global avatar. If none of these avatars are set, The
+        result of :meth:`.default_avatar_url` is returned instead.
+
+        The ``extension`` parameter only supports following extensions
+        in the case of avatars:
+
+        - :attr:`ImageExtension.GIF`
+        - :attr:`ImageExtension.PNG`
+        - :attr:`ImageExtension.JPG`
+        - :attr:`ImageExtension.JPEG`
+        - :attr:`ImageExtension.WEBP`
 
         Parameters
         ----------
-        guild_only: :class:`builtins.bool`
-            Whether to check for guild specific avatar only. Defaults
-            to ``False``.
+        extension: :class:`builtins.str`
+            The extension to use in the URL. If not supplied, An ideal
+            extension will be picked depending on whether member has static
+            or animated avatar.
+        size: :class:`builtins.int`
+            The size to append to URL. Can be any power of 2 between
+            64 and 4096.
+
+        Raises
+        ------
+        ValueError
+            Invalid extension or size was passed.
+        """
+        avatar = self.guild_avatar
+
+        if avatar is None:
+            return self.user.avatar_url(extension=extension, size=size)
+        if extension is None:
+            extension = "gif" if self.is_avatar_animated() else "png"
+
+        return create_cdn_url(
+            f"/guilds/{self.guild.id}/users/{self.id}/{self.avatar}",
+            extension=extension,
+            size=size,
+            valid_exts=BASIC_EXTS,
+        )
+
+    def is_avatar_animated(self) -> bool:
+        r"""Checks whether the member's avatar is animated.
+
+        This method checks for the :attr:`.avatar` to be animated i.e either
+        one of member's guild specific or underlying user's avatar should be
+        animated. To check specifically for the underlying user's avatar,
+        Consider using :meth:`User.is_avatar_animated` instead.
 
         Returns
         -------
         :class:`builtins.bool`
         """
-        guild_avatar = self.guild_avatar
-
-        if guild_only:
-            if guild_avatar is None:
-                return False
-            return guild_avatar.startswith("a_")
-
         avatar = self.avatar
-
         if avatar is None:
             return False
-
         return avatar.startswith("a_")
 
     def is_boosting(self) -> bool:
