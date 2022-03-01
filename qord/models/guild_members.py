@@ -32,14 +32,51 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.models.roles import Role
     from qord.models.guilds import Guild
+    from qord.flags.users import UserFlags
 
 
+def _user_features(cls):
+    ignore = (
+        "avatar",
+        "name",
+        "is_avatar_animated",
+    )
+
+    def _create_property(name: str) -> property:
+        def getter(self: GuildMember):
+            return getattr(self.user, name)
+
+        getter.__name__ = name
+        getter.__doc__ = f"Shorthand property for :attr:`User.{name}`."
+        return property(getter)
+
+    for attr in User.__slots__:
+        if (
+            attr in ignore
+            or attr.startswith("_")
+            or attr in cls.__dict__
+        ):
+            continue
+        setattr(cls, attr, _create_property(attr))
+
+    for attr in User.__dict__:
+        if (
+            attr in ignore
+            or attr.startswith("_")
+            or attr in cls.__dict__
+        ):
+            continue
+        setattr(cls, attr, _create_property(attr))
+
+    return cls
+
+@_user_features
 class GuildMember(BaseModel):
     r"""Representation of a guild member.
 
     A guild member is simply a user that is part of a specific :class:`Guild`. This
-    class bundles the properties associated to a guild member. To access the actual
-    user associated to this member, you should consider using :attr:`.user` attribute.
+    class bundles the properties associated to a guild member and also provides
+    shorthands to access the properties of underlying user.
 
     Attributes
     ----------
@@ -81,10 +118,11 @@ class GuildMember(BaseModel):
         The list of roles associated to this member.
     """
     if typing.TYPE_CHECKING:
+        # -- Member properties --
         guild: Guild
         user: User
         nickname: typing.Optional[str]
-        avatar: typing.Optional[str]
+        guild_avatar: typing.Optional[str]
         deaf: bool
         mute: bool
         pending: bool
@@ -94,7 +132,20 @@ class GuildMember(BaseModel):
         role_ids: typing.List[int]
         roles: typing.List[Role]
 
-    __slots__ = ("guild", "_client", "user", "nickname", "avatar", "deaf", "mute", "pending",
+        # -- User properties (applied by _user_features decorator) --
+        id: int
+        discriminator: str
+        bot: bool
+        system: bool
+        accent_color: int
+        locale: str
+        premium_type: int
+        flags: UserFlags
+        public_flags: UserFlags
+        premium_type: int
+        banner: typing.Optional[str]
+
+    __slots__ = ("guild", "_client", "user", "nickname", "guild_avatar", "deaf", "mute", "pending",
                 "joined_at", "premium_since", "timeout_until", "role_ids", "roles")
 
     def __init__(self, data: typing.Dict[str, typing.Any], guild: Guild) -> None:
@@ -105,7 +156,7 @@ class GuildMember(BaseModel):
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.user = User(data["user"], client=self._client)
         self.nickname = data.get("nick")
-        self.avatar = data.get("avatar")
+        self.guild_avatar = data.get("avatar")
         self.deaf = data.get("deaf", False)
         self.mute = data.get("mute", False)
         self.pending = data.get("pending", False)
@@ -131,11 +182,12 @@ class GuildMember(BaseModel):
         self.roles = roles
 
     @property
-    def display_name(self) -> str:
+    def name(self) -> str:
         r"""Returns the name of this member as displayed in the guild.
 
-        This property would return the :attr:`.nickname` of the member if it's present
-        and would fallback to :attr:`User.name` if nickname is not available.
+        This property would return the :attr:`.nickname` of the member if it's
+        present and would fallback to underlying user's :attr:`~User.name` if
+        nickname is not available.
 
         Returns
         -------
@@ -147,27 +199,27 @@ class GuildMember(BaseModel):
         return self.user.name
 
     @property
-    def display_avatar(self) -> typing.Optional[str]:
+    def avatar(self) -> typing.Optional[str]:
         r"""Returns the avatar's hash of this member as displayed in the guild.
 
-        This property would return the :attr:`.avatar` of this member if available
-        and would fallback to :attr:`User.avatar` when unavailable. If user has no
-        avatar set, ``None`` would be returned.
+        This property would return the :attr:`.guild_avatar` of this member if
+        available and would fallback to underlying user's :attr:`~User.avatar`
+        when unavailable. If user has no avatar set, ``None`` would be returned.
 
         Returns
         -------
         Optional[:class:`builtins.str`]
         """
-        avatar = self.avatar
-        if avatar is not None:
-            return avatar
+        guild_avatar = self.guild_avatar
+        if guild_avatar is not None:
+            return guild_avatar
         return self.user.avatar
 
     def is_avatar_animated(self, guild_only: bool = False) -> bool:
         r"""Checks whether the member's avatar is animated.
 
         When ``guild_only`` is ``True``, Checks for only the guild's
-        :attr:`.avatar`. Otherwise checks if for the :attr:`.display_avatar`
+        :attr:`.avatar`. Otherwise checks if for the :attr:`.avatar`
         i.e either one of guild avatar or associated :attr:`.user` avatar
         is animated.
 
@@ -181,19 +233,19 @@ class GuildMember(BaseModel):
         -------
         :class:`builtins.bool`
         """
-        avatar = self.avatar
+        guild_avatar = self.guild_avatar
 
         if guild_only:
-            if avatar is None:
+            if guild_avatar is None:
                 return False
-            return avatar.startswith("a_")
+            return guild_avatar.startswith("a_")
 
-        display_avatar = self.display_avatar
+        avatar = self.avatar
 
-        if display_avatar is None:
+        if avatar is None:
             return False
 
-        return display_avatar.startswith("a_")
+        return avatar.startswith("a_")
 
     def is_boosting(self) -> bool:
         r"""Checks whether the member is boosting the guild.
