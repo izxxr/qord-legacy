@@ -31,6 +31,7 @@ if typing.TYPE_CHECKING:
     from qord.models.roles import Role
     from qord.models.guild_members import GuildMember
     from qord.models.channels import GuildChannel
+    from qord.models.messages import Message
 
 class Cache(ABC):
     r"""Base class for creating custom cache handlers.
@@ -46,7 +47,36 @@ class Cache(ABC):
 
         cache = MyCache()
         client = qord.Client(cache=cache)
+
+    Parameters
+    ----------
+    message_limit: :class:`builtins.int`
+        The number of messages to cache at a time. Defaults to ``100``. ``None`` or
+        ``0`` will disable message cache.
+
+    Attributes
+    ----------
+    message_limit: :class:`builtins.int`
+        The number of messages to cache at a time.
     """
+
+    def __init__(self, message_limit: int = 100) -> None:
+        if not isinstance(message_limit, int):
+            raise TypeError("message_limit parameter must be an integer.")
+        if message_limit is None:
+            message_limit = 0
+
+        self.message_limit = message_limit
+
+    @property
+    def message_cache_enabled(self) -> bool:
+        r"""Indicates whether the message cache is enabled.
+
+        Returns
+        -------
+        :class:`builtins.bool`
+        """
+        return self.message_limit > 0
 
     @abstractmethod
     def clear(self) -> None:
@@ -151,6 +181,62 @@ class Cache(ABC):
         -------
         Optional[:class:`Guild`]
             The deleted guild if any. If no guild existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def messages(self) -> typing.Sequence[Message]:
+        r"""Gets all messages that are currently cached.
+
+        Returns
+        -------
+        Sequence[:class:`Message`]
+            The sequence of messages cached.
+        """
+
+    @abstractmethod
+    def add_message(self, message: Message) -> None:
+        r"""Adds a :class:`Message` to the cache.
+
+        Once the :attr:`.message_limit` is reached, The messages
+        that are previously cache are removed, Clearing the message
+        cache.
+
+        Parameters
+        ----------
+        message: :class:`Message`
+            The message to add in the cache.
+        """
+
+    @abstractmethod
+    def get_message(self, message_id: int) -> typing.Optional[Message]:
+        r"""Gets a :class:`Message` from the cache by the provided message ID.
+
+        Parameters
+        ----------
+        message_id: :class:`builtins.int`
+            The message ID to get message for.
+
+        Returns
+        -------
+        Optional[:class:`Message`]
+            The gotten message if any. If no message existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def delete_message(self, message_id: int) -> typing.Optional[Message]:
+        r"""Deletes a :class:`Message` from the cache by the provided message ID.
+
+        Parameters
+        ----------
+        message_id: :class:`builtins.int`
+            The message ID to remove message for.
+
+        Returns
+        -------
+        Optional[:class:`Message`]
+            The deleted message if any. If no message existed with provided ID,
             ``None`` is returned.
         """
 

@@ -45,3 +45,30 @@ class MessageCreate(BaseEvent):
 
     message: Message
     r"""The message that was sent."""
+
+@dataclass(frozen=True)
+class MessageDelete(BaseEvent):
+    r"""Structure for :attr:`~qord.GatewayEvent.MESSAGE_DELETE` event.
+
+    This event is called whenever a message is deleted.
+    """
+    event_name = GatewayEvent.MESSAGE_DELETE
+    shard: Shard
+
+    message: Message
+    r"""The message that was deleted."""
+
+@dataclass(frozen=True)
+class MessageUpdate(BaseEvent):
+    r"""Structure for :attr:`~qord.GatewayEvent.MESSAGE_UPDATE` event.
+
+    This event is called whenever a message is updated aka edited.
+    """
+    event_name = GatewayEvent.MESSAGE_UPDATE
+    shard: Shard
+
+    before: Message
+    r"""The message that was edited, before the edit happened."""
+
+    after: Message
+    r"""The message that was edited, after the edit happened."""

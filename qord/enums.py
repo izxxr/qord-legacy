@@ -84,6 +84,12 @@ class GatewayEvent:
     MESSAGE_CREATE = "message_create"
     r"""Called whenever a message is sent. See :class:`events.MessageCreate` for more info."""
 
+    MESSAGE_DELETE = "message_delete"
+    r"""Called whenever a message is deleted. See :class:`events.MessageDelete` for more info."""
+
+    MESSAGE_UPDATE = "message_update"
+    r"""Called whenever a message is edited. See :class:`events.MessageUpdate` for more info."""
+
 class PremiumType:
     r"""An enumeration that details values for a user's premium aka nitro subscription.
 

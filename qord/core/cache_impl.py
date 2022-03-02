@@ -28,6 +28,7 @@ from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import GuildChannel
+from qord.models.messages import Message
 
 import weakref
 import typing
@@ -47,6 +48,7 @@ class DefaultCache(Cache):
     def clear(self) -> None:
         self._users = weakref.WeakValueDictionary()
         self._guilds = dict()
+        self._messages = dict()
 
     def users(self) -> typing.Sequence[User]:
         return list(self._users.values())
@@ -89,6 +91,32 @@ class DefaultCache(Cache):
             raise TypeError("Parameter guild_id must be an integer.")
 
         return self._guilds.pop(guild_id, None)
+
+    def messages(self) -> typing.Sequence[Message]:
+        return list(self._messages.values())
+
+    def get_message(self, message_id: int) -> typing.Optional[Message]:
+        if not isinstance(message_id, int):
+            raise TypeError("Parameter message_id must be an integer.")
+
+        return self._messages.get(message_id)
+
+    def add_message(self, message: Message) -> None:
+        if not isinstance(message, Message):
+            raise TypeError("Parameter message must be an instance of Message")
+
+        messages = self._messages
+
+        if len(messages) >= self.message_limit:
+            messages.clear()
+
+        messages[message.id] = message
+
+    def delete_message(self, message_id: int) -> typing.Optional[Message]:
+        if not isinstance(message_id, int):
+            raise TypeError("Parameter message_id must be an integer.")
+
+        return self._messages.pop(message_id, None)
 
 
 class DefaultGuildCache(GuildCache):

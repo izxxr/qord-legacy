@@ -419,4 +419,30 @@ class DispatchHandler:
 
         message = Message(data, channel=channel) # type: ignore
         event = events.MessageCreate(shard=shard, message=message)
+        self.cache.add_message(message)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_DELETE")
+    async def on_message_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["id"])
+        message = self.cache.delete_message(message_id)
+
+        if message is None:
+            return
+
+        event = events.MessageDelete(shard=shard, message=message)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_UPDATE")
+    async def on_message_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["id"])
+        message = self.cache.get_message(message_id)
+
+        if message is None:
+            return
+
+        before = copy.copy(message)
+        message._update_with_data(data)
+
+        event = events.MessageUpdate(shard=shard, before=before, after=message)
         self.invoke(event)
