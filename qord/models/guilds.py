@@ -212,6 +212,9 @@ class Guild(BaseModel):
         self._create_guild(data)
         self._update_with_data(data)
 
+    def __del__(self) -> None:
+        self._cache.clear()
+
     def _create_guild(self, data: typing.Dict[str, typing.Any]) -> None:
         # These fields are only sent during initial GUILD_CREATE fields.
         # To avoid overwriting them in _update_with_data() method, These
