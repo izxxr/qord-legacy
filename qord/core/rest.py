@@ -308,4 +308,18 @@ class RestClient:
         data = await self.request(route, json=json, reason=reason)
         return data
 
+    # --- Messages --- #
 
+    async def get_message(self, channel_id: int, message_id: int):
+        route = Route(
+            "GET", "/channels/{channel_id}/messages/{message_id}",
+            channel_id=channel_id, message_id=message_id
+        )
+        data = await self.request(route)
+        return data
+
+
+    async def get_pinned_messages(self, channel_id: int):
+        route = Route("GET", "/channels/{channel_id}/pins", channel_id=channel_id)
+        data = await self.request(route)
+        return data

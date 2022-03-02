@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 from qord.models.base import BaseModel
+from qord.bases import MessagesSupported
 from qord.enums import ChannelType
 from qord._helpers import get_optional_snowflake, parse_iso_timestamp, EMPTY
 
@@ -130,10 +131,10 @@ class GuildChannel(BaseModel):
         raise NotImplementedError("edit() must be implemented by subclasses.")
 
 
-class TextChannel(GuildChannel):
+class TextChannel(GuildChannel, MessagesSupported):
     r"""Represents a text messages based channel in a guild.
 
-    This class inherits :class:`GuildChannel`.
+    This class inherits :class:`GuildChannel` and :class:`MessagesSupported`.
 
     Attributes
     ----------
@@ -181,6 +182,9 @@ class TextChannel(GuildChannel):
         self.last_pin_timestamp = (
             parse_iso_timestamp(last_pin_timestamp) if last_pin_timestamp is not None else None
         )
+
+    async def _get_message_channel(self) -> typing.Any:
+        return self
 
     async def edit(
         self,
