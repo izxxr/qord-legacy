@@ -293,6 +293,16 @@ class RestClient:
 
     # --- Channels --- #
 
+    async def get_guild_channels(self, guild_id: int):
+        route = Route("GET", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        data = await self.request(route)
+        return data
+
+    async def create_guild_channel(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route("POST", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
     async def get_channel(self, channel_id: int):
         route = Route("GET", "/channels/{channel_id}", channel_id=channel_id)
         data = await self.request(route)

@@ -98,6 +98,13 @@ class MessagesSupported(ABC):
     ):
         """Sends a message to the channel.
 
+        If channel is a text based guild channel, This requires the
+        :attr:`~Permissions.send_messages` permission in the channel.
+
+        For direct messages channel, No specific permission is required
+        however relevant user must share a guild with the bot and the bot must
+        not be blocked by the user.
+
         Parameters
         ----------
         content: :class:`builtins.str`
