@@ -26,8 +26,9 @@ from qord.core.cache import GuildCache
 from qord.models.base import BaseModel
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
-from qord.models.channels import _channel_factory
+from qord.models.channels import _channel_factory, GuildChannel
 from qord.flags.system_channel import SystemChannelFlags
+from qord.enums import ChannelType
 from qord._helpers import (
     get_optional_snowflake,
     create_cdn_url,
@@ -46,7 +47,7 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
-    from qord.models.channels import GuildChannel, CategoryChannel
+    from qord.models.channels import CategoryChannel, TextChannel, VoiceChannel
 
 
 class Guild(BaseModel):
@@ -809,4 +810,5 @@ class Guild(BaseModel):
             json=json,
             reason=reason,
         )
-        return GuildChannel(data, guild=self)
+        cls = _channel_factory(data["type"])
+        return cls(data, guild=self)
