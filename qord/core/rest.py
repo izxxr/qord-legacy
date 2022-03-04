@@ -99,7 +99,7 @@ class RestClient:
 
         if requires_auth:
             headers["Authorization"] = f"Bot {token}"
-        if reason is not None and route.supports_reason:
+        if reason is not None:
             headers["X-Audit-Log-Reason"] = reason
 
         for attempt in range(self.max_retries):

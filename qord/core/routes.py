@@ -27,21 +27,19 @@ import typing
 _REST_BASE_URL = "https://discord.com/api/v10"
 
 class Route:
-    __slots__ = ("method", "path", "requires_auth", "supports_reason", "params")
+    __slots__ = ("method", "path", "requires_auth", "params")
 
     def __init__(self,
         method: typing.Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
         path: str,
         *,
         requires_auth: bool = True,
-        supports_reason: bool = False,
         **params: typing.Any,
     ) -> None:
 
         self.method = method
         self.path = path
         self.requires_auth = requires_auth
-        self.supports_reason = supports_reason
         self.params = params
 
     @property
