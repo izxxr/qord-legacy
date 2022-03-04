@@ -322,3 +322,8 @@ class RestClient:
         route = Route("GET", "/channels/{channel_id}/pins", channel_id=channel_id)
         data = await self.request(route)
         return data
+
+    async def send_message(self, channel_id: int, json: typing.Dict[str, typing.Any]):
+        route = Route("POST", "/channels/{channel_id}/messages", channel_id=channel_id)
+        data = await self.request(route, json=json)
+        return data

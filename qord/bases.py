@@ -23,6 +23,8 @@
 from __future__ import annotations
 
 from qord.models.messages import Message
+from qord._helpers import UNDEFINED
+
 from abc import ABC, abstractmethod
 import typing
 
@@ -43,7 +45,7 @@ class MessagesSupported(ABC):
         raise NotImplementedError
 
     async def fetch_message(self, message_id: int) -> Message:
-        r"""Fetches a :class:`Message` from the provided message ID.
+        """Fetches a :class:`Message` from the provided message ID.
 
         Parameters
         ----------
@@ -69,7 +71,7 @@ class MessagesSupported(ABC):
         return Message(data, channel=channel)
 
     async def fetch_pins(self) -> typing.Iterator[Message]:
-        r"""Fetches the messages that are currently pinned in the channel.
+        """Fetches the messages that are currently pinned in the channel.
 
         Returns
         -------
@@ -88,3 +90,43 @@ class MessagesSupported(ABC):
 
         for item in data:
             yield Message(item, channel=channel)
+
+    # TODO: Add the remaining fields support here.
+    async def send(
+        self,
+        content: str = UNDEFINED,
+        tts: bool = UNDEFINED,
+    ):
+        """Sends a message to the channel.
+
+        Parameters
+        ----------
+        content: :class:`builtins.str`
+            The content of message.
+        tts: :class:`builtins.bool`
+            Whether the sent message is a Text-To-Speech message.
+
+        Returns
+        -------
+        :class:`Message`
+            The message that was sent.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to send message in this channel.
+        HTTPBadRequest
+            The message has invalid data.
+        HTTPException
+            The sending failed for some reason.
+        """
+        json = {}
+
+        if content is not UNDEFINED:
+            json["content"] = content
+        if tts is not UNDEFINED:
+            json["tts"] = tts
+
+        channel = await self._get_message_channel()
+        data = await self._rest.send_message(channel_id=channel.id, json=json)
+        return Message(data, channel=channel)
