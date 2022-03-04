@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
-from qord._helpers import create_cdn_url, get_image_data, EMPTY, BASIC_EXTS
+from qord._helpers import create_cdn_url, get_image_data, UNDEFINED, BASIC_EXTS
 
 import typing
 
@@ -296,7 +296,7 @@ class ClientUser(User):
         self.verified = data.get("verified")
         self.mfa_enabled = data.get("mfa_enabled", False)
 
-    async def edit(self, *, name: str = None, avatar: typing.Optional[bytes] = EMPTY) -> None:
+    async def edit(self, *, name: str = None, avatar: typing.Optional[bytes] = UNDEFINED) -> None:
         r"""Edits the client user.
 
         Parameters
@@ -318,7 +318,7 @@ class ClientUser(User):
 
         if name is not None:
             json["username"] = name
-        if avatar is not EMPTY:
+        if avatar is not UNDEFINED:
             if avatar is None:
                 json["avatar"] = None
             else:

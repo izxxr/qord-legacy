@@ -29,7 +29,7 @@ from qord._helpers import (
     get_optional_snowflake,
     create_cdn_url,
     BASIC_STATIC_EXTS,
-    EMPTY,
+    UNDEFINED,
 )
 
 import typing
@@ -290,9 +290,9 @@ class Role(BaseModel):
         permissions: Permissions = None,
         hoist: bool = None,
         mentionable: bool = None,
-        icon: typing.Optional[bytes] = EMPTY,
-        unicode_emoji: typing.Optional[str] = EMPTY,
-        color: typing.Optional[int] = EMPTY,
+        icon: typing.Optional[bytes] = UNDEFINED,
+        unicode_emoji: typing.Optional[str] = UNDEFINED,
+        color: typing.Optional[int] = UNDEFINED,
         reason: str = None,
     ) -> None:
         r"""Edits this role.
@@ -347,11 +347,11 @@ class Role(BaseModel):
             json["hoist"] = hoist
         if mentionable is not None:
             json["mentionable"] = mentionable
-        if color is not EMPTY:
+        if color is not UNDEFINED:
             json["color"] = 0 if color is None else color # '0' is default.
-        if icon is not EMPTY:
+        if icon is not UNDEFINED:
             json["icon"] = None if icon is None else get_image_data(icon)
-        if unicode_emoji is not EMPTY:
+        if unicode_emoji is not UNDEFINED:
             json["unicode_emoji"] = unicode_emoji
 
         if json:

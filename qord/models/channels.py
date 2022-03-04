@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.bases import MessagesSupported
 from qord.enums import ChannelType
-from qord._helpers import get_optional_snowflake, parse_iso_timestamp, EMPTY
+from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
 
 import typing
 
@@ -189,14 +189,14 @@ class TextChannel(GuildChannel, MessagesSupported):
     async def edit(
         self,
         *,
-        name: str = EMPTY,
-        type: int = EMPTY,
-        position: int = EMPTY,
-        nsfw: bool = EMPTY,
-        parent: typing.Optional[CategoryChannel] = EMPTY,
-        topic: typing.Optional[str] = EMPTY,
-        slowmode_delay: typing.Optional[int] = EMPTY,
-        default_auto_archive_duration: int = EMPTY,
+        name: str = UNDEFINED,
+        type: int = UNDEFINED,
+        position: int = UNDEFINED,
+        nsfw: bool = UNDEFINED,
+        parent: typing.Optional[CategoryChannel] = UNDEFINED,
+        topic: typing.Optional[str] = UNDEFINED,
+        slowmode_delay: typing.Optional[int] = UNDEFINED,
+        default_auto_archive_duration: int = UNDEFINED,
         reason: str = None,
     ) -> None:
         r"""Edits the channel.
@@ -243,38 +243,38 @@ class TextChannel(GuildChannel, MessagesSupported):
         """
         json = {}
 
-        if name is not EMPTY:
+        if name is not UNDEFINED:
             json["name"] = name
 
-        if type is not EMPTY:
+        if type is not UNDEFINED:
             if not type in (ChannelType.NEWS, ChannelType.TEXT):
                 raise ValueError("type parameter only supports ChannelType.NEWS and TEXT.")
 
             json["type"] = type
 
-        if position is not EMPTY:
+        if position is not UNDEFINED:
             json["position"] = position
 
-        if nsfw is not EMPTY:
+        if nsfw is not UNDEFINED:
             json["nsfw"] = nsfw
 
-        if topic is not EMPTY:
+        if topic is not UNDEFINED:
             json["topic"] = topic
 
-        if slowmode_delay is not EMPTY:
+        if slowmode_delay is not UNDEFINED:
             if slowmode_delay is None:
                 slowmode_delay = 0
 
             json["rate_limit_per_user"] = slowmode_delay
 
-        if default_auto_archive_duration is not EMPTY:
+        if default_auto_archive_duration is not UNDEFINED:
             if not default_auto_archive_duration in (60, 1440, 4320, 10080):
                 raise ValueError("Invalid value given for default_auto_archive_duration " \
                                 "supported values are 60, 1440, 4320 and 10080.")
 
             json["default_auto_archive_duration"] = default_auto_archive_duration
 
-        if parent is not EMPTY:
+        if parent is not UNDEFINED:
             json["parent_id"] = parent.id if parent is not None else None
 
         if json:
@@ -320,8 +320,8 @@ class CategoryChannel(GuildChannel):
     async def edit(
         self,
         *,
-        name: str = EMPTY,
-        position: int = EMPTY,
+        name: str = UNDEFINED,
+        position: int = UNDEFINED,
         reason: str = None,
     ) -> None:
         r"""Edits the channel.
@@ -352,10 +352,10 @@ class CategoryChannel(GuildChannel):
         """
         json = {}
 
-        if name is not EMPTY:
+        if name is not UNDEFINED:
             json["name"] = name
 
-        if position is not EMPTY:
+        if position is not UNDEFINED:
             json["position"] = position
 
         if json:
@@ -412,13 +412,13 @@ class VoiceChannel(GuildChannel):
     async def edit(
         self,
         *,
-        name: str = EMPTY,
-        position: int = EMPTY,
-        bitrate: int = EMPTY,
-        parent: typing.Optional[CategoryChannel] = EMPTY,
-        rtc_region: typing.Optional[str] = EMPTY,
-        user_limit: typing.Optional[int] = EMPTY,
-        video_quality_mode: int = EMPTY,
+        name: str = UNDEFINED,
+        position: int = UNDEFINED,
+        bitrate: int = UNDEFINED,
+        parent: typing.Optional[CategoryChannel] = UNDEFINED,
+        rtc_region: typing.Optional[str] = UNDEFINED,
+        user_limit: typing.Optional[int] = UNDEFINED,
+        video_quality_mode: int = UNDEFINED,
         reason: str = None,
     ) -> None:
         r"""Edits the channel.
@@ -465,31 +465,31 @@ class VoiceChannel(GuildChannel):
         """
         json = {}
 
-        if name is not EMPTY:
+        if name is not UNDEFINED:
             json["name"] = name
 
-        if position is not EMPTY:
+        if position is not UNDEFINED:
             json["position"] = position
 
-        if rtc_region is not EMPTY:
+        if rtc_region is not UNDEFINED:
             json["rtc_region"] = rtc_region
 
-        if bitrate is not EMPTY:
+        if bitrate is not UNDEFINED:
             if bitrate < 8000 or bitrate > 128000:
                 raise ValueError("Parameter 'bitrate' must be in range of 8000 and 128000")
 
             json["bitrate"] = bitrate
 
-        if user_limit is not EMPTY:
+        if user_limit is not UNDEFINED:
             if user_limit is None:
                 user_limit = 0
 
             json["user_limit"] = user_limit
 
-        if video_quality_mode is not EMPTY:
+        if video_quality_mode is not UNDEFINED:
             json["video_quality_mode"] = video_quality_mode
 
-        if parent is not EMPTY:
+        if parent is not UNDEFINED:
             json["parent_id"] = parent.id if parent is not None else None
 
         if json:

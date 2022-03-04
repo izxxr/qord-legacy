@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord._helpers import parse_iso_timestamp, create_cdn_url, EMPTY, BASIC_EXTS
+from qord._helpers import parse_iso_timestamp, create_cdn_url, UNDEFINED, BASIC_EXTS
 from datetime import datetime
 
 import typing
@@ -339,11 +339,11 @@ class GuildMember(BaseModel):
     async def edit(
         self,
         *,
-        nickname: typing.Optional[str] = EMPTY,
-        roles: typing.List[Role] = EMPTY,
-        mute: bool = EMPTY,
-        deaf: bool = EMPTY,
-        timeout_until: datetime = EMPTY,
+        nickname: typing.Optional[str] = UNDEFINED,
+        roles: typing.List[Role] = UNDEFINED,
+        mute: bool = UNDEFINED,
+        deaf: bool = UNDEFINED,
+        timeout_until: datetime = UNDEFINED,
         reason: str = None,
     ):
         r"""Edits this member.
@@ -381,21 +381,21 @@ class GuildMember(BaseModel):
         """
         json = {}
 
-        if nickname is not EMPTY:
+        if nickname is not UNDEFINED:
             json["nick"] = nickname
 
-        if roles is not EMPTY:
+        if roles is not UNDEFINED:
             if roles is None:
                 roles = []
             json["roles"] = [role.id for role in roles]
 
-        if mute is not EMPTY:
+        if mute is not UNDEFINED:
             json["mute"] = mute
 
-        if deaf is not EMPTY:
+        if deaf is not UNDEFINED:
             json["deaf"] = deaf
 
-        if timeout_until is not EMPTY:
+        if timeout_until is not UNDEFINED:
             json["communication_disabled_until"] = (
                 timeout_until.isoformat() if timeout_until is not None else None
             )
