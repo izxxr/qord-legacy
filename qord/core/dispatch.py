@@ -26,7 +26,7 @@ from qord.models.users import ClientUser
 from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
-from qord.models.channels import _channel_factory
+from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
 from qord import events
 
@@ -340,7 +340,7 @@ class DispatchHandler:
             shard._log(logging.DEBUG, "CHANNEL_CREATE: Unknown guild with ID %s", guild_id)
             return
 
-        cls = _channel_factory(data["type"])
+        cls = _guild_channel_factory(data["type"])
         channel = cls(data, guild=guild)
         event = events.ChannelCreate(shard=shard, channel=channel, guild=guild)
 
@@ -405,7 +405,7 @@ class DispatchHandler:
         try:
             guild_id = int(data["guild_id"])
         except KeyError:
-            return
+            channel = self.cache.get_private_channel(channel_id)
         else:
             guild = self.cache.get_guild(guild_id)
             if guild is None:

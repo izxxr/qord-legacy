@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 from qord.models.base import BaseModel
+from qord.models.users import User
 from qord.bases import MessagesSupported
 from qord.enums import ChannelType
 from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
@@ -31,11 +32,13 @@ import typing
 
 if typing.TYPE_CHECKING:
     from datetime import datetime
+    from qord.core.client import Client
     from qord.models.guilds import Guild
+    from qord.models.users import User
 
 
 class GuildChannel(BaseModel):
-    r"""The base class for channel types that are associated to a specific guild.
+    """The base class for channel types that are associated to a specific guild.
 
     For each channel types, Library provides separate subclasses that implement
     related functionality for that channel type.
@@ -99,7 +102,7 @@ class GuildChannel(BaseModel):
 
     @property
     def mention(self) -> str:
-        r"""The string used for mentioning the channel in Discord client.
+        """The string used for mentioning the channel in Discord client.
 
         Returns
         -------
@@ -108,7 +111,7 @@ class GuildChannel(BaseModel):
         return f"<#{self.id}>"
 
     async def delete(self, *, reason: str = None) -> None:
-        r"""Deletes this channel.
+        """Deletes this channel.
 
         Requires the :attr:`~Permissions.manage_channels` on the bot
         in the parent :attr:`~GuildChannel.guild` for performing this action.
@@ -132,15 +135,15 @@ class GuildChannel(BaseModel):
 
 
 class TextChannel(GuildChannel, MessagesSupported):
-    r"""Represents a text messages based channel in a guild.
+    """Represents a text messages based channel in a guild.
 
     This class inherits :class:`GuildChannel` and :class:`MessagesSupported`.
 
     Attributes
     ----------
-    topic: typing.Optional[:class:`builtins.str`]
+    topic: Optional[:class:`builtins.str`]
         The topic of this channel.
-    last_message_id: typing.Optional[:class:`builtins.int`]
+    last_message_id: Optional[:class:`builtins.int`]
         The ID of last message sent in this channel. Due to Discord limitation, This
         may not point to the actual last message of the channel.
     slowmode_delay: :class:`builtins.int`
@@ -150,7 +153,7 @@ class TextChannel(GuildChannel, MessagesSupported):
     default_auto_archive_duration: :class:`builtins.int`
         The default auto archiving duration (in minutes) of this channel after which
         in active threads associated to this channel are automatically archived.
-    last_pin_timestamp: typing.Optional[:class:`datetime.datetime`]
+    last_pin_timestamp: Optional[:class:`datetime.datetime`]
         The time when last pin in this channel was created.
     """
 
@@ -199,7 +202,7 @@ class TextChannel(GuildChannel, MessagesSupported):
         default_auto_archive_duration: int = UNDEFINED,
         reason: str = None,
     ) -> None:
-        r"""Edits the channel.
+        """Edits the channel.
 
         This operation requires the :attr:`~Permissions.manage_channels` permission
         for the client user in the parent guild.
@@ -288,7 +291,7 @@ class TextChannel(GuildChannel, MessagesSupported):
 
 
 class NewsChannel(TextChannel):
-    r"""Represents a news channel that holds other guild channels.
+    """Represents a news channel that holds other guild channels.
 
     This class inherits :class:`TextChannel` so all attributes of
     :class:`TextChannel` and :class:`GuildChannel` classes are valid here too.
@@ -299,7 +302,7 @@ class NewsChannel(TextChannel):
     __slots__ = ()
 
 class CategoryChannel(GuildChannel):
-    r"""Represents a category channel that holds other guild channels.
+    """Represents a category channel that holds other guild channels.
 
     This class inherits the :attr:`GuildChannel` class.
     """
@@ -308,7 +311,7 @@ class CategoryChannel(GuildChannel):
 
     @property
     def channels(self) -> typing.List[GuildChannel]:
-        r"""The list of channels associated to this category.
+        """The list of channels associated to this category.
 
         Returns
         -------
@@ -324,7 +327,7 @@ class CategoryChannel(GuildChannel):
         position: int = UNDEFINED,
         reason: str = None,
     ) -> None:
-        r"""Edits the channel.
+        """Edits the channel.
 
         This operation requires the :attr:`~Permissions.manage_channels` permission
         for the client user in the parent guild.
@@ -369,7 +372,7 @@ class CategoryChannel(GuildChannel):
 
 
 class VoiceChannel(GuildChannel):
-    r"""Represents a voice channel in a guild.
+    """Represents a voice channel in a guild.
 
     This class inherits the :class:`GuildChannel` class.
 
@@ -421,7 +424,7 @@ class VoiceChannel(GuildChannel):
         video_quality_mode: int = UNDEFINED,
         reason: str = None,
     ) -> None:
-        r"""Edits the channel.
+        """Edits the channel.
 
         This operation requires the :attr:`~Permissions.manage_channels` permission
         for the client user in the parent guild.
@@ -503,7 +506,7 @@ class VoiceChannel(GuildChannel):
 
 
 class StageChannel(VoiceChannel):
-    r"""Represents a stage channel in a guild.
+    """Represents a stage channel in a guild.
 
     This class is a subclass of :class:`VoiceChannel` as such all attributes
     of :class:`VoiceChannel` and :class:`GuildChannel` are valid in this class too.
@@ -515,8 +518,83 @@ class StageChannel(VoiceChannel):
 
     __slots__ = ()
 
+class PrivateChannel(BaseModel):
+    """Base class for channel types that are private and not associated to a guild.
 
-def _channel_factory(type: int) -> typing.Type[GuildChannel]:
+    Currently only one channel type is available for private channels that is
+    :class:`DMChannel`.
+
+    Attributes
+    ----------
+    id: :class:`builtins.int`
+        The ID of this channel.
+    type: :class:`builtins.int`
+        The type of this channel. See :class:`ChannelType` for valid values.
+    """
+    if typing.TYPE_CHECKING:
+        id: int
+        type: int
+
+    __slots__ = ("id", "type", "_client", "_cache", "_rest")
+
+    def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
+        self._client = client
+        self._rest = client._rest
+        self._cache = client._cache
+        self._update_with_data(data)
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        self.id = int(data["id"])
+        self.type = int(data["type"])
+
+class DMChannel(PrivateChannel, MessagesSupported):
+    """Represents a direct message channel between two users.
+
+    This class inherits :class:`PrivateChannel`.
+
+    Attributes
+    ----------
+    recipient: :class:`User`
+        The user that this direct message is with.
+    last_message_id: Optional[:class:`builtins.int`]
+        The ID of last message associated to this channel. May not be accurate.
+    """
+    if typing.TYPE_CHECKING:
+        last_message_id: typing.Optional[int]
+        recipient: User
+
+    __slots__ = (
+        "last_message_id",
+        "recipient"
+    )
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        super()._update_with_data(data)
+
+        recipient_data = data["recipients"][0]
+        recipient = self._cache.get_user(int(recipient_data["id"]))
+
+        if recipient is None:
+            recipient = User(recipient_data, client=self._client)
+
+        self.recipient = recipient
+        self.last_message_id = get_optional_snowflake(data, "last_message_id")
+
+    async def _get_message_channel(self) -> typing.Any:
+        return self
+
+
+def _is_guild_channel(type: int) -> bool:
+    return type in (
+        ChannelType.TEXT,
+        ChannelType.NEWS,
+        ChannelType.CATEGORY,
+        ChannelType.VOICE,
+        ChannelType.STAGE,
+        ChannelType.STORE,
+    )
+
+def _guild_channel_factory(type: int) -> typing.Type[GuildChannel]:
     if type is ChannelType.TEXT:
         return TextChannel
     if type is ChannelType.NEWS:
@@ -529,3 +607,9 @@ def _channel_factory(type: int) -> typing.Type[GuildChannel]:
         return StageChannel
 
     return GuildChannel
+
+def _private_channel_factory(type: int) -> typing.Type[PrivateChannel]:
+    if type is ChannelType.DM:
+        return DMChannel
+
+    return PrivateChannel

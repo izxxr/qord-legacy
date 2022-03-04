@@ -26,7 +26,7 @@ from qord.core.cache import GuildCache
 from qord.models.base import BaseModel
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
-from qord.models.channels import _channel_factory, GuildChannel
+from qord.models.channels import _guild_channel_factory, GuildChannel
 from qord.flags.system_channel import SystemChannelFlags
 from qord.enums import ChannelType
 from qord._helpers import (
@@ -243,7 +243,7 @@ class Guild(BaseModel):
             client_cache.add_user(member.user)
 
         for raw_channel in data.get("channels", []):
-            cls = _channel_factory(raw_channel["type"])
+            cls = _guild_channel_factory(raw_channel["type"])
             channel = cls(raw_channel, guild=self)
             cache.add_channel(channel)
 
@@ -713,7 +713,7 @@ class Guild(BaseModel):
         ret = []
 
         for channel in data:
-            cls = _channel_factory(channel["type"])
+            cls = _guild_channel_factory(channel["type"])
             ret.append(cls(channel, guild=self)) # should always be a subclass of GuildChannel
 
         return ret
@@ -810,5 +810,5 @@ class Guild(BaseModel):
             json=json,
             reason=reason,
         )
-        cls = _channel_factory(data["type"])
+        cls = _guild_channel_factory(data["type"])
         return cls(data, guild=self)

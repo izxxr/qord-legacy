@@ -165,6 +165,12 @@ class RestClient:
         data = await self.request(route)
         return data
 
+    async def create_dm(self, recipient_id: int):
+        route = Route("POST", "/users/@me/channels")
+        json = {"recipient_id": recipient_id}
+        data = await self.request(route, json=json)
+        return data
+
     # ---- Guilds ----
 
     async def get_guild(self, guild_id: int, with_counts: bool = False):

@@ -269,7 +269,7 @@ class ChannelType:
     TEXT = 0
     r"""The channel is a guild's text channel."""
 
-    DIRECT = 1
+    DM = 1
     r"""The channel is a private DM between two users."""
 
     VOICE = 2

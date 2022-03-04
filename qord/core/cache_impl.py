@@ -27,7 +27,7 @@ from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
-from qord.models.channels import GuildChannel
+from qord.models.channels import GuildChannel, PrivateChannel
 from qord.models.messages import Message
 
 import weakref
@@ -47,6 +47,7 @@ class DefaultCache(Cache):
 
     def clear(self) -> None:
         self._users = weakref.WeakValueDictionary()
+        self._private_channels = weakref.WeakValueDictionary()
         self._guilds = dict()
         self._messages = dict()
 
@@ -117,6 +118,27 @@ class DefaultCache(Cache):
             raise TypeError("Parameter message_id must be an integer.")
 
         return self._messages.pop(message_id, None)
+
+    def private_channels(self) -> typing.Sequence[PrivateChannel]:
+        return list(self._private_channels.values())
+
+    def add_private_channel(self, private_channel: PrivateChannel) -> None:
+        if not isinstance(private_channel, PrivateChannel):
+            raise TypeError("Parameter private_channel must be an instance of PrivateChannel")
+
+        self._private_channels[private_channel.id] = private_channel
+
+    def get_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._private_channels.get(channel_id, None)
+
+    def delete_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._private_channels.pop(channel_id, None)
 
 
 class DefaultGuildCache(GuildCache):

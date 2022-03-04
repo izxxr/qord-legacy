@@ -159,6 +159,7 @@ class GuildMember(BaseModel):
         default_avatar_url = User.default_avatar_url
         banner_url = User.banner_url
         is_banner_animated = User.is_banner_animated
+        create_dm = User.create_dm
 
     __slots__ = ("guild", "_client", "user", "nickname", "guild_avatar", "deaf", "mute", "pending",
                 "joined_at", "premium_since", "timeout_until", "role_ids", "roles")
