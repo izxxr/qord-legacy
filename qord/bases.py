@@ -70,12 +70,12 @@ class MessagesSupported(ABC):
         data = await self._rest.get_message(channel_id=channel.id, message_id=message_id)
         return Message(data, channel=channel)
 
-    async def fetch_pins(self) -> typing.Iterator[Message]:
+    async def fetch_pins(self) -> typing.List[Message]:
         """Fetches the messages that are currently pinned in the channel.
 
         Returns
         -------
-        Iterator[:class:`Message`]
+        List[:class:`Message`]
             The pinned messages in the channel.
 
         Raises
@@ -87,14 +87,13 @@ class MessagesSupported(ABC):
         """
         channel = await self._get_message_channel()
         data = await self._rest.get_pinned_messages(channel_id=channel.id)
-
-        for item in data:
-            yield Message(item, channel=channel)
+        return [Message(item, channel=channel) for item in data]
 
     # TODO: Add the remaining fields support here.
     async def send(
         self,
         content: str = UNDEFINED,
+        *,
         tts: bool = UNDEFINED,
     ):
         """Sends a message to the channel.

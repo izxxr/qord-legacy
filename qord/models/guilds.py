@@ -666,7 +666,7 @@ class Guild(BaseModel):
         data = await self._rest.get_guild_member(guild_id=self.id, user_id=user_id)
         return GuildMember(data, guild=self)
 
-    async def search_members(self, query: str, *, limit: int = 1) -> typing.Iterator[GuildMember]:
+    async def search_members(self, query: str, *, limit: int = 1) -> typing.List[GuildMember]:
         r"""Fetches the members whose username or nickname start with the provided query.
 
         Parameters
@@ -684,14 +684,12 @@ class Guild(BaseModel):
 
         Returns
         -------
-        Iterator[:class:`GuildMember`]
+        List[:class:`GuildMember`]
         """
         if limit < 1 or limit > 1000:
             raise ValueError("Parameter 'limit' cannot be lesser then 0 or greater then 1000.")
 
         params = {"query": query, "limit": limit}
         data = await self._rest.search_guild_members(guild_id=self.id, params=params)
-
-        for member in data:
-            yield GuildMember(data, guild=self)
+        return [GuildMember(member, guild=self) for member in data]
 
