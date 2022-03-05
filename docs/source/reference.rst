@@ -16,6 +16,18 @@ Client
     :members:
 
 
+Abstract Classes
+~~~~~~~~~~~~~~~~
+
+Other classes provided by the library can inherit these classes to implement the
+relevant common functionality.
+
+MessagesSupported
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MessagesSupported()
+    :members:
+
 Cache Handlers
 --------------
 
@@ -94,6 +106,18 @@ Ready
 ~~~~~
 
 .. autoclass:: qord.events.Ready()
+    :members:
+
+Resumed
+~~~~~~~
+
+.. autoclass:: qord.events.Resumed()
+    :members:
+
+UserUpdate
+~~~~~~~~~~
+
+.. autoclass:: qord.events.UserUpdate()
     :members:
 
 GuildAvailable
@@ -177,11 +201,43 @@ ChannelUpdate
 .. autoclass:: qord.events.ChannelUpdate()
     :members:
 
+ChannelPinsUpdate
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChannelPinsUpdate()
+    :members:
 
 ChannelDelete
 ~~~~~~~~~~~~~
 
 .. autoclass:: qord.events.ChannelDelete()
+    :members:
+
+MessageCreate
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.MessageCreate()
+    :members:
+
+
+MessageUpdate
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.MessageUpdate()
+    :members:
+
+
+MessageDelete
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.MessageDelete()
+    :members:
+
+
+MessageBulkDelete
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.MessageBulkDelete()
     :members:
 
 
@@ -444,5 +500,33 @@ StageChannel
 ~~~~~~~~~~~~
 
 .. autoclass:: StageChannel()
+    :inherited-members:
+    :members:
+
+PrivateChannel
+~~~~~~~~~~~~~~
+
+.. autoclass:: PrivateChannel()
+    :inherited-members:
+    :members:
+
+DMChannel
+~~~~~~~~~
+
+.. autoclass:: DMChannel()
+    :inherited-members:
+    :members:
+
+Message
+~~~~~~~
+
+.. autoclass:: Message()
+    :inherited-members:
+    :members:
+
+ChannelMention
+~~~~~~~~~~~~~~
+
+.. autoclass:: ChannelMention()
     :inherited-members:
     :members:
