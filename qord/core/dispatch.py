@@ -138,8 +138,23 @@ class DispatchHandler:
         event = events.Resumed(shard=shard)
         self.invoke(event)
 
+    @event_dispatch_handler("USER_UPDATE")
+    async def on_user_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        user_id = int(data["id"])
+        user = self.cache.get_user(user_id)
+
+        if user is None:
+            shard._log(logging.DEBUG, "USER_UPDATE: Unknown user with ID %s", user_id)
+            return
+
+        before = copy.copy(user)
+        user._update_with_data(data)
+
+        event = events.UserUpdate(shard=shard, before=before, after=user)
+        self.invoke(event)
+
     @event_dispatch_handler("GUILD_CREATE")
-    async def on_guild_create(self, shard: Shard, data: typing.Any) -> None:
+    async def on_guild_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
         unavailable = data.get("unavailable")
 
         if unavailable is True:

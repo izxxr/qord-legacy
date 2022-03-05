@@ -42,6 +42,9 @@ class GatewayEvent:
     RESUMED = "resumed"
     """Called whenever a shard successfully resumes a gateway session. See :class:`events.Resumed` for more info."""
 
+    USER_UPDATE = "user_update"
+    """Called whenever a user is updated. See :class:`events.UserUpdate` for more info."""
+
     GUILD_AVAILABLE = "guild_available"
     """Called whenever a guild becomes available to the client. See :class:`events.GuildAvailable` for more info."""
 
