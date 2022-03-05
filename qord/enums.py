@@ -39,6 +39,9 @@ class GatewayEvent:
     READY = "ready"
     """Called whenever all shards are ready. See :class:`events.Ready` for more info."""
 
+    RESUMED = "resumed"
+    """Called whenever a shard successfully resumes a gateway session. See :class:`events.Resumed` for more info."""
+
     GUILD_AVAILABLE = "guild_available"
     """Called whenever a guild becomes available to the client. See :class:`events.GuildAvailable` for more info."""
 

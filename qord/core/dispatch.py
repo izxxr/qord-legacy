@@ -133,6 +133,11 @@ class DispatchHandler:
             coro = self._prepare_ready()
             self._ready_task = asyncio.create_task(coro)
 
+    @event_dispatch_handler("RESUMED")
+    async def on_resumed(self, shard: Shard, data: typing.Any) -> None:
+        event = events.Resumed(shard=shard)
+        self.invoke(event)
+
     @event_dispatch_handler("GUILD_CREATE")
     async def on_guild_create(self, shard: Shard, data: typing.Any) -> None:
         unavailable = data.get("unavailable")
