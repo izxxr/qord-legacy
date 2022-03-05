@@ -325,6 +325,9 @@ class User(BaseModel):
             channel = await user.create_dm()
             await channel.send(*args, **kwargs)
 
+        This method is just a shorthand. It is recommended to use the above
+        way for sending messages to users.
+
         To perform other operations on DM channels, you should consider
         retrieving them via the :meth:`.create_dm` method instead.
 
