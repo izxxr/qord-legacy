@@ -30,8 +30,10 @@ from qord._helpers import create_cdn_url, get_image_data, UNDEFINED, BASIC_EXTS
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.models.messages import Message
     from qord.models.channels import DMChannel
     from qord.core.client import Client
+    from qord.bases import MessagesSupported
 
 class User(BaseModel):
     """Representation of a Discord user entity.
@@ -314,6 +316,23 @@ class User(BaseModel):
         self._cache.add_private_channel(ret)
 
         return ret
+
+    async def send(self, *args, **kwargs) -> Message:
+        """A shorthand method for :meth:`DMChannel.send`.
+
+        This method is roughly equivalent to::
+
+            channel = await user.create_dm()
+            await channel.send(*args, **kwargs)
+
+        To perform other operations on DM channels, you should consider
+        retrieving them via the :meth:`.create_dm` method instead.
+
+        The parameters passed to this method are same as :meth:`DMChannel.send`.
+        """
+        dm_channel = await self.create_dm()
+        message = await dm_channel.send(*args, **kwargs)
+        return message
 
 
 class ClientUser(User):
