@@ -61,5 +61,5 @@ Qord is under heavy development. You can help us in reaching 100% coverage of Di
   <a href="https://qord.rtfd.io">Documentation</a> • <a href="https://discord.gg/nE9cGtzayA">Discord Server</a> • <a href="https://pypi.org/project/qord">PyPi</a> 
   • <a href="https://github.com/nerdguyahmad/qord">GitHub</a> • <a href="https://github.com/nerdguyahmad/qord/issues">Issues Tracker</a>
   <br><br>
-  <sup>Copyright (C) nerdguyahmad and contributors 2022-23, Under the MIT license.</sup>
+  <sup>Copyright (C) nerdguyahmad and contributors 2022, Under the MIT license.</sup>
 </p>
