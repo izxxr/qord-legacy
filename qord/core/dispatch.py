@@ -506,7 +506,16 @@ class DispatchHandler:
             channel = self.cache.get_private_channel(channel_id)
         else:
             guild = self.cache.get_guild(guild_id)
+
+            if guild is None:
+                shard._log(logging.DEBUG, "CHANNEL_PINS_UPDATE: Unknown guild of ID %s", guild_id)
+                return
+
             channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "CHANNEL_PINS_UPDATE: Unknown channel of ID %s", channel_id)
+            return
 
         last_pin_timestamp = data.get("last_pin_timestamp")
 
