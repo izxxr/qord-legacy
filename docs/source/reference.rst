@@ -213,6 +213,12 @@ ChannelDelete
 .. autoclass:: qord.events.ChannelDelete()
     :members:
 
+TypingStart
+~~~~~~~~~~~
+
+.. autoclass:: qord.events.TypingStart()
+    :members:
+
 MessageCreate
 ~~~~~~~~~~~~~
 

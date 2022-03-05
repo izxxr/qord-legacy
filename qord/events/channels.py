@@ -29,9 +29,12 @@ import typing
 from dataclasses import dataclass
 
 if typing.TYPE_CHECKING:
+    from datetime import datetime
     from qord.core.shard import Shard
     from qord.models.channels import GuildChannel
     from qord.models.guilds import Guild
+    from qord.models.guild_members import GuildMember
+    from qord.models.users import User
     from qord.models.messages import MessageableT
 
 @dataclass(frozen=True)
@@ -84,8 +87,6 @@ class ChannelPinsUpdate(BaseEvent):
     guild: typing.Optional[Guild]
     """The guild where the event happened; If applicable otherwise ``None``."""
 
-
-
 @dataclass(frozen=True)
 class ChannelDelete(BaseEvent):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_DELETE` event.
@@ -100,3 +101,28 @@ class ChannelDelete(BaseEvent):
 
     guild: Guild
     """The guild that the delete channel belonged to."""
+
+@dataclass(frozen=True)
+class TypingStart(BaseEvent):
+    """Structure for :attr:`~qord.GatewayEvent.TYPING_START` event.
+
+    This event is called whenever a user starts typing in a channel.
+    """
+    event_name = GatewayEvent.TYPING_START
+    shard: Shard
+
+    channel: MessageableT
+    """The channel in which typing started in."""
+
+    started_at: datetime
+    """The time when the typing started."""
+
+    user: typing.Union[User, GuildMember]
+    """The user or member that started typing.
+
+    If the event happened in a guild, This is :class:`GuildMember` otherwise
+    it is a :class:`User`.
+    """
+
+    guild: typing.Optional[Guild]
+    """The guild in which typing started in if any."""

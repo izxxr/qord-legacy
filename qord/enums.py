@@ -90,6 +90,9 @@ class GatewayEvent:
     CHANNEL_DELETE = "channel_delete"
     """Called whenever a channel is deleted. See :class:`events.ChannelDelete` for more info."""
 
+    TYPING_START = "typing_start"
+    """Called whenever a user starts typing. See :class:`events.TypingStart` for more info."""
+
     MESSAGE_CREATE = "message_create"
     """Called whenever a message is sent. See :class:`events.MessageCreate` for more info."""
 

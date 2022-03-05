@@ -31,6 +31,7 @@ from qord.models.messages import Message
 from qord._helpers import parse_iso_timestamp
 from qord import events
 
+from datetime import datetime
 import asyncio
 import copy
 import inspect
@@ -546,4 +547,49 @@ class DispatchHandler:
         message._update_with_data(data)
 
         event = events.MessageUpdate(shard=shard, before=before, after=message)
+        self.invoke(event)
+
+    @event_dispatch_handler("TYPING_START")
+    async def on_typing_start(self, shard: Shard, data: typing.Dict[str, typing.Any]):
+        channel_id = int(data["channel_id"])
+        user_id = int(data["user_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            guild = None
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+            if guild is None:
+                shard._log(logging.DEBUG, "TYPING_START: Unknown guild of ID %s", guild_id)
+                return
+
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "TYPING_START: Unknown channel of ID %s", channel_id)
+            return
+
+        if guild is None:
+            user = self.cache.get_user(user_id)
+        else:
+            user = guild._cache.get_member(user_id)
+            if user is None:
+                user = GuildMember(data["member"], guild=guild)
+
+        if user is None:
+            shard._log(logging.DEBUG, "TYPING_START: Unknown user of ID", user_id)
+            return
+
+        # This is not in ISO format because Discord likes being inconsistent.
+        timestamp = datetime.fromtimestamp(data["timestamp"])
+
+        event = events.TypingStart(
+            shard=shard,
+            channel=channel, # type: ignore
+            started_at=timestamp,
+            user=user,
+            guild=guild,
+        )
         self.invoke(event)
