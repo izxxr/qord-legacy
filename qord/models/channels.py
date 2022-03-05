@@ -558,13 +558,17 @@ class DMChannel(PrivateChannel, MessagesSupported):
         The user that this direct message is with.
     last_message_id: Optional[:class:`builtins.int`]
         The ID of last message associated to this channel. May not be accurate.
+    last_pin_timestamp: Optional[:class:`datetime`]
+        The time when last pin in the channel was created.
     """
     if typing.TYPE_CHECKING:
         last_message_id: typing.Optional[int]
+        last_pin_timestamp: typing.Optional[datetime]
         recipient: User
 
     __slots__ = (
         "last_message_id",
+        "last_pin_timestamp",
         "recipient"
     )
 
@@ -577,6 +581,9 @@ class DMChannel(PrivateChannel, MessagesSupported):
         if recipient is None:
             recipient = User(recipient_data, client=self._client)
 
+        pin_ts = data.get("last_pin_timestamp")
+
+        self.last_pin_timestamp = parse_iso_timestamp(pin_ts) if pin_ts is not None else None
         self.recipient = recipient
         self.last_message_id = get_optional_snowflake(data, "last_message_id")
 

@@ -30,12 +30,12 @@ from dataclasses import dataclass
 
 if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
-    from qord.models.messages import Message
     from qord.models.guilds import Guild
+    from qord.models.messages import Message, MessageableT
 
 @dataclass(frozen=True)
 class MessageCreate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.MESSAGE_CREATE` event.
+    """Structure for :attr:`~qord.GatewayEvent.MESSAGE_CREATE` event.
 
     This event is called whenever a new message is sent in a guild or
     private channel.
@@ -44,11 +44,11 @@ class MessageCreate(BaseEvent):
     shard: Shard
 
     message: Message
-    r"""The message that was sent."""
+    """The message that was sent."""
 
 @dataclass(frozen=True)
 class MessageDelete(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.MESSAGE_DELETE` event.
+    """Structure for :attr:`~qord.GatewayEvent.MESSAGE_DELETE` event.
 
     This event is called whenever a message is deleted.
     """
@@ -56,11 +56,11 @@ class MessageDelete(BaseEvent):
     shard: Shard
 
     message: Message
-    r"""The message that was deleted."""
+    """The message that was deleted."""
 
 @dataclass(frozen=True)
 class MessageUpdate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.MESSAGE_UPDATE` event.
+    """Structure for :attr:`~qord.GatewayEvent.MESSAGE_UPDATE` event.
 
     This event is called whenever a message is updated aka edited.
     """
@@ -68,7 +68,37 @@ class MessageUpdate(BaseEvent):
     shard: Shard
 
     before: Message
-    r"""The message that was edited, before the edit happened."""
+    """The message that was edited, before the edit happened."""
 
     after: Message
-    r"""The message that was edited, after the edit happened."""
+    """The message that was edited, after the edit happened."""
+
+
+@dataclass(frozen=True)
+class MessageBulkDelete(BaseEvent):
+    """Structure for :attr:`~qord.GatewayEvent.MESSAGE_BULK_DELETE` event.
+
+    This event is called whenever multiple messages are deleted at the same
+    time in a channel.
+    """
+    event_name = GatewayEvent.MESSAGE_BULK_DELETE
+    shard: Shard
+
+    messages: typing.List[Message]
+    """The list of messages that were deleted.
+
+    This list only includes messages that could be resolved from
+    the bot's cache and may not include all messages that were deleted.
+    You should use :attr:`.message_ids` to get the IDs of all the messages
+    deleted however do note that you cannot fetch those messages as
+    they have been deleted.
+    """
+
+    channel: MessageableT
+    """The channel in which messages were bulk deleted."""
+
+    guild: typing.Optional[Guild]
+    """The relevant guild if any, ``None`` if the bulk delete happened in DMs."""
+
+    message_ids: typing.List[int]
+    """The list of IDs of messages that were deleted."""

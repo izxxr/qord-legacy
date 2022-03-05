@@ -31,11 +31,11 @@ import typing
 
 if typing.TYPE_CHECKING:
     from qord.models.roles import Role
-    from qord.models.channels import TextChannel
+    from qord.models.channels import TextChannel, DMChannel
     from qord.models.guilds import Guild
     from datetime import datetime
 
-    MessageableT = typing.Union[TextChannel]
+    MessageableT = typing.Union[TextChannel, DMChannel]
 
 class ChannelMention(BaseModel):
     r"""Represents a mention to a specific channel in a message's content.

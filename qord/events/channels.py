@@ -32,10 +32,11 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.models.channels import GuildChannel
     from qord.models.guilds import Guild
+    from qord.models.messages import MessageableT
 
 @dataclass(frozen=True)
 class ChannelCreate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.CHANNEL_CREATE` event.
+    """Structure for :attr:`~qord.GatewayEvent.CHANNEL_CREATE` event.
 
     This event is called whenever a new channel is created in a guild.
     """
@@ -43,14 +44,14 @@ class ChannelCreate(BaseEvent):
     shard: Shard
 
     channel: GuildChannel
-    r"""The channel that was created."""
+    """The channel that was created."""
 
     guild: Guild
-    r"""The guild where the event happened."""
+    """The guild where the event happened."""
 
 @dataclass(frozen=True)
 class ChannelUpdate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.CHANNEL_UPDATE` event.
+    """Structure for :attr:`~qord.GatewayEvent.CHANNEL_UPDATE` event.
 
     This event is called whenever one or more properties of a guild channel
     are updated.
@@ -59,17 +60,35 @@ class ChannelUpdate(BaseEvent):
     shard: Shard
 
     before: GuildChannel
-    r"""The channel before the update."""
+    """The channel before the update."""
 
     after: GuildChannel
-    r"""The channel after the update."""
+    """The channel after the update."""
 
     guild: Guild
-    r"""The guild that the updated channel belonged to."""
+    """The guild that the updated channel belonged to."""
+
+@dataclass(frozen=True)
+class ChannelPinsUpdate(BaseEvent):
+    """Structure for :attr:`~qord.GatewayEvent.CHANNEL_PINS_UPDATE` event.
+
+    This event is called whenever a message is pinned or unpinned in a channel.
+    This event is not called if a pinned message is deleted.
+    """
+    event_name = GatewayEvent.CHANNEL_PINS_UPDATE
+    shard: Shard
+
+    channel: MessageableT
+    """The channel whose pins were updated."""
+
+    guild: typing.Optional[Guild]
+    """The guild where the event happened; If applicable otherwise ``None``."""
+
+
 
 @dataclass(frozen=True)
 class ChannelDelete(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.CHANNEL_DELETE` event.
+    """Structure for :attr:`~qord.GatewayEvent.CHANNEL_DELETE` event.
 
     This event is called whenever a channel is deleted in a guild.
     """
@@ -77,7 +96,7 @@ class ChannelDelete(BaseEvent):
     shard: Shard
 
     channel: GuildChannel
-    r"""The channel that was deleted."""
+    """The channel that was deleted."""
 
     guild: Guild
-    r"""The guild that the delete channel belonged to."""
+    """The guild that the delete channel belonged to."""

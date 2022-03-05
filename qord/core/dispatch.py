@@ -28,6 +28,7 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
+from qord._helpers import parse_iso_timestamp
 from qord import events
 
 import asyncio
@@ -431,6 +432,77 @@ class DispatchHandler:
             return
 
         event = events.MessageDelete(shard=shard, message=message)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_DELETE_BULK")
+    async def on_message_delete_bulk(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_ids = [int(mid) for mid in data["ids"]]
+        channel_id = int(data["channel_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            guild = None
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+
+            if guild is None:
+                shard._log(logging.DEBUG, "MESSAGE_DELETE_BULK: Unknown guild with ID %s", guild_id)
+                return
+
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "MESSAGE_DELETE_BULK: Unknown channel with ID %s", channel_id)
+            return
+
+        messages = []
+
+        for message_id in message_ids:
+            message = self.cache.delete_message(message_id)
+
+            if message is not None:
+                messages.append(message)
+
+        # `channel` is always a messageable channel here.
+        event = events.MessageBulkDelete(
+            shard=shard,
+            messages=messages,
+            message_ids=message_ids,
+            guild=guild,
+            channel=channel, # type: ignore
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_PINS_UPDATE")
+    async def on_channel_pins_update(self, shard: Shard, data: typing.Dict[str, typing.Any]):
+        channel_id = int(data["channel_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            guild = None
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+            channel = guild._cache.get_channel(channel_id)
+
+        last_pin_timestamp = data.get("last_pin_timestamp")
+
+        if last_pin_timestamp is not None:
+            try:
+                # Should always be a messageable channel *
+                channel.last_pin_timestamp = parse_iso_timestamp(last_pin_timestamp) # type: ignore
+            except AttributeError:
+                # We can't trust Discord. *
+                pass
+
+        event = events.ChannelPinsUpdate(
+            shard=shard,
+            guild=guild,
+            channel=channel, # type: ignore
+        )
         self.invoke(event)
 
     @event_dispatch_handler("MESSAGE_UPDATE")
