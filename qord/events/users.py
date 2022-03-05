@@ -22,30 +22,27 @@
 
 from __future__ import annotations
 
+from qord.events.base import BaseEvent
+from qord.enums import GatewayEvent
+
 import typing
+from dataclasses import dataclass
 
-_REST_BASE_URL = "https://discord.com/api/v10"
+if typing.TYPE_CHECKING:
+    from qord.core.shard import Shard
+    from qord.models.users import User
 
-class Route:
-    __slots__ = ("method", "path", "requires_auth", "params")
+@dataclass(frozen=True)
+class UserUpdate(BaseEvent):
+    """Structure for :attr:`~qord.GatewayEvent.USER_UPDATE` event.
 
-    def __init__(self,
-        method: typing.Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
-        path: str,
-        *,
-        requires_auth: bool = True,
-        **params: typing.Any,
-    ) -> None:
+    This event is called whenever one or more properties of a user are updated.
+    """
+    event_name = GatewayEvent.USER_UPDATE
+    shard: Shard
 
-        self.method = method
-        self.path = path
-        self.requires_auth = requires_auth
-        self.params = params
+    before: User
+    """The user before the update."""
 
-    @property
-    def url(self) -> str:
-        return _REST_BASE_URL + self.path.format_map(self.params)
-
-    def __repr__(self) -> str:
-        return f"{self.method} {self.url}"
-
+    after: User
+    """The user after the update."""

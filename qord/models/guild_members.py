@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord._helpers import parse_iso_timestamp, EMPTY
+from qord._helpers import parse_iso_timestamp, create_cdn_url, UNDEFINED, BASIC_EXTS
 from datetime import datetime
 
 import typing
@@ -32,14 +32,60 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.models.roles import Role
     from qord.models.guilds import Guild
+    from qord.flags.users import UserFlags
 
 
+def _user_features(cls):
+    ignore = (
+        "avatar",
+        "name",
+        "is_avatar_animated",
+        "avatar_url",
+    )
+
+    def _create_property(name: str) -> property:
+        def getter(self: GuildMember):
+            return getattr(self.user, name)
+
+        getter.__name__ = name
+        getter.__doc__ = f"Shorthand property for :attr:`User.{name}`."
+        return property(getter)
+
+    for attr in User.__slots__:
+        if (
+            attr in ignore
+            or attr.startswith("_")
+            or attr in cls.__dict__
+        ):
+            continue
+        setattr(cls, attr, _create_property(attr))
+
+    for attr in User.__dict__:
+        if (
+            attr in ignore
+            or attr.startswith("_")
+            or attr in cls.__dict__
+        ):
+            continue
+        setattr(cls, attr, _create_property(attr))
+
+    return cls
+
+@_user_features
 class GuildMember(BaseModel):
     r"""Representation of a guild member.
 
-    A guild member is simply a user that is part of a specific :class:`Guild`. This
-    class bundles the properties associated to a guild member. To access the actual
-    user associated to this member, you should consider using :attr:`.user` attribute.
+    A guild member is simply a user that is part of a specific :class:`Guild`.
+    Every guild member has an underlying :class:`User` object attached to it.
+
+    .. note::
+        This class provides shorthand properties to access the underlying user's
+        data however certain properties like :attr:`.name` and :attr:`.avatar`
+        have different behaviour in this class.
+
+        For example, :attr:`.avatar` and other avatar related methods and attributes
+        also consider the guild specific avatar of member for relevant functionality
+        with addition to user's global avatar.
 
     Attributes
     ----------
@@ -51,7 +97,7 @@ class GuildMember(BaseModel):
         The nickname of this member in the guild. If member has no guild
         specific nickname set, This is ``None``. See :attr:`.display_name` property
         that aids in retrieving the name more efficiently.
-    avatar: Optional[:class:`builtins.str`]
+    guild_avatar: Optional[:class:`builtins.str`]
         The hash of avatar for this member in the guild. If member has no
         guild specific avatar set, This is ``None``. See :attr:`.display_avatar` property
         that aids in retrieving the avatar more efficiently.
@@ -81,10 +127,11 @@ class GuildMember(BaseModel):
         The list of roles associated to this member.
     """
     if typing.TYPE_CHECKING:
+        # -- Member properties --
         guild: Guild
         user: User
         nickname: typing.Optional[str]
-        avatar: typing.Optional[str]
+        guild_avatar: typing.Optional[str]
         deaf: bool
         mute: bool
         pending: bool
@@ -94,7 +141,28 @@ class GuildMember(BaseModel):
         role_ids: typing.List[int]
         roles: typing.List[Role]
 
-    __slots__ = ("guild", "_client", "user", "nickname", "avatar", "deaf", "mute", "pending",
+        # -- User properties (applied by _user_features decorator) --
+        id: int
+        discriminator: str
+        bot: bool
+        system: bool
+        accent_color: int
+        locale: str
+        premium_type: int
+        flags: UserFlags
+        public_flags: UserFlags
+        premium_type: int
+        banner: typing.Optional[str]
+        mention: str
+        proper_name: str
+        default_avatar: str
+        default_avatar_url = User.default_avatar_url
+        banner_url = User.banner_url
+        is_banner_animated = User.is_banner_animated
+        create_dm = User.create_dm
+        send = User.send
+
+    __slots__ = ("guild", "_client", "user", "nickname", "guild_avatar", "deaf", "mute", "pending",
                 "joined_at", "premium_since", "timeout_until", "role_ids", "roles")
 
     def __init__(self, data: typing.Dict[str, typing.Any], guild: Guild) -> None:
@@ -105,7 +173,7 @@ class GuildMember(BaseModel):
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.user = User(data["user"], client=self._client)
         self.nickname = data.get("nick")
-        self.avatar = data.get("avatar")
+        self.guild_avatar = data.get("avatar")
         self.deaf = data.get("deaf", False)
         self.mute = data.get("mute", False)
         self.pending = data.get("pending", False)
@@ -131,11 +199,12 @@ class GuildMember(BaseModel):
         self.roles = roles
 
     @property
-    def display_name(self) -> str:
+    def name(self) -> str:
         r"""Returns the name of this member as displayed in the guild.
 
-        This property would return the :attr:`.nickname` of the member if it's present
-        and would fallback to :attr:`User.name` if nickname is not available.
+        This property would return the :attr:`.nickname` of the member if it's
+        present and would fallback to underlying user's :attr:`~User.name` if
+        nickname is not available.
 
         Returns
         -------
@@ -147,53 +216,84 @@ class GuildMember(BaseModel):
         return self.user.name
 
     @property
-    def display_avatar(self) -> typing.Optional[str]:
+    def avatar(self) -> typing.Optional[str]:
         r"""Returns the avatar's hash of this member as displayed in the guild.
 
-        This property would return the :attr:`.avatar` of this member if available
-        and would fallback to :attr:`User.avatar` when unavailable. If user has no
-        avatar set, ``None`` would be returned.
+        This property would return the :attr:`.guild_avatar` of this member if
+        available and would fallback to underlying user's :attr:`~User.avatar`
+        when unavailable. If user has no avatar set, ``None`` would be returned.
 
         Returns
         -------
         Optional[:class:`builtins.str`]
         """
-        avatar = self.avatar
-        if avatar is not None:
-            return avatar
+        guild_avatar = self.guild_avatar
+        if guild_avatar is not None:
+            return guild_avatar
         return self.user.avatar
 
-    def is_avatar_animated(self, guild_only: bool = False) -> bool:
-        r"""Checks whether the member's avatar is animated.
+    def avatar_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+        r"""Returns the avatar URL for this member.
 
-        When ``guild_only`` is ``True``, Checks for only the guild's
-        :attr:`.avatar`. Otherwise checks if for the :attr:`.display_avatar`
-        i.e either one of guild avatar or associated :attr:`.user` avatar
-        is animated.
+        This method returns URL for the member's displayed :attr:`.avatar`
+        i.e use the guild specific member avatar if present otherwise
+        user's global avatar. If none of these avatars are set, The
+        result of :meth:`.default_avatar_url` is returned instead.
+
+        The ``extension`` parameter only supports following extensions
+        in the case of avatars:
+
+        - :attr:`ImageExtension.GIF`
+        - :attr:`ImageExtension.PNG`
+        - :attr:`ImageExtension.JPG`
+        - :attr:`ImageExtension.JPEG`
+        - :attr:`ImageExtension.WEBP`
 
         Parameters
         ----------
-        guild_only: :class:`builtins.bool`
-            Whether to check for guild specific avatar only. Defaults
-            to ``False``.
+        extension: :class:`builtins.str`
+            The extension to use in the URL. If not supplied, An ideal
+            extension will be picked depending on whether member has static
+            or animated avatar.
+        size: :class:`builtins.int`
+            The size to append to URL. Can be any power of 2 between
+            64 and 4096.
+
+        Raises
+        ------
+        ValueError
+            Invalid extension or size was passed.
+        """
+        avatar = self.guild_avatar
+
+        if avatar is None:
+            return self.user.avatar_url(extension=extension, size=size)
+        if extension is None:
+            extension = "gif" if self.is_avatar_animated() else "png"
+
+        return create_cdn_url(
+            f"/guilds/{self.guild.id}/users/{self.id}/{self.avatar}",
+            extension=extension,
+            size=size,
+            valid_exts=BASIC_EXTS,
+        )
+
+    def is_avatar_animated(self) -> bool:
+        r"""Checks whether the member's avatar is animated.
+
+        This method checks for the :attr:`.avatar` to be animated i.e either
+        one of member's guild specific or underlying user's avatar should be
+        animated. To check specifically for the underlying user's avatar,
+        Consider using :meth:`User.is_avatar_animated` instead.
 
         Returns
         -------
         :class:`builtins.bool`
         """
         avatar = self.avatar
-
-        if guild_only:
-            if avatar is None:
-                return False
-            return avatar.startswith("a_")
-
-        display_avatar = self.display_avatar
-
-        if display_avatar is None:
+        if avatar is None:
             return False
-
-        return display_avatar.startswith("a_")
+        return avatar.startswith("a_")
 
     def is_boosting(self) -> bool:
         r"""Checks whether the member is boosting the guild.
@@ -241,11 +341,11 @@ class GuildMember(BaseModel):
     async def edit(
         self,
         *,
-        nickname: typing.Optional[str] = EMPTY,
-        roles: typing.List[Role] = EMPTY,
-        mute: bool = EMPTY,
-        deaf: bool = EMPTY,
-        timeout_until: datetime = EMPTY,
+        nickname: typing.Optional[str] = UNDEFINED,
+        roles: typing.List[Role] = UNDEFINED,
+        mute: bool = UNDEFINED,
+        deaf: bool = UNDEFINED,
+        timeout_until: datetime = UNDEFINED,
         reason: str = None,
     ):
         r"""Edits this member.
@@ -283,21 +383,21 @@ class GuildMember(BaseModel):
         """
         json = {}
 
-        if nickname is not EMPTY:
+        if nickname is not UNDEFINED:
             json["nick"] = nickname
 
-        if roles is not EMPTY:
+        if roles is not UNDEFINED:
             if roles is None:
                 roles = []
             json["roles"] = [role.id for role in roles]
 
-        if mute is not EMPTY:
+        if mute is not UNDEFINED:
             json["mute"] = mute
 
-        if deaf is not EMPTY:
+        if deaf is not UNDEFINED:
             json["deaf"] = deaf
 
-        if timeout_until is not EMPTY:
+        if timeout_until is not UNDEFINED:
             json["communication_disabled_until"] = (
                 timeout_until.isoformat() if timeout_until is not None else None
             )

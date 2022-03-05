@@ -26,8 +26,12 @@ from qord.models.users import ClientUser
 from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
+from qord.models.channels import _guild_channel_factory
+from qord.models.messages import Message
+from qord._helpers import parse_iso_timestamp
 from qord import events
 
+from datetime import datetime
 import asyncio
 import copy
 import inspect
@@ -130,8 +134,28 @@ class DispatchHandler:
             coro = self._prepare_ready()
             self._ready_task = asyncio.create_task(coro)
 
+    @event_dispatch_handler("RESUMED")
+    async def on_resumed(self, shard: Shard, data: typing.Any) -> None:
+        event = events.Resumed(shard=shard)
+        self.invoke(event)
+
+    @event_dispatch_handler("USER_UPDATE")
+    async def on_user_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        user_id = int(data["id"])
+        user = self.cache.get_user(user_id)
+
+        if user is None:
+            shard._log(logging.DEBUG, "USER_UPDATE: Unknown user with ID %s", user_id)
+            return
+
+        before = copy.copy(user)
+        user._update_with_data(data)
+
+        event = events.UserUpdate(shard=shard, before=before, after=user)
+        self.invoke(event)
+
     @event_dispatch_handler("GUILD_CREATE")
-    async def on_guild_create(self, shard: Shard, data: typing.Any) -> None:
+    async def on_guild_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
         unavailable = data.get("unavailable")
 
         if unavailable is True:
@@ -323,4 +347,249 @@ class DispatchHandler:
             guild.member_count -= 1
 
         event = events.GuildMemberRemove(shard=shard, guild=guild, member=member)
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_CREATE")
+    async def on_channel_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "CHANNEL_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        cls = _guild_channel_factory(data["type"])
+        channel = cls(data, guild=guild)
+        event = events.ChannelCreate(shard=shard, channel=channel, guild=guild)
+
+        guild.cache.add_channel(channel)
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_UPDATE")
+    async def on_channel_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "CHANNEL_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        channel_id = int(data["id"])
+        channel = guild.cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "CHANNEL_UPDATE: Unknown channel with ID %s", channel_id)
+            return
+
+        before = copy.copy(channel)
+        channel._update_with_data(data)
+
+        event = events.ChannelUpdate(shard=shard, before=before, after=channel, guild=guild)
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_DELETE")
+    async def on_channel_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            return
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "CHANNEL_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        channel_id = int(data["id"])
+        channel = guild.cache.delete_channel(channel_id)
+
+        # XXX: data is a complete channel object, maybe create a new instance
+        # if older isn't available?
+        if channel is None:
+            shard._log(logging.DEBUG, "CHANNEL_DELETE: Unknown channel with ID %s", channel_id)
+            return
+
+        event = events.ChannelDelete(shard=shard, channel=channel, guild=guild)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_CREATE")
+    async def on_message_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        channel_id = int(data["channel_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+            if guild is None:
+                shard._log(logging.DEBUG, "MESSAGE_CREATE: Unknown guild with ID %s", guild_id)
+                return
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "MESSAGE_CREATE: Unknown channel with ID %s", channel_id)
+            return
+
+        message = Message(data, channel=channel) # type: ignore
+        event = events.MessageCreate(shard=shard, message=message)
+        self.cache.add_message(message)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_DELETE")
+    async def on_message_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["id"])
+        message = self.cache.delete_message(message_id)
+
+        if message is None:
+            return
+
+        event = events.MessageDelete(shard=shard, message=message)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_DELETE_BULK")
+    async def on_message_delete_bulk(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_ids = [int(mid) for mid in data["ids"]]
+        channel_id = int(data["channel_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            guild = None
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+
+            if guild is None:
+                shard._log(logging.DEBUG, "MESSAGE_DELETE_BULK: Unknown guild with ID %s", guild_id)
+                return
+
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "MESSAGE_DELETE_BULK: Unknown channel with ID %s", channel_id)
+            return
+
+        messages = []
+
+        for message_id in message_ids:
+            message = self.cache.delete_message(message_id)
+
+            if message is not None:
+                messages.append(message)
+
+        # `channel` is always a messageable channel here.
+        event = events.MessageBulkDelete(
+            shard=shard,
+            messages=messages,
+            message_ids=message_ids,
+            guild=guild,
+            channel=channel, # type: ignore
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("CHANNEL_PINS_UPDATE")
+    async def on_channel_pins_update(self, shard: Shard, data: typing.Dict[str, typing.Any]):
+        channel_id = int(data["channel_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            guild = None
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+
+            if guild is None:
+                shard._log(logging.DEBUG, "CHANNEL_PINS_UPDATE: Unknown guild of ID %s", guild_id)
+                return
+
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "CHANNEL_PINS_UPDATE: Unknown channel of ID %s", channel_id)
+            return
+
+        last_pin_timestamp = data.get("last_pin_timestamp")
+
+        if last_pin_timestamp is not None:
+            try:
+                # Should always be a messageable channel *
+                channel.last_pin_timestamp = parse_iso_timestamp(last_pin_timestamp) # type: ignore
+            except AttributeError:
+                # We can't trust Discord. *
+                pass
+
+        event = events.ChannelPinsUpdate(
+            shard=shard,
+            guild=guild,
+            channel=channel, # type: ignore
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_UPDATE")
+    async def on_message_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["id"])
+        message = self.cache.get_message(message_id)
+
+        if message is None:
+            return
+
+        before = copy.copy(message)
+        message._update_with_data(data)
+
+        event = events.MessageUpdate(shard=shard, before=before, after=message)
+        self.invoke(event)
+
+    @event_dispatch_handler("TYPING_START")
+    async def on_typing_start(self, shard: Shard, data: typing.Dict[str, typing.Any]):
+        channel_id = int(data["channel_id"])
+        user_id = int(data["user_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            guild = None
+            channel = self.cache.get_private_channel(channel_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+            if guild is None:
+                shard._log(logging.DEBUG, "TYPING_START: Unknown guild of ID %s", guild_id)
+                return
+
+            channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            shard._log(logging.DEBUG, "TYPING_START: Unknown channel of ID %s", channel_id)
+            return
+
+        if guild is None:
+            user = self.cache.get_user(user_id)
+        else:
+            user = guild._cache.get_member(user_id)
+            if user is None:
+                user = GuildMember(data["member"], guild=guild)
+
+        if user is None:
+            shard._log(logging.DEBUG, "TYPING_START: Unknown user of ID", user_id)
+            return
+
+        # This is not in ISO format because Discord likes being inconsistent.
+        timestamp = datetime.fromtimestamp(data["timestamp"])
+
+        event = events.TypingStart(
+            shard=shard,
+            channel=channel, # type: ignore
+            started_at=timestamp,
+            user=user,
+            guild=guild,
+        )
         self.invoke(event)

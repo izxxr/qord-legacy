@@ -27,6 +27,8 @@ from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
+from qord.models.channels import GuildChannel, PrivateChannel
+from qord.models.messages import Message
 
 import weakref
 import typing
@@ -45,7 +47,9 @@ class DefaultCache(Cache):
 
     def clear(self) -> None:
         self._users = weakref.WeakValueDictionary()
+        self._private_channels = weakref.WeakValueDictionary()
         self._guilds = dict()
+        self._messages = dict()
 
     def users(self) -> typing.Sequence[User]:
         return list(self._users.values())
@@ -89,6 +93,53 @@ class DefaultCache(Cache):
 
         return self._guilds.pop(guild_id, None)
 
+    def messages(self) -> typing.Sequence[Message]:
+        return list(self._messages.values())
+
+    def get_message(self, message_id: int) -> typing.Optional[Message]:
+        if not isinstance(message_id, int):
+            raise TypeError("Parameter message_id must be an integer.")
+
+        return self._messages.get(message_id)
+
+    def add_message(self, message: Message) -> None:
+        if not isinstance(message, Message):
+            raise TypeError("Parameter message must be an instance of Message")
+
+        messages = self._messages
+
+        if len(messages) >= self.message_limit:
+            messages.clear()
+
+        messages[message.id] = message
+
+    def delete_message(self, message_id: int) -> typing.Optional[Message]:
+        if not isinstance(message_id, int):
+            raise TypeError("Parameter message_id must be an integer.")
+
+        return self._messages.pop(message_id, None)
+
+    def private_channels(self) -> typing.Sequence[PrivateChannel]:
+        return list(self._private_channels.values())
+
+    def add_private_channel(self, private_channel: PrivateChannel) -> None:
+        if not isinstance(private_channel, PrivateChannel):
+            raise TypeError("Parameter private_channel must be an instance of PrivateChannel")
+
+        self._private_channels[private_channel.id] = private_channel
+
+    def get_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._private_channels.get(channel_id, None)
+
+    def delete_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._private_channels.pop(channel_id, None)
+
 
 class DefaultGuildCache(GuildCache):
     r"""In-memory cache implementation for guilds.
@@ -105,19 +156,13 @@ class DefaultGuildCache(GuildCache):
     def clear(self) -> None:
         self._roles: typing.Dict[int, Role] = {}
         self._members: typing.Dict[int, GuildMember] = {}
+        self._channels: typing.Dict[int, GuildChannel] = {}
 
     def roles(self) -> typing.Sequence[Role]:
-        r"""Returns all roles that are currently cached.
-
-        This implementation sorts the returned sequence of roles
-        in ascending order according to their :attr:`~Role.position`.
-
-        Returns
-        -------
-        Sequence[:class:`Role`]
-        """
         roles = list(self._roles.values())
-        roles.sort(key=lambda role: role.position)
+        # Multiple roles may share same positions so
+        # we cannot rely on this behaviour.
+        roles.sort(key=lambda role: role.position) # Undocumented, see above
         return roles
 
     def add_role(self, role: Role) -> None:
@@ -157,4 +202,29 @@ class DefaultGuildCache(GuildCache):
         if not isinstance(user_id, int):
             raise TypeError("Parameter user_id must be an integer.")
 
-        return self._members.pop(user_id)
+        return self._members.pop(user_id, None)
+
+    def channels(self) -> typing.Sequence[GuildChannel]:
+        ret = list(self._channels.values())
+        # Multiple channels may share the same position so
+        # we cannot rely on this behaviour.
+        ret.sort(key=lambda c: c.position) # Undocumented, see above
+        return ret
+
+    def get_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._channels.get(channel_id)
+
+    def add_channel(self, channel: GuildChannel) -> None:
+        if not isinstance(channel, GuildChannel):
+            raise TypeError("Parameter channel must be an instance of GuildChannel.")
+
+        self._channels[channel.id] = channel
+
+    def delete_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        if not isinstance(channel_id, int):
+            raise TypeError("Parameter channel_id must be an integer.")
+
+        return self._channels.pop(channel_id, None)

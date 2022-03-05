@@ -343,6 +343,7 @@ class Shard:
                     break
                 else:
                     if not recv:
+                        self._log(logging.INFO, "Shard is closing.")
                         self._running = False
                         return
 

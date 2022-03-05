@@ -29,7 +29,7 @@ from qord._helpers import (
     get_optional_snowflake,
     create_cdn_url,
     BASIC_STATIC_EXTS,
-    EMPTY,
+    UNDEFINED,
 )
 
 import typing
@@ -51,6 +51,14 @@ class Role(BaseModel):
         The name of this role.
     position: :class:`builtins.int`
         The position of this role in the roles hierarchy.
+
+        .. warning::
+            Multiple roles in a guild may share same position. This is a
+            Discord API limitation. As such, Do not rely on this attribute
+            when comparing roles positions, Consider using :meth:`.is_higher_than`
+            and :meth:`.is_lower_than` methods instead that efficiently check
+            the role positions.
+
     color: :class:`builtins.int`
         The integer representation of color of this role.
     permissions: :class:`Permissions`
@@ -214,6 +222,48 @@ class Role(BaseModel):
         """
         return (self.id == self.guild.id)
 
+    def is_higher_than(self, other: Role) -> bool:
+        r"""Compares this role with another role of the same guild
+        and checks whether this role is higher than the other.
+
+        Parameters
+        ----------
+        other: :class:`Role`
+            The role to check against.
+
+        Raises
+        -------
+        RuntimeError
+            The provided role is not associated to the guild
+            that this role is associated to.
+        """
+        if not isinstance(other, Role):
+            raise TypeError("Parameter other must be an instance of Role.")
+        if self.guild.id != other.guild.id:
+            raise RuntimeError("Cannot compare against role of different guild.")
+
+        if self.position == other.position:
+            return self.id > other.id
+
+        return self.position > other.position
+
+    def is_lower_than(self, other: Role) -> bool:
+        r"""Compares this role with another role of the same guild
+        and checks whether this role is lower than the other.
+
+        Parameters
+        ----------
+        other: :class:`Role`
+            The role to check against.
+
+        Raises
+        -------
+        RuntimeError
+            The provided role is not associated to the guild
+            that this role is associated to.
+        """
+        return (not self.is_higher_than(other))
+
     async def delete(self, *, reason: str = None) -> None:
         r"""Deletes this role.
 
@@ -240,9 +290,9 @@ class Role(BaseModel):
         permissions: Permissions = None,
         hoist: bool = None,
         mentionable: bool = None,
-        icon: typing.Optional[bytes] = EMPTY,
-        unicode_emoji: typing.Optional[str] = EMPTY,
-        color: typing.Optional[int] = EMPTY,
+        icon: typing.Optional[bytes] = UNDEFINED,
+        unicode_emoji: typing.Optional[str] = UNDEFINED,
+        color: typing.Optional[int] = UNDEFINED,
         reason: str = None,
     ) -> None:
         r"""Edits this role.
@@ -297,11 +347,11 @@ class Role(BaseModel):
             json["hoist"] = hoist
         if mentionable is not None:
             json["mentionable"] = mentionable
-        if color is not EMPTY:
+        if color is not UNDEFINED:
             json["color"] = 0 if color is None else color # '0' is default.
-        if icon is not EMPTY:
+        if icon is not UNDEFINED:
             json["icon"] = None if icon is None else get_image_data(icon)
-        if unicode_emoji is not EMPTY:
+        if unicode_emoji is not UNDEFINED:
             json["unicode_emoji"] = unicode_emoji
 
         if json:

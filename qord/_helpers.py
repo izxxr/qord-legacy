@@ -32,16 +32,14 @@ BASE_CDN_URL = "https://cdn.discordapp.com"
 BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
 
-class _Empty:
-    r"""A sentinel class for optional values in HTTPs requests."""
-
+class _Undefined:
     def __eq__(self, o: object) -> bool:
         return False
 
     def __repr__(self) -> str:
         return "..."
 
-EMPTY: typing.Any = _Empty()
+UNDEFINED: typing.Any = _Undefined()
 
 
 def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typing.List[str] = None):

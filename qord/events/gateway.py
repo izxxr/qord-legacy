@@ -85,3 +85,15 @@ class Ready(BaseEvent):
     """
     event_name = GatewayEvent.READY
     shard = None
+
+@dataclass(frozen=True)
+class Resumed(BaseEvent):
+    r"""Structure of a :attr:`~qord.GatewayEvent.RESUMED` event.
+
+    This event is called whenver a shard is resumed i.e successfully re-establishes
+    a previously disconnected session.
+    """
+    event_name = GatewayEvent.RESUMED
+
+    shard: Shard
+    """The shard that was resumed."""

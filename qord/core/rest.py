@@ -99,7 +99,7 @@ class RestClient:
 
         if requires_auth:
             headers["Authorization"] = f"Bot {token}"
-        if reason is not None and route.supports_reason:
+        if reason is not None:
             headers["X-Audit-Log-Reason"] = reason
 
         for attempt in range(self.max_retries):
@@ -163,6 +163,12 @@ class RestClient:
     async def get_user(self, user_id: int):
         route = Route("GET", "/users/{user_id}", user_id=user_id)
         data = await self.request(route)
+        return data
+
+    async def create_dm(self, recipient_id: int):
+        route = Route("POST", "/users/@me/channels")
+        json = {"recipient_id": recipient_id}
+        data = await self.request(route, json=json)
         return data
 
     # ---- Guilds ----
@@ -289,4 +295,51 @@ class RestClient:
             guild_id=guild_id, user_id=user_id
         )
         data = await self.request(route, reason=reason)
+        return data
+
+    # --- Channels --- #
+
+    async def get_guild_channels(self, guild_id: int):
+        route = Route("GET", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        data = await self.request(route)
+        return data
+
+    async def create_guild_channel(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route("POST", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def get_channel(self, channel_id: int):
+        route = Route("GET", "/channels/{channel_id}", channel_id=channel_id)
+        data = await self.request(route)
+        return data
+
+    async def delete_channel(self, channel_id: int, reason: str = None):
+        route = Route("DELETE", "/channels/{channel_id}", channel_id=channel_id)
+        data = await self.request(route, reason=reason)
+        return data
+
+    async def edit_channel(self, channel_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+        route = Route("PATCH", "/channels/{channel_id}", channel_id=channel_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    # --- Messages --- #
+
+    async def get_message(self, channel_id: int, message_id: int):
+        route = Route(
+            "GET", "/channels/{channel_id}/messages/{message_id}",
+            channel_id=channel_id, message_id=message_id
+        )
+        data = await self.request(route)
+        return data
+
+    async def get_pinned_messages(self, channel_id: int):
+        route = Route("GET", "/channels/{channel_id}/pins", channel_id=channel_id)
+        data = await self.request(route)
+        return data
+
+    async def send_message(self, channel_id: int, json: typing.Dict[str, typing.Any]):
+        route = Route("POST", "/channels/{channel_id}/messages", channel_id=channel_id)
+        data = await self.request(route, json=json)
         return data

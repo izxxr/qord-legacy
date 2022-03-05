@@ -30,9 +30,11 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.models.roles import Role
     from qord.models.guild_members import GuildMember
+    from qord.models.channels import GuildChannel, PrivateChannel
+    from qord.models.messages import Message
 
 class Cache(ABC):
-    r"""Base class for creating custom cache handlers.
+    """Base class for creating custom cache handlers.
 
     This class is exposed to allow users to create implement custom cache handlers
     and configure them in a :class:`Client` using the ``cache`` parameter.
@@ -45,15 +47,44 @@ class Cache(ABC):
 
         cache = MyCache()
         client = qord.Client(cache=cache)
+
+    Parameters
+    ----------
+    message_limit: :class:`builtins.int`
+        The number of messages to cache at a time. Defaults to ``100``. ``None`` or
+        ``0`` will disable message cache.
+
+    Attributes
+    ----------
+    message_limit: :class:`builtins.int`
+        The number of messages to cache at a time.
     """
+
+    def __init__(self, message_limit: int = 100) -> None:
+        if not isinstance(message_limit, int):
+            raise TypeError("message_limit parameter must be an integer.")
+        if message_limit is None:
+            message_limit = 0
+
+        self.message_limit = message_limit
+
+    @property
+    def message_cache_enabled(self) -> bool:
+        """Indicates whether the message cache is enabled.
+
+        Returns
+        -------
+        :class:`builtins.bool`
+        """
+        return self.message_limit > 0
 
     @abstractmethod
     def clear(self) -> None:
-        r"""Clears the entire cache."""
+        """Clears the entire cache."""
 
     @abstractmethod
     def users(self) -> typing.Sequence[User]:
-        r"""Returns all users that are currently cached.
+        """Returns all users that are currently cached.
 
         Returns
         -------
@@ -62,7 +93,7 @@ class Cache(ABC):
 
     @abstractmethod
     def get_user(self, user_id: int) -> typing.Optional[User]:
-        r"""Gets a :class:`User` from the cache with provided user ID.
+        """Gets a :class:`User` from the cache with provided user ID.
 
         Parameters
         ----------
@@ -78,7 +109,7 @@ class Cache(ABC):
 
     @abstractmethod
     def add_user(self, user: User) -> None:
-        r"""Adds a :class:`User` to the cache.
+        """Adds a :class:`User` to the cache.
 
         Parameters
         ----------
@@ -88,7 +119,7 @@ class Cache(ABC):
 
     @abstractmethod
     def delete_user(self, user_id: int) -> typing.Optional[User]:
-        r"""Removes a :class:`User` from the cache from the given ID.
+        """Removes a :class:`User` from the cache from the given ID.
 
         Parameters
         ----------
@@ -104,7 +135,7 @@ class Cache(ABC):
 
     @abstractmethod
     def guilds(self) -> typing.Sequence[Guild]:
-        r"""Returns all guilds that are currently cached.
+        """Returns all guilds that are currently cached.
 
         Returns
         -------
@@ -113,7 +144,7 @@ class Cache(ABC):
 
     @abstractmethod
     def get_guild(self, guild_id: int) -> typing.Optional[Guild]:
-        r"""Gets a :class:`Guild` from the cache with provided guild ID.
+        """Gets a :class:`Guild` from the cache with provided guild ID.
 
         Parameters
         ----------
@@ -129,7 +160,7 @@ class Cache(ABC):
 
     @abstractmethod
     def add_guild(self, guild: Guild) -> None:
-        r"""Adds a :class:`Guild` to the cache.
+        """Adds a :class:`Guild` to the cache.
 
         Parameters
         ----------
@@ -139,7 +170,7 @@ class Cache(ABC):
 
     @abstractmethod
     def delete_guild(self, guild_id: int) -> typing.Optional[Guild]:
-        r"""Removes a :class:`Guild` from the cache from the given ID.
+        """Removes a :class:`Guild` from the cache from the given ID.
 
         Parameters
         ----------
@@ -153,9 +184,117 @@ class Cache(ABC):
             ``None`` is returned.
         """
 
+    @abstractmethod
+    def messages(self) -> typing.Sequence[Message]:
+        """Gets all messages that are currently cached.
+
+        Returns
+        -------
+        Sequence[:class:`Message`]
+            The sequence of messages cached.
+        """
+
+    @abstractmethod
+    def add_message(self, message: Message) -> None:
+        """Adds a :class:`Message` to the cache.
+
+        Once the :attr:`.message_limit` is reached, The messages
+        that are previously cache are removed, Clearing the message
+        cache.
+
+        Parameters
+        ----------
+        message: :class:`Message`
+            The message to add in the cache.
+        """
+
+    @abstractmethod
+    def get_message(self, message_id: int) -> typing.Optional[Message]:
+        """Gets a :class:`Message` from the cache by the provided message ID.
+
+        Parameters
+        ----------
+        message_id: :class:`builtins.int`
+            The message ID to get message for.
+
+        Returns
+        -------
+        Optional[:class:`Message`]
+            The gotten message if any. If no message existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def delete_message(self, message_id: int) -> typing.Optional[Message]:
+        """Deletes a :class:`Message` from the cache by the provided message ID.
+
+        Parameters
+        ----------
+        message_id: :class:`builtins.int`
+            The message ID to remove message for.
+
+        Returns
+        -------
+        Optional[:class:`Message`]
+            The deleted message if any. If no message existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def private_channels(self) -> typing.Sequence[PrivateChannel]:
+        """Gets all private channels that are currently cached.
+
+        Returns
+        -------
+        Sequence[:class:`PrivateChannel`]
+            The sequence of private channels cached.
+        """
+
+    @abstractmethod
+    def add_private_channel(self, private_channel: PrivateChannel) -> None:
+        """Adds a :class:`PrivateChannel` to the cache.
+
+        Parameters
+        ----------
+        private_channel: :class:`Message`
+            The private channel to add in the cache.
+        """
+
+    @abstractmethod
+    def get_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
+        """Gets a :class:`PrivateChannel` from the cache by the provided channel ID.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The private channel ID to get channel for.
+
+        Returns
+        -------
+        Optional[:class:`PrivateChannel`]
+            The gotten channel if any. If no private channel existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def delete_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
+        """Deletes a :class:`PrivateChannel` from the cache by the provided channel ID.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The private channel ID to delete channel for.
+
+        Returns
+        -------
+        Optional[:class:`PrivateChannel`]
+            The deleted channel if any. If no private channel existed with provided ID,
+            ``None`` is returned.
+        """
+
 
 class GuildCache(ABC):
-    r"""Abstract base class for creating custom cache handler for guilds.
+    """Abstract base class for creating custom cache handler for guilds.
 
     You can use this class to implement custom cache handlers for caching guild
     related entities and configure them in a :class:`Client` by overriding the
@@ -171,11 +310,11 @@ class GuildCache(ABC):
 
     @abstractmethod
     def clear(self) -> None:
-        r"""Clears the entire cache."""
+        """Clears the entire cache."""
 
     @abstractmethod
     def roles(self) -> typing.Sequence[Role]:
-        r"""Returns all roles that are currently cached.
+        """Returns all roles that are currently cached.
 
         Returns
         -------
@@ -184,7 +323,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def get_role(self, role_id: int) -> typing.Optional[Role]:
-        r"""Gets a :class:`Role` from the cache with provided role ID.
+        """Gets a :class:`Role` from the cache with provided role ID.
 
         Parameters
         ----------
@@ -200,7 +339,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def add_role(self, role: Role) -> None:
-        r"""Adds a :class:`Role` to the cache.
+        """Adds a :class:`Role` to the cache.
 
         Parameters
         ----------
@@ -210,7 +349,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def delete_role(self, role_id: int) -> typing.Optional[Role]:
-        r"""Removes a :class:`Role` from the cache from the given ID.
+        """Removes a :class:`Role` from the cache from the given ID.
 
         Parameters
         ----------
@@ -226,7 +365,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def members(self) -> typing.Sequence[GuildMember]:
-        r"""Returns all members that are currently cached.
+        """Returns all members that are currently cached.
 
         Returns
         -------
@@ -235,7 +374,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def get_member(self, user_id: int) -> typing.Optional[GuildMember]:
-        r"""Gets a :class:`GuildMember` from the cache for provided user ID.
+        """Gets a :class:`GuildMember` from the cache for provided user ID.
 
         Parameters
         ----------
@@ -251,7 +390,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def add_member(self, member: GuildMember) -> None:
-        r"""Adds a :class:`GuildMember` to the cache.
+        """Adds a :class:`GuildMember` to the cache.
 
         Parameters
         ----------
@@ -261,7 +400,7 @@ class GuildCache(ABC):
 
     @abstractmethod
     def delete_member(self, user_id: int) -> typing.Optional[GuildMember]:
-        r"""Removes a :class:`GuildMember` from the cache for provided user ID.
+        """Removes a :class:`GuildMember` from the cache for provided user ID.
 
         Parameters
         ----------
@@ -272,5 +411,57 @@ class GuildCache(ABC):
         -------
         Optional[:class:`GuildMember`]
             The deleted member if any. If no member existed with provided ID,
+            ``None`` is returned.
+        """
+
+
+    @abstractmethod
+    def channels(self) -> typing.Sequence[GuildChannel]:
+        """Returns all channels that are currently cached.
+
+        Returns
+        -------
+        Sequence[:class:`GuildChannel`]
+        """
+
+    @abstractmethod
+    def get_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        """Gets a :class:`GuildChannel` from the cache for provided channel ID.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The ID of channel to get.
+
+        Returns
+        -------
+        Optional[:class:`GuildChannel`]
+            The gotten channel if found. If no channel existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def add_channel(self, channel: GuildChannel) -> None:
+        """Adds a :class:`GuildChannel` to the cache.
+
+        Parameters
+        ----------
+        channel: :class:`GuildChannel`
+            The channel to add in the cache.
+        """
+
+    @abstractmethod
+    def delete_channel(self, channel_id: int) -> typing.Optional[GuildChannel]:
+        """Removes a :class:`GuildChannel` from the cache for provided channel ID.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The ID of channel to delete.
+
+        Returns
+        -------
+        Optional[:class:`GuildChannel`]
+            The deleted channel if any. If no channel existed with provided ID,
             ``None`` is returned.
         """
