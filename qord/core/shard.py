@@ -59,7 +59,7 @@ class _SignalResume(Exception):
 
 
 class Shard:
-    r"""Represents a shard that connects to Discord gateway.
+    """Represents a shard that connects to Discord gateway.
 
     A shard is simply a separate websocket connection to Discord gateway. In
     bots that are in less then 1000 guilds, There is generally only one shard
@@ -113,7 +113,7 @@ class Shard:
 
     @property
     def id(self) -> int:
-        r"""The ID of the shard. This starts from 0 and for each shard maintained by
+        """The ID of the shard. This starts from 0 and for each shard maintained by
         a client, This ID increments till :attr:`Client.shards_count`.
 
         In theory, If a client is running 5 shards for example. All shard IDs can
@@ -130,7 +130,7 @@ class Shard:
 
     @property
     def client(self) -> Client:
-        r"""The client that instansiated the client.
+        """The client that instansiated the client.
 
         Returns
         -------
@@ -140,7 +140,7 @@ class Shard:
 
     @property
     def latency(self) -> float:
-        r"""The latency of this shard. This is measured on the basis of delay between
+        """The latency of this shard. This is measured on the basis of delay between
         a heartbeat sent by the shard and it's acknowledgement sent by Discord gateway.
 
         Returns
@@ -151,7 +151,7 @@ class Shard:
 
     @property
     def heartbeat_interval(self) -> typing.Optional[float]:
-        r"""The heartbeat interval for this shard. This is only available after
+        """The heartbeat interval for this shard. This is only available after
         shard has done the initial websocket handshake.
 
         Returns
@@ -162,7 +162,7 @@ class Shard:
 
     @property
     def session_id(self) -> typing.Optional[str]:
-        r"""The current session ID for the shard. This is only available
+        """The current session ID for the shard. This is only available
         after shard has successfully connected to gateway.
 
         The session ID is not same for all shards. Furthermore, The session
@@ -177,13 +177,56 @@ class Shard:
 
     @property
     def sequence(self) -> typing.Optional[int]:
-        r"""The current dispatch sequence number of the shard. This may be None.
+        """The current dispatch sequence number of the shard. This may be None.
 
         Returns
         -------
         :class:`builtins.int`
         """
         return self._sequence
+
+    async def reconnect(self, *, delay: float = 5.0) -> None:
+        """Reconnects the shard.
+
+        If the shard is already connected, will close the connection
+        and attempt reconnect after provided ``delay``. If the shard
+        is disconnected, this simply reconnects it without delaying.
+
+        Parameters
+        ----------
+        delay: :class:`builtins.float`
+            The number of seconds to wait before reconnecting if the
+            shard is already connected. Defaults to ``5``.
+        """
+        client = self._client
+        assert client._shards_fut is not None
+
+        if self._running:
+            await self.disconnect()
+
+            if delay:
+                await asyncio.sleep(delay)
+
+        coro = self._wrapped_launch(client._gateway_url, client._shards_fut) # type: ignore
+        self._worker_task = asyncio.create_task(coro, name=f"shard-worker:{self._id}")
+
+    async def disconnect(self) -> None:
+        """Disconnects the shard.
+
+        Once disconnected, The shard can be reconnected using :meth:`.reconnect`.
+
+        Raises
+        ------
+        RuntimeError
+            Shard is already closed.
+        """
+        self._log(logging.INFO, "Disconnecting...")
+
+        if not self._running:
+            raise RuntimeError("Shard is already closed.")
+
+        self._running = False
+        await self._close(_clean=True)
 
     def _log(self, level: int, message: typing.Any, *args: typing.Any) -> None:
         _LOGGER.log(level, f"[Shard {self._id}] {message}", *args)
@@ -275,8 +318,6 @@ class Shard:
             )
             return True
 
-
-
         elif op is GatewayOP.HEARTBEAT_ACK:
             self._latency = time.time() - self._last_heartbeat # type: ignore
 
@@ -363,9 +404,10 @@ class Shard:
             await self._websocket.close(code=code)
             self._websocket = None
 
+        self._identified.clear()
+
         if _clean:
             self._clear_gateway_data()
-            self._identified.clear()
             self._worker_task.cancel()
             self._running = False
             self._worker_task = None

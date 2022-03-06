@@ -144,6 +144,7 @@ class Client:
         self._event_listeners = {}
         self._setup = False
         self._closed = True
+        self._shards_fut = None
         self._cache.clear()
 
         self.connect_timeout = connect_timeout
@@ -460,7 +461,7 @@ class Client:
             self._max_concurrency,
             's' if self._max_concurrency > 1 else '',
         )
-        future = asyncio.Future()
+        self._shards_fut = future = asyncio.Future()
 
         while shards:
             # The _max_concurrency attribute is never None here.
