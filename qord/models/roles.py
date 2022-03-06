@@ -110,6 +110,12 @@ class Role(BaseModel):
         self._rest = guild._client._rest
         self._update_with_data(data)
 
+    def __gt__(self, other: Role) -> bool:
+        return self.is_higher_than(other)
+
+    def __lt__(self, other: Role) -> bool:
+        return self.is_lower_than(other)
+
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.id = int(data["id"])
         self.name = data["name"]
