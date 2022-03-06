@@ -29,15 +29,47 @@ if typing.TYPE_CHECKING:
 
 
 class BaseEvent:
-    r"""Base class for all events classes."""
+    """Base class for events.
 
-    __slots__ = ()
+    All custom events must inherit from this class. When subclassing the
+    ``event_name`` parameter is required.
 
-    event_name: str
-    r"""The string representation of event name."""
+    See :meth:`qord.Client.event` documentation for more information
+    on creating custom events.
+
+    .. note::
+        Parameters documented below are passed during subclassing.
+
+    Parameters
+    ----------
+    event_name: :class:`builtins.str`
+        The string representation of name of event. This is used for
+        identifying the event and must be unique.
+
+        .. warning::
+            Do not use event names that are already reserved by the library
+            for example the event names from :class:`GatewayEvent`.
+    """
+
+    __event_name__: str
+
+    def __init_subclass__(cls, event_name: str) -> None:
+        if not isinstance(event_name, str):
+            raise TypeError("'event_name' parameter must be str.")
+
+        cls.__event_name__ = event_name
+
+
+@typing.runtime_checkable
+class BaseGatewayEvent(typing.Protocol):
+    """A :class:`typing.Protocol` that details events sent over the gateway.
+
+    This protocol supports runtime checks like :meth:`isinstance`
+    or :meth:`issubclass` etc.
+    """
 
     shard: typing.Optional[Shard]
-    r"""The shard that received this event.
+    """The shard that received this event over gateway.
 
     This attribute can be ``None`` in events that are not shard specific and are
     not invoked by a shard. The most common example is :class:`events.Ready`.

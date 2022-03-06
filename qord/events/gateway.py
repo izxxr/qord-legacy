@@ -33,8 +33,8 @@ if typing.TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class GatewayDispatch(BaseEvent):
-    r"""Structure of a :attr:`~qord.GatewayEvent.GATEWAY_DISPATCH` event.
+class GatewayDispatch(BaseEvent, event_name=GatewayEvent.GATEWAY_DISPATCH):
+    """Structure of a :attr:`~qord.GatewayEvent.GATEWAY_DISPATCH` event.
 
     This event is called whenever gateway sends an event dispatch.
 
@@ -45,11 +45,10 @@ class GatewayDispatch(BaseEvent):
     This event is only called when ``debug_events`` parameter is enabled in
     :class:`Client`.
     """
-    event_name = GatewayEvent.GATEWAY_DISPATCH
     shard: Shard
 
     title: str
-    r"""The title/name of event.
+    """The title/name of event.
 
     This name isn't same as how library defines the events name. See Discord
     documentation for all events names.
@@ -58,42 +57,39 @@ class GatewayDispatch(BaseEvent):
     """
 
     data: typing.Optional[typing.Dict[str, typing.Any]] = None
-    r"""The raw event data.
+    """The raw event data.
 
     This is mostly raw JSON payload however for some events, This can be ``None``.
     """
 
 @dataclass(frozen=True)
-class ShardReady(BaseEvent):
-    r"""Structure of a :attr:`~qord.GatewayEvent.SHARD_READY` event.
+class ShardReady(BaseEvent, event_name=GatewayEvent.SHARD_READY):
+    """Structure of a :attr:`~qord.GatewayEvent.SHARD_READY` event.
 
     This event is called whenever a shard successfully establishes
     a connection with Discord gateway and lazy loads cache for all guilds
     associated to that shard.
     """
-    event_name = GatewayEvent.SHARD_READY
     shard: Shard
 
 @dataclass(frozen=True)
-class Ready(BaseEvent):
-    r"""Structure of a :attr:`~qord.GatewayEvent.READY` event.
+class Ready(BaseEvent, event_name=GatewayEvent.READY):
+    """Structure of a :attr:`~qord.GatewayEvent.READY` event.
 
     This event is called when all shards associated to the client
     have completely prepared their guilds cache and client is in ready state.
 
     This event is not shard specific as such :attr:`.shard` is always ``None``.
     """
-    event_name = GatewayEvent.READY
     shard = None
 
 @dataclass(frozen=True)
-class Resumed(BaseEvent):
-    r"""Structure of a :attr:`~qord.GatewayEvent.RESUMED` event.
+class Resumed(BaseEvent, event_name=GatewayEvent.RESUMED):
+    """Structure of a :attr:`~qord.GatewayEvent.RESUMED` event.
 
     This event is called whenver a shard is resumed i.e successfully re-establishes
     a previously disconnected session.
     """
-    event_name = GatewayEvent.RESUMED
 
     shard: Shard
     """The shard that was resumed."""

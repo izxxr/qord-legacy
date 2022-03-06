@@ -38,12 +38,11 @@ if typing.TYPE_CHECKING:
     from qord.models.messages import MessageableT
 
 @dataclass(frozen=True)
-class ChannelCreate(BaseEvent):
+class ChannelCreate(BaseEvent, event_name=GatewayEvent.CHANNEL_CREATE):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_CREATE` event.
 
     This event is called whenever a new channel is created in a guild.
     """
-    event_name = GatewayEvent.CHANNEL_CREATE
     shard: Shard
 
     channel: GuildChannel
@@ -53,13 +52,12 @@ class ChannelCreate(BaseEvent):
     """The guild where the event happened."""
 
 @dataclass(frozen=True)
-class ChannelUpdate(BaseEvent):
+class ChannelUpdate(BaseEvent, event_name=GatewayEvent.CHANNEL_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_UPDATE` event.
 
     This event is called whenever one or more properties of a guild channel
     are updated.
     """
-    event_name = GatewayEvent.CHANNEL_UPDATE
     shard: Shard
 
     before: GuildChannel
@@ -72,13 +70,12 @@ class ChannelUpdate(BaseEvent):
     """The guild that the updated channel belonged to."""
 
 @dataclass(frozen=True)
-class ChannelPinsUpdate(BaseEvent):
+class ChannelPinsUpdate(BaseEvent, event_name=GatewayEvent.CHANNEL_PINS_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_PINS_UPDATE` event.
 
     This event is called whenever a message is pinned or unpinned in a channel.
     This event is not called if a pinned message is deleted.
     """
-    event_name = GatewayEvent.CHANNEL_PINS_UPDATE
     shard: Shard
 
     channel: MessageableT
@@ -88,12 +85,11 @@ class ChannelPinsUpdate(BaseEvent):
     """The guild where the event happened; If applicable otherwise ``None``."""
 
 @dataclass(frozen=True)
-class ChannelDelete(BaseEvent):
+class ChannelDelete(BaseEvent, event_name=GatewayEvent.CHANNEL_DELETE):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_DELETE` event.
 
     This event is called whenever a channel is deleted in a guild.
     """
-    event_name = GatewayEvent.CHANNEL_DELETE
     shard: Shard
 
     channel: GuildChannel
@@ -103,12 +99,11 @@ class ChannelDelete(BaseEvent):
     """The guild that the delete channel belonged to."""
 
 @dataclass(frozen=True)
-class TypingStart(BaseEvent):
+class TypingStart(BaseEvent, event_name=GatewayEvent.TYPING_START):
     """Structure for :attr:`~qord.GatewayEvent.TYPING_START` event.
 
     This event is called whenever a user starts typing in a channel.
     """
-    event_name = GatewayEvent.TYPING_START
     shard: Shard
 
     channel: MessageableT

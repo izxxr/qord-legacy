@@ -33,71 +33,66 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
 
 @dataclass(frozen=True)
-class GuildAvailable(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_AVAILABLE` event.
+class GuildAvailable(BaseEvent, event_name=GatewayEvent.GUILD_AVAILABLE):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_AVAILABLE` event.
 
     This event is called whenever a guild becomes available to the client. When
     initially connecting, This event may call several times for lazy loading of
     client guilds. Requires the :attr:`~qord.Intents.guilds` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_AVAILABLE
     shard: Shard
 
     guild: Guild
-    r"""The guild that became available."""
+    """The guild that became available."""
 
 @dataclass(frozen=True)
-class GuildUnavailable(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_UNAVAILABLE` event.
+class GuildUnavailable(BaseEvent, event_name=GatewayEvent.GUILD_UNAVAILABLE):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_UNAVAILABLE` event.
 
     This event is called whenever a guild becomes unavailable to the client
     most likely due to an outage.
     """
-    event_name = GatewayEvent.GUILD_UNAVAILABLE
     shard: Shard
 
     guild: Guild
-    r"""The guild that became unavailable."""
+    """The guild that became unavailable."""
 
 @dataclass(frozen=True)
-class GuildJoin(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_JOIN` event.
+class GuildJoin(BaseEvent, event_name=GatewayEvent.GUILD_JOIN):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_JOIN` event.
 
     This event is called whenever the client user or bot joins a new
     guild. Requires the :attr:`~qord.Intents.guilds` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_JOIN
     shard: Shard
 
     guild: Guild
-    r"""The joined guild."""
+    """The joined guild."""
 
 @dataclass(frozen=True)
-class GuildLeave(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_LEAVE` event.
+class GuildLeave(BaseEvent, event_name=GatewayEvent.GUILD_LEAVE):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_LEAVE` event.
 
     This event is called whenever the client user or bot is removed
     (kicked, banned or simply left) from a guild. Requires the
     :attr:`~qord.Intents.guilds` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_LEAVE
     shard: Shard
 
     guild: Guild
-    r"""The left guild."""
+    """The left guild."""
 
 @dataclass(frozen=True)
-class GuildUpdate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_UPDATE` event.
+class GuildUpdate(BaseEvent, event_name=GatewayEvent.GUILD_UPDATE):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_UPDATE` event.
 
     This event is called whenever one or more properties of a guild are updated.
     Requires the :attr:`~qord.Intents.guilds` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_UPDATE
     shard: Shard
 
     before: Guild
-    r"""The copy of guild before the update."""
+    """The copy of guild before the update."""
 
     after: Guild
-    r"""The guild after the update."""
+    """The guild after the update."""

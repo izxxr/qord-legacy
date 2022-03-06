@@ -59,7 +59,7 @@ class DispatchHandler:
         self.ready_timeout = ready_timeout
         self.debug_events = debug_events
         self.cache = client._cache
-        self._invoke = client.invoke_event
+        self.invoke = client.invoke_event
         self._shards_connected = asyncio.Event()
         self._shards_ready = asyncio.Event()
         self._guild_create_waiter = None
@@ -75,9 +75,6 @@ class DispatchHandler:
                 self._handlers[member.__handler_event__] = member
             except AttributeError:
                 pass
-
-    def invoke(self, event: events.BaseEvent) -> None:
-        self._invoke(event.event_name, event)
 
     async def handle(self, shard: Shard, title: str, data: typing.Any) -> None:
         if self.debug_events:

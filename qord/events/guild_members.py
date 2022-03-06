@@ -34,53 +34,50 @@ if typing.TYPE_CHECKING:
     from qord.models.guild_members import GuildMember
 
 @dataclass(frozen=True)
-class GuildMemberAdd(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_ADD` event.
+class GuildMemberAdd(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_ADD):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_ADD` event.
 
     This event is called whenever a new member joins the guild. This event
     requires the privileged intent, :attr:`~Intents.members` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_MEMBER_ADD
     shard: Shard
 
     member: GuildMember
-    r"""The member that joined the :attr:`.guild`."""
+    """The member that joined the :attr:`.guild`."""
 
     guild: Guild
-    r"""The guild that was joined by the member."""
+    """The guild that was joined by the member."""
 
 @dataclass(frozen=True)
-class GuildMemberUpdate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_UPDATE` event.
+class GuildMemberUpdate(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_UPDATE):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_UPDATE` event.
 
     This event is called whenever a guild member is updated. This event
     requires the privileged intent, :attr:`~Intents.members` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_MEMBER_UPDATE
     shard: Shard
 
     before: GuildMember
-    r"""The member before the update."""
+    """The member before the update."""
 
     after: GuildMember
-    r"""The member after the update."""
+    """The member after the update."""
 
     guild: Guild
-    r"""The associated guild."""
+    """The associated guild."""
 
 @dataclass(frozen=True)
-class GuildMemberRemove(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_REMOVE` event.
+class GuildMemberRemove(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_REMOVE):
+    """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_REMOVE` event.
 
     This event is called whenever a member is removed from the guild. The
     removal may be in form of leaving, getting kicked or banned etc. This event
     requires the privileged intent, :attr:`~Intents.members` to be enabled.
     """
-    event_name = GatewayEvent.GUILD_MEMBER_REMOVE
     shard: Shard
 
     member: GuildMember
-    r"""The member that had left the :attr:`.guild`."""
+    """The member that had left the :attr:`.guild`."""
 
     guild: Guild
-    r"""The guild that was left by the member."""
+    """The guild that was left by the member."""

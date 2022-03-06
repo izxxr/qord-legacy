@@ -34,37 +34,34 @@ if typing.TYPE_CHECKING:
     from qord.models.messages import Message, MessageableT
 
 @dataclass(frozen=True)
-class MessageCreate(BaseEvent):
+class MessageCreate(BaseEvent, event_name=GatewayEvent.MESSAGE_CREATE):
     """Structure for :attr:`~qord.GatewayEvent.MESSAGE_CREATE` event.
 
     This event is called whenever a new message is sent in a guild or
     private channel.
     """
-    event_name = GatewayEvent.MESSAGE_CREATE
     shard: Shard
 
     message: Message
     """The message that was sent."""
 
 @dataclass(frozen=True)
-class MessageDelete(BaseEvent):
+class MessageDelete(BaseEvent, event_name=GatewayEvent.MESSAGE_DELETE):
     """Structure for :attr:`~qord.GatewayEvent.MESSAGE_DELETE` event.
 
     This event is called whenever a message is deleted.
     """
-    event_name = GatewayEvent.MESSAGE_DELETE
     shard: Shard
 
     message: Message
     """The message that was deleted."""
 
 @dataclass(frozen=True)
-class MessageUpdate(BaseEvent):
+class MessageUpdate(BaseEvent, event_name=GatewayEvent.MESSAGE_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.MESSAGE_UPDATE` event.
 
     This event is called whenever a message is updated aka edited.
     """
-    event_name = GatewayEvent.MESSAGE_UPDATE
     shard: Shard
 
     before: Message
@@ -75,13 +72,12 @@ class MessageUpdate(BaseEvent):
 
 
 @dataclass(frozen=True)
-class MessageBulkDelete(BaseEvent):
+class MessageBulkDelete(BaseEvent, event_name=GatewayEvent.MESSAGE_BULK_DELETE):
     """Structure for :attr:`~qord.GatewayEvent.MESSAGE_BULK_DELETE` event.
 
     This event is called whenever multiple messages are deleted at the same
     time in a channel.
     """
-    event_name = GatewayEvent.MESSAGE_BULK_DELETE
     shard: Shard
 
     messages: typing.List[Message]

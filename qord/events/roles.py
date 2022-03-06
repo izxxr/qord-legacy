@@ -34,50 +34,47 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
 
 @dataclass(frozen=True)
-class RoleCreate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.ROLE_CREATE` event.
+class RoleCreate(BaseEvent, event_name=GatewayEvent.ROLE_CREATE):
+    """Structure for :attr:`~qord.GatewayEvent.ROLE_CREATE` event.
 
     This event is called whenever a role is created in a guild.
     """
-    event_name = GatewayEvent.ROLE_CREATE
     shard: Shard
 
     role: Role
-    r"""The role that was created."""
+    """The role that was created."""
 
     guild: Guild
-    r"""The guild that the created role belonged to."""
+    """The guild that the created role belonged to."""
 
 @dataclass(frozen=True)
-class RoleUpdate(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.ROLE_UPDATE` event.
+class RoleUpdate(BaseEvent, event_name=GatewayEvent.ROLE_UPDATE):
+    """Structure for :attr:`~qord.GatewayEvent.ROLE_UPDATE` event.
 
     This event is called whenever one or more properties of a guild role
     are updated.
     """
-    event_name = GatewayEvent.ROLE_UPDATE
     shard: Shard
 
     before: Role
-    r"""The role before the update."""
+    """The role before the update."""
 
     after: Role
-    r"""The role after the update."""
+    """The role after the update."""
 
     guild: Guild
-    r"""The guild that the updated role belonged to."""
+    """The guild that the updated role belonged to."""
 
 @dataclass(frozen=True)
-class RoleDelete(BaseEvent):
-    r"""Structure for :attr:`~qord.GatewayEvent.ROLE_DELETE` event.
+class RoleDelete(BaseEvent, event_name=GatewayEvent.ROLE_DELETE):
+    """Structure for :attr:`~qord.GatewayEvent.ROLE_DELETE` event.
 
     This event is called whenever a role is deleted in a guild.
     """
-    event_name = GatewayEvent.ROLE_DELETE
     shard: Shard
 
     role: Role
-    r"""The deleted role."""
+    """The deleted role."""
 
     guild: Guild
-    r"""The guild that the updated role belonged to."""
+    """The guild that the updated role belonged to."""

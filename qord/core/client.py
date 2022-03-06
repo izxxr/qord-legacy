@@ -26,10 +26,11 @@ from qord.core.dispatch import DispatchHandler
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
 from qord.core.cache_impl import DefaultCache, DefaultGuildCache
-from qord.exceptions import ClientSetupRequired
 from qord.flags.intents import Intents
 from qord.models.users import User
 from qord.models.guilds import Guild
+from qord.exceptions import ClientSetupRequired
+from qord.events.base import BaseEvent
 
 import asyncio
 import logging
@@ -50,7 +51,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Client:
-    r"""A client that interacts with Discord API.
+    """A client that interacts with Discord API.
 
     This is the core class of this library and the main starter point for
     every bot. All parameters passed during initializing are optional and keyword only.
@@ -179,7 +180,7 @@ class Client:
 
     @property
     def shards(self) -> typing.List[Shard]:
-        r"""The list of shards associated to the client.
+        """The list of shards associated to the client.
 
         Returns
         -------
@@ -189,7 +190,7 @@ class Client:
 
     @property
     def latency(self) -> float:
-        r"""The websocket latency of the client.
+        """The websocket latency of the client.
 
         If the client is running multiple shards, This returns the average of
         latencies of all shards. See :attr:`Shard.latency` for more info.
@@ -203,7 +204,7 @@ class Client:
 
     @property
     def max_concurrency(self) -> typing.Optional[int]:
-        r"""The maximum number of shards the client is allowed to start concurrently
+        """The maximum number of shards the client is allowed to start concurrently
         when :meth:`.launch` is called. This is set during :meth:`.setup`.
 
         This is retrieved from Discord and cannot be set by the user.
@@ -216,7 +217,7 @@ class Client:
 
     @property
     def user(self) -> typing.Optional[ClientUser]:
-        r"""Returns the user associated to the client.
+        """Returns the user associated to the client.
 
         This is only available after initial connection has been
         made with the Discord gateway. This is not dependant on the
@@ -230,7 +231,7 @@ class Client:
 
     @property
     def cache(self) -> Cache:
-        r"""Returns the cache handler associated to this client.
+        """Returns the cache handler associated to this client.
 
         Returns
         -------
@@ -239,7 +240,7 @@ class Client:
         return self._cache
 
     def get_guild_cache(self, guild: Guild) -> GuildCache:
-        r"""Returns the cache handler for the provided guild.
+        """Returns the cache handler for the provided guild.
 
         This method is not meant to be called by the user. It is called by the
         library. By default, this returns the :class:`DefaultGuildCache`. However,
@@ -266,7 +267,7 @@ class Client:
         return DefaultGuildCache(guild=guild)
 
     def get_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
-        r"""Gets the list of all events listener for the provided event.
+        """Gets the list of all events listener for the provided event.
 
         Parameters
         ----------
@@ -280,7 +281,7 @@ class Client:
         return self._event_listeners.get(event_name, [])
 
     def clear_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
-        r"""Clears all events listener for the provided event.
+        """Clears all events listener for the provided event.
 
         Parameters
         ----------
@@ -294,7 +295,7 @@ class Client:
         return self._event_listeners.pop(event_name, [])
 
     def walk_event_listeners(self) -> typing.List[typing.Tuple[str, typing.List[typing.Callable[..., typing.Any]]]]:
-        r"""Returns a list of tuples with first element being event name and second
+        """Returns a list of tuples with first element being event name and second
         element being the list of event listeners for that event.
 
         Example::
@@ -305,7 +306,7 @@ class Client:
         return list(self._event_listeners.items())
 
     def register_event_listener(self, event_name: str, callback: typing.Callable[..., typing.Any], /) -> None:
-        r"""Registers an event listener for provided event.
+        """Registers an event listener for provided event.
 
         Parameters
         ----------
@@ -328,17 +329,24 @@ class Client:
         except Exception:
             traceback.print_exc()
 
-    def invoke_event(self, event_name: str, /, *args) -> None:
-        r"""Invokes an event by calling all of it's listeners.
+    def invoke_event(self, event: BaseEvent) -> None:
+        """Invokes an event by calling all of it's listeners.
+
+        This method is exposed to documentation to allow users
+        to dispatch custom events. For more information about this
+        topic, See :doc:`events`.
 
         Parameters
         ----------
-        event_name: :class:`builtins.str`
-            The name of event to invoke.
-        *args:
-            The arguments to pass to listeners.
+        event: :class:`BaseEvent`
+            The event to invoke.
         """
-        listeners = self._event_listeners.get(event_name)
+        try:
+            event_name = event.__event_name__
+        except AttributeError:
+            raise TypeError("Parameter 'event' must be an instance of events.BaseEvent") from None
+        else:
+            listeners = self._event_listeners.get(event_name)
 
         if not listeners:
             return
@@ -346,10 +354,10 @@ class Client:
         loop = asyncio.get_running_loop()
 
         for listener in listeners:
-            loop.create_task(self._wrapped_callable(listener, *args))
+            loop.create_task(self._wrapped_callable(listener, event))
 
     def event(self, event_name: str):
-        r"""A decorator that registers an event listener for provided event.
+        """A decorator that registers an event listener for provided event.
 
         The decorated function must be a coroutine. Example::
 
@@ -370,7 +378,7 @@ class Client:
         return wrap
 
     def is_setup(self) -> bool:
-        r"""
+        """
         Returns
         -------
         :class:`builtins.bool`
@@ -388,7 +396,7 @@ class Client:
         self._setup = False
 
     async def setup(self, token: str, /) -> None:
-        r"""Setups the client with the provided authorization token.
+        """Setups the client with the provided authorization token.
 
         This must be called before :meth:`.launch`. This setup fetches the
         shards count and spawns that many shards accordingly.
@@ -428,7 +436,7 @@ class Client:
         self._setup = True
 
     async def launch(self) -> None:
-        r"""Launches the bot.
+        """Launches the bot.
 
         This method should be called *after* :meth:`.setup`.
 
@@ -497,7 +505,7 @@ class Client:
         raise exc
 
     async def close(self, clear_setup: bool = True) -> None:
-        r"""Gracefully closes the client.
+        """Gracefully closes the client.
 
         The entire closing process includes:
 
@@ -532,7 +540,7 @@ class Client:
         self._closed = True
 
     def start(self, token: str) -> None:
-        r"""Setups the client with provided token and then starts it.
+        """Setups the client with provided token and then starts it.
 
         Unlike :meth:`.launch`, This method is not a coroutine and aims to
         abstract away the asyncio event loop handling from the user. For a
@@ -569,7 +577,7 @@ class Client:
             loop.close()
 
     def is_ready(self) -> bool:
-        r"""Indicates whether the client is ready.
+        """Indicates whether the client is ready.
 
         This returns ``True`` only when all shards are ready.
 
@@ -580,11 +588,11 @@ class Client:
         return self._dispatch._shards_ready.is_set()
 
     async def wait_until_ready(self) -> None:
-        r"""A coroutine that blocks until all shards are ready."""
+        """A coroutine that blocks until all shards are ready."""
         await self._dispatch._shards_ready.wait()
 
     def get_shard(self, shard_id: int, /) -> typing.Optional[Shard]:
-        r"""Resolves a :class:`Shard` by it's ID.
+        """Resolves a :class:`Shard` by it's ID.
 
         Parameters
         ----------
@@ -603,7 +611,7 @@ class Client:
     # API calls
 
     async def fetch_user(self, user_id: int, /) -> User:
-        r"""Fetches a :class:`User` by it's ID via REST API.
+        """Fetches a :class:`User` by it's ID via REST API.
 
         Parameters
         ----------
@@ -626,7 +634,7 @@ class Client:
         return User(data, client=self)
 
     async def fetch_guild(self, guild_id: int, /, *, with_counts: bool = False) -> Guild:
-        r"""Fetches a :class:`Guild` by it's ID via REST API.
+        """Fetches a :class:`Guild` by it's ID via REST API.
 
         Parameters
         ----------
@@ -652,7 +660,7 @@ class Client:
         return Guild(data, client=self, enable_cache=False)
 
     async def leave_guild(self, guild_id: int, /) -> None:
-        r"""Leaves a guild by it's ID.
+        """Leaves a guild by it's ID.
 
         Parameters
         ----------

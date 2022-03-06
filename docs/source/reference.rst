@@ -69,184 +69,6 @@ DefaultGuildCache
     :members:
 
 
-Events
-------
-
-Qord provides a rich interface for handling of events dispatches sent over gateway. Below
-documentation describes the structure of various gateway events.
-
-The recommended way to register an event listener, is to use the :meth:`Client.event`
-decorator to decorate the callback coroutine. Example::
-
-    @client.event(qord.GatewayEvent.MESSAGE_CREATE)
-    async def on_message_create(event):
-        pass
-
-Also see :class:`GatewayEvent` that details the events names that are sent over gateway.
-
-BaseEvent
-~~~~~~~~~
-
-.. autoclass:: qord.events.BaseEvent()
-    :members:
-
-GatewayDispatch
-~~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.GatewayDispatch()
-    :members:
-
-ShardReady
-~~~~~~~~~~
-
-.. autoclass:: qord.events.ShardReady()
-    :members:
-
-Ready
-~~~~~
-
-.. autoclass:: qord.events.Ready()
-    :members:
-
-Resumed
-~~~~~~~
-
-.. autoclass:: qord.events.Resumed()
-    :members:
-
-UserUpdate
-~~~~~~~~~~
-
-.. autoclass:: qord.events.UserUpdate()
-    :members:
-
-GuildAvailable
-~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildAvailable()
-    :members:
-
-GuildUnavailable
-~~~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildUnavailable()
-    :members:
-
-GuildJoin
-~~~~~~~~~
-
-.. autoclass:: qord.events.GuildJoin()
-    :members:
-
-
-GuildLeave
-~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildLeave()
-    :members:
-
-GuildUpdate
-~~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildUpdate()
-    :members:
-
-RoleCreate
-~~~~~~~~~~
-
-.. autoclass:: qord.events.RoleCreate()
-    :members:
-
-RoleUpdate
-~~~~~~~~~~
-
-.. autoclass:: qord.events.RoleUpdate()
-    :members:
-
-RoleDelete
-~~~~~~~~~~
-
-.. autoclass:: qord.events.RoleDelete()
-    :members:
-
-GuildMemberAdd
-~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildMemberAdd()
-    :members:
-
-GuildMemberUpdate
-~~~~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildMemberUpdate()
-    :members:
-
-GuildMemberRemove
-~~~~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.GuildMemberRemove()
-    :members:
-
-
-ChannelCreate
-~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.ChannelCreate()
-    :members:
-
-
-ChannelUpdate
-~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.ChannelUpdate()
-    :members:
-
-ChannelPinsUpdate
-~~~~~~~~~~~~~~~~~
-
-.. autoclass:: ChannelPinsUpdate()
-    :members:
-
-ChannelDelete
-~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.ChannelDelete()
-    :members:
-
-TypingStart
-~~~~~~~~~~~
-
-.. autoclass:: qord.events.TypingStart()
-    :members:
-
-MessageCreate
-~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.MessageCreate()
-    :members:
-
-
-MessageUpdate
-~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.MessageUpdate()
-    :members:
-
-
-MessageDelete
-~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.MessageDelete()
-    :members:
-
-
-MessageBulkDelete
-~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: qord.events.MessageBulkDelete()
-    :members:
-
-
 Enumerations
 ------------
 
@@ -527,6 +349,13 @@ Message
 ~~~~~~~
 
 .. autoclass:: Message()
+    :inherited-members:
+    :members:
+
+Attachment
+~~~~~~~~~~
+
+.. autoclass:: Attachment()
     :inherited-members:
     :members:
 
