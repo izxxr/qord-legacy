@@ -343,3 +343,7 @@ class RestClient:
         route = Route("POST", "/channels/{channel_id}/messages", channel_id=channel_id)
         data = await self.request(route, json=json)
         return data
+
+    async def delete_message(self, channel_id: int, message_id: int):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}")
+        await self.request(route)

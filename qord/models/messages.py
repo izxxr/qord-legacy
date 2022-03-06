@@ -38,7 +38,7 @@ if typing.TYPE_CHECKING:
     MessageableT = typing.Union[TextChannel, DMChannel]
 
 class ChannelMention(BaseModel):
-    r"""Represents a mention to a specific channel in a message's content.
+    """Represents a mention to a specific channel in a message's content.
 
     .. warning::
         Channels from other guilds can be mentioned in a message. As such you
@@ -80,9 +80,79 @@ class ChannelMention(BaseModel):
         self.type = data["type"]
         self.name = data["name"]
 
+class Attachment(BaseModel):
+    """Represents an attachment that is attached to a message.
+
+    Attributes
+    ----------
+    message: :class:`Message`
+        The message associated to this attachment.
+    filename: :class:`builtins.str`
+        The name of file of attachment.
+    description: Optional[:class:`builtins.str`]
+        The description of attachment, If any.
+    content_type: Optional[:class:`builtins.str`]
+        The attachment's media type.
+    size: :class:`builtins.int`
+        The size of attachment; in bytes.
+    url: :class:`builtins.str`
+        The URL of this attachment.
+    proxy_url: :class:`builtins.str`
+        The proxy URL of this attachment.
+    height: Optional[:class:`builtins.int`]
+        The height of attachment, if the attachment is an image.
+    width: Optional[:class:`builtins.int`]
+        The width of attachment, if the attachment is an image.
+    ephemeral: :class:`builtins.bool`
+        Whether the attachment is part of ephemeral message.
+    """
+    if typing.TYPE_CHECKING:
+        message: Message
+        id: int
+        filename: str
+        size: int
+        url: str
+        proxy_url: str
+        description: typing.Optional[str]
+        content_type: typing.Optional[str]
+        height: typing.Optional[int]
+        width: typing.Optional[int]
+        ephemeral: bool
+
+    __slots__ = (
+        "message",
+        "_client",
+        "id",
+        "filename",
+        "description",
+        "content_type",
+        "size",
+        "url",
+        "proxy_url",
+        "height",
+        "width",
+        "ephemeral",
+    )
+
+    def __init__(self, data: typing.Dict[str, typing.Any], message: Message):
+        self.message = message
+        self._client = message._client
+        self._update_with_data(data)
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        self.id = int(data["id"])
+        self.filename = data["filename"]
+        self.description = data.get("description")
+        self.content_type = data.get("content_type")
+        self.size = data.get("size", 0)
+        self.url = data.get("url") # type: ignore
+        self.proxy_url = data.get("proxy_url") # type: ignore
+        self.height = data.get("height")
+        self.width = data.get("width")
+        self.ephemeral = data.get("ephemeral", False)
 
 class Message(BaseModel):
-    r"""Represents a message generated in channels by users, bots and webhooks.
+    """Represents a message generated in channels by users, bots and webhooks.
 
     Attributes
     ----------
@@ -135,6 +205,8 @@ class Message(BaseModel):
     application_id: Optional[:class:`builtins.int`]
         The ID of application that generated this application only if the
         message is response to an interaction.
+    attachments: List[:class:`Attachment`]
+        The list of attachments attached to the message.
     """
 
     if typing.TYPE_CHECKING:
@@ -151,6 +223,7 @@ class Message(BaseModel):
         mentioned_roles: typing.List[Role]
         mentioned_role_ids: typing.List[int]
         mentioned_channels: typing.List[ChannelMention]
+        attachments: typing.List[Attachment]
         guild: typing.Optional[Guild]
         content: typing.Optional[str]
         nonce: typing.Optional[typing.Union[str, int]]
@@ -159,20 +232,20 @@ class Message(BaseModel):
         webhook_id: typing.Optional[int]
         application_id: typing.Optional[int]
 
-    __slots__ = ("channel", "_client", "_cache", "id", "type", "channel_id", "guild_id",
+    __slots__ = ("channel", "_client", "_cache", "_rest", "id", "type", "channel_id", "guild_id",
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
-                "pinned", "edited_at", "author", "mentions", "mentioned_roles")
+                "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
         self._client = channel._client
+        self._rest = channel._rest
         self._cache = self._client._cache
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # TODO: Following fields are not supported yet:
-        # - attachments
         # - embeds
         # - reactions
         # - activity
@@ -182,7 +255,7 @@ class Message(BaseModel):
         # - referenced_message
         # - interaction
         # - thread
-        # - component
+        # - components
         # - sticker_items
 
         self.id = int(data["id"])
@@ -200,6 +273,7 @@ class Message(BaseModel):
         self.mentioned_channels = [ChannelMention(c, self) for c in data.get("mention_channels", [])]
         self.nonce = data.get("nonce")
         self.pinned = data.get("pinned", False)
+        self.attachments = [Attachment(a, message=self) for a in data.get("attachments", [])]
         edited_at = data.get("edited_timestamp")
         self.edited_at = parse_iso_timestamp(edited_at) if edited_at is not None else None
 
@@ -274,4 +348,17 @@ class Message(BaseModel):
 
         self.mentioned_roles = mentioned_roles
 
+    async def delete(self) -> None:
+        """Deletes this message.
+
+        Raises
+        ------
+        HTTPNotFound
+            Message is already deleted.
+        HTTPForbidden
+            You don't have permission to do this.
+        HTTPException
+            The operation failed.
+        """
+        await self._rest.delete_message(channel_id=self.channel_id, message_id=self.id)
 
