@@ -213,7 +213,7 @@ class Embed:
         name: str,
         value: str,
         inline: bool = False,
-        index: int = -1
+        index: int = None,
     ) -> EmbedField:
         """Sets a field on the embed at provided position.
 
@@ -231,30 +231,31 @@ class Embed:
             Whether the field should be :attr:`~EmbedField.inline` with last
             field of embed. Defaults to ``True``.
         index: :class:`builtins.int`
-            The index where the field should be inserted. By default it is ``-1`` i.e
-            insert the field to the last of embed.
+            The index where the field should be inserted. When not
+            supplied, The field is appended.
 
         Returns
         -------
         :class:`EmbedField`
             The field that was created.
-
-        Raises
-        ------
-        EmbedLimitExceeded
-            The embed can only have 25 fields.
         """
         field = EmbedField(name=name, value=value, inline=inline)
-        self._fields.insert(index, field)
+
+        if index is None:
+            self._fields.append(field)
+        else:
+            self._fields.insert(index, field)
+
         return field
 
-    def pop_field(self, index: int = -1) -> typing.Optional[EmbedField]:
+    def pop_field(self, index: int = None) -> typing.Optional[EmbedField]:
         """Removes a field from the provided position (last by default).
 
         Parameters
         ----------
         index: :class:`builtins.int`
-            The index of field to remove.
+            The index of field to remove. When not supplied, Removes the
+            last field.
 
         Returns
         -------
@@ -263,7 +264,10 @@ class Embed:
             index, ``None`` is returned
         """
         try:
-            return self._fields.pop(index)
+            if index is None:
+                return self._fields.pop()
+            else:
+                return self._fields.pop(index)
         except IndexError:
             return None
 
