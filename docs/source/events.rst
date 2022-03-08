@@ -14,6 +14,10 @@ decorator to decorate the callback coroutine. Example::
     async def on_message_create(event):
         pass
 
+All event listeners must take a single ``event`` parameter that is an instance
+of :class:`BaseEvent` and represents the context of event and contains data
+relevant to the invoked event.
+
 The :class:`GatewayEvent` enumeration details the event names that are sent over gateway.
 
 .. note::
@@ -22,7 +26,7 @@ The :class:`GatewayEvent` enumeration details the event names that are sent over
     :attr:`Intents.guilds` intent enabled for proper functioning of libary.
 
 Custom events
-~~~~~~~~~~~~~
+-------------
 
 Custom events are useful for several use cases and library allows you to create
 them and easily invoke them::
@@ -48,6 +52,12 @@ You can then invoke the event somewhere else::
 
     event = ApplicationSubmit(id=1, name="Jake")
     client.invoke_event(event)
+
+Events Structures
+-----------------
+
+These classes define the structures of various events that are sent over
+Discord gateway.
 
 
 BaseEvent
