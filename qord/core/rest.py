@@ -35,7 +35,10 @@ from qord.core.routes import Route
 
 import aiohttp
 import typing
+import json as _json
 
+if typing.TYPE_CHECKING:
+    from qord.dataclasses.files import File
 
 class RestClient:
     r"""REST handling implementation including ratelimits prevention and handling."""
@@ -339,9 +342,42 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def send_message(self, channel_id: int, json: typing.Dict[str, typing.Any]):
+    async def send_message(
+        self,
+        channel_id: int,
+        json: typing.Dict[str, typing.Any] = None,
+        files: typing.List[File] = None,
+    ):
         route = Route("POST", "/channels/{channel_id}/messages", channel_id=channel_id)
-        data = await self.request(route, json=json)
+
+        if not files:
+            data = await self.request(route, json=json)
+        else:
+            form = aiohttp.FormData(quote_fields=False)
+
+            attachments = []
+
+            for index, file in enumerate(files):
+                form.add_field(
+                    f"files[{index}]",
+                    file.content,
+                    filename=file.proper_name,
+                )
+
+                attachment = {
+                    "id": index,
+                    "description": file.description,
+                }
+                attachments.append(attachment)
+
+            if json is None:
+                json = {}
+
+            json["attachments"] = attachments
+            form.add_field("payload_json", _json.dumps(json))
+
+            data = await self.request(route, data=form)
+
         return data
 
     async def delete_message(self, channel_id: int, message_id: int):

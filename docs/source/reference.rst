@@ -210,6 +210,12 @@ EmbedProvider
 .. autoclass:: EmbedProvider()
     :members:
 
+File
+~~~~
+
+.. autoclass:: File()
+    :members:
+
 Bitwise Flags
 -------------
 

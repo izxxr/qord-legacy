@@ -32,7 +32,11 @@ BASE_CDN_URL = "https://cdn.discordapp.com"
 BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
 
+
 class _Undefined:
+    def __bool__(self) -> bool:
+        return False
+
     def __eq__(self, o: object) -> bool:
         return False
 

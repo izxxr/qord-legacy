@@ -31,6 +31,7 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.embeds import Embed
+    from qord.dataclasses.files import File
     from qord.core.rest import RestClient
 
 
@@ -99,6 +100,7 @@ class MessagesSupported(ABC):
         tts: bool = UNDEFINED,
         allowed_mentions: AllowedMentions = UNDEFINED,
         embeds: typing.List[Embed] = UNDEFINED,
+        files: typing.List[File] = UNDEFINED,
     ):
         """Sends a message to the channel.
 
@@ -117,6 +119,8 @@ class MessagesSupported(ABC):
             The mentions to allow in the message's content.
         embeds: List[:class:`Embed`]
             The list of embeds to include in the message.
+        files: List[:class:`File`]
+            The list of file attachments to send in message.
         tts: :class:`builtins.bool`
             Whether the sent message is a Text-To-Speech message.
 
@@ -152,5 +156,9 @@ class MessagesSupported(ABC):
                 json["embeds"] = [embed.to_dict() for embed in embeds]
 
         channel = await self._get_message_channel()
-        data = await self._rest.send_message(channel_id=channel.id, json=json)
+        data = await self._rest.send_message(
+            channel_id=channel.id,
+            json=json,
+            files=files,
+        )
         return Message(data, channel=channel)
