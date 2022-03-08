@@ -29,6 +29,7 @@ from abc import ABC, abstractmethod
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.embeds import Embed
     from qord.core.rest import RestClient
 
@@ -96,6 +97,7 @@ class MessagesSupported(ABC):
         content: str = UNDEFINED,
         *,
         tts: bool = UNDEFINED,
+        allowed_mentions: AllowedMentions = UNDEFINED,
         embeds: typing.List[Embed] = UNDEFINED,
     ):
         """Sends a message to the channel.
@@ -111,6 +113,8 @@ class MessagesSupported(ABC):
         ----------
         content: :class:`builtins.str`
             The content of message.
+        allowed_mentions: :class:`AllowedMentions`
+            The mentions to allow in the message's content.
         embeds: List[:class:`Embed`]
             The list of embeds to include in the message.
         tts: :class:`builtins.bool`
@@ -137,6 +141,9 @@ class MessagesSupported(ABC):
 
         if tts is not UNDEFINED:
             json["tts"] = tts
+
+        if allowed_mentions is not UNDEFINED:
+            json["allowed_mentions"] = allowed_mentions.to_dict()
 
         if embeds is not UNDEFINED:
             if embeds is None:

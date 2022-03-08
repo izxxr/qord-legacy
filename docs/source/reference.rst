@@ -156,6 +156,12 @@ Shard
 .. autoclass:: Shard()
     :members:
 
+AllowedMentions
+~~~~~~~~~~~~~~~
+
+.. autoclass:: AllowedMentions()
+    :members:
+
 Embed
 ~~~~~
 

@@ -26,4 +26,5 @@ from qord.models.guilds import *
 from qord.models.guild_members import *
 from qord.models.roles import *
 from qord.models.messages import *
+from qord.dataclasses.allowed_mentions import *
 from qord.dataclasses.embeds import *
