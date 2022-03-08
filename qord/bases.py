@@ -29,6 +29,7 @@ from abc import ABC, abstractmethod
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.dataclasses.embeds import Embed
     from qord.core.rest import RestClient
 
 
@@ -95,6 +96,7 @@ class MessagesSupported(ABC):
         content: str = UNDEFINED,
         *,
         tts: bool = UNDEFINED,
+        embeds: typing.List[Embed] = UNDEFINED,
     ):
         """Sends a message to the channel.
 
@@ -102,13 +104,15 @@ class MessagesSupported(ABC):
         :attr:`~Permissions.send_messages` permission in the channel.
 
         For direct messages channel, No specific permission is required
-        however relevant user must share a guild with the bot and the bot must
-        not be blocked by the user.
+        however relevant user must share a guild with the bot and the bot
+        must not be blocked by the user.
 
         Parameters
         ----------
         content: :class:`builtins.str`
             The content of message.
+        embeds: List[:class:`Embed`]
+            The list of embeds to include in the message.
         tts: :class:`builtins.bool`
             Whether the sent message is a Text-To-Speech message.
 
@@ -130,8 +134,15 @@ class MessagesSupported(ABC):
 
         if content is not UNDEFINED:
             json["content"] = content
+
         if tts is not UNDEFINED:
             json["tts"] = tts
+
+        if embeds is not UNDEFINED:
+            if embeds is None:
+                json["embeds"] = []
+            else:
+                json["embeds"] = [embed.to_dict() for embed in embeds]
 
         channel = await self._get_message_channel()
         data = await self._rest.send_message(channel_id=channel.id, json=json)

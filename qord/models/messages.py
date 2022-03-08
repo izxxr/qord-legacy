@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
+from qord.dataclasses.embeds import Embed
 from qord._helpers import get_optional_snowflake, parse_iso_timestamp
 
 import typing
@@ -207,6 +208,8 @@ class Message(BaseModel):
         message is response to an interaction.
     attachments: List[:class:`Attachment`]
         The list of attachments attached to the message.
+    embeds: List[:class:`Embed`]
+        The list of embeds attached to the message.
     """
 
     if typing.TYPE_CHECKING:
@@ -224,6 +227,7 @@ class Message(BaseModel):
         mentioned_role_ids: typing.List[int]
         mentioned_channels: typing.List[ChannelMention]
         attachments: typing.List[Attachment]
+        embeds: typing.List[Embed]
         guild: typing.Optional[Guild]
         content: typing.Optional[str]
         nonce: typing.Optional[typing.Union[str, int]]
@@ -235,7 +239,8 @@ class Message(BaseModel):
     __slots__ = ("channel", "_client", "_cache", "_rest", "id", "type", "channel_id", "guild_id",
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
-                "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments")
+                "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
+                "embeds")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -246,7 +251,6 @@ class Message(BaseModel):
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # TODO: Following fields are not supported yet:
-        # - embeds
         # - reactions
         # - activity
         # - application
@@ -274,6 +278,7 @@ class Message(BaseModel):
         self.nonce = data.get("nonce")
         self.pinned = data.get("pinned", False)
         self.attachments = [Attachment(a, message=self) for a in data.get("attachments", [])]
+        self.embeds = [Embed.from_dict(e) for e in data.get("embeds", [])]
         edited_at = data.get("edited_timestamp")
         self.edited_at = parse_iso_timestamp(edited_at) if edited_at is not None else None
 

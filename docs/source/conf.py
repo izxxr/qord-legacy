@@ -52,3 +52,14 @@ html_theme = 'furo'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# RST Prolog
+embed_restricted_field = "This field can only be returned by embeds from API responses " \
+                         "that are created by external sources. This field is not available " \
+                         "to be set by bots or webhooks. As such you should never set this " \
+                         "field manually, setting it will either have no effect on the embed " \
+                         "or you will run into unexpected issues."
+
+rst_prolog = f"""
+.. |embed-restricted-field| replace:: {embed_restricted_field}
+"""

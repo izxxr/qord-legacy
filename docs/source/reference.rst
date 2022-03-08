@@ -17,7 +17,7 @@ Client
 
 
 Abstract Classes
-~~~~~~~~~~~~~~~~
+----------------
 
 Other classes provided by the library can inherit these classes to implement the
 relevant common functionality.
@@ -244,6 +244,59 @@ MissingPrivilegedIntents
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoexception:: MissingPrivilegedIntents()
+
+Data classes
+------------
+
+These data classes can be instansiated by the users and facilitate in various common tasks.
+
+Embed
+~~~~~
+
+.. autoclass:: Embed()
+    :members:
+
+EmbedImage
+~~~~~~~~~~
+
+.. autoclass:: EmbedImage()
+    :members:
+
+EmbedThumbnail
+~~~~~~~~~~~~~~
+
+.. autoclass:: EmbedThumbnail()
+    :members:
+
+EmbedVideo
+~~~~~~~~~~
+
+.. autoclass:: EmbedVideo()
+    :members:
+
+EmbedField
+~~~~~~~~~~
+
+.. autoclass:: EmbedField()
+    :members:
+
+EmbedAuthor
+~~~~~~~~~~~
+
+.. autoclass:: EmbedAuthor()
+    :members:
+
+EmbedFooter
+~~~~~~~~~~~
+
+.. autoclass:: EmbedFooter()
+    :members:
+
+EmbedProvider
+~~~~~~~~~~~~~
+
+.. autoclass:: EmbedProvider()
+    :members:
 
 Discord Models
 --------------
