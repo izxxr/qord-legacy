@@ -323,3 +323,75 @@ class VideoQualityMode:
 
     FULL = 2
     """720p quality."""
+
+class MessageType:
+    """An enumeration that details the type of a :class:`Message`."""
+
+    DEFAULT = 0
+    """Default text message."""
+
+    RECIPIENT_ADD = 1
+    """Recipiient add notification in a group DM."""
+
+    RECIPIENT_REMOVE = 2
+    """Recipient remove notification in a  group DM."""
+
+    CALL = 3
+    """Message representing status of a call."""
+
+    CHANNEL_NAME_CHANGE = 4
+    """The channel name change notification."""
+
+    CHANNEL_ICON_CHANGE = 5
+    """The channel icon change notification."""
+
+    PINNED_MESSAGE = 6
+    """Pin message creation notification."""
+
+    GUILD_MEMBER_JOIN = 7
+    """Guild member welcome message."""
+
+    GUILD_PREMIUM_SUBSCRIPTION_ADD = 8
+    """Guild boost added notification."""
+
+    GUILD_PREMIUM_SUBSCRIPTION_TIER_1 = 9
+    """Guild reached level 1 boost tier notification."""
+
+    GUILD_PREMIUM_SUBSCRIPTION_TIER_2 = 10
+    """Guild reached level 2 boost tier notification."""
+
+    GUILD_PREMIUM_SUBSCRIPTION_TIER_3 = 11
+    """Guild reached level 3 boost tier notification."""
+
+    CHANNEL_FOLLOW_ADD = 12
+    """New channel follow add notification."""
+
+    GUILD_DISCOVERY_DISQUALIFIED = 14
+    """Guild discovery disqualified notification."""
+
+    GUILD_DISCOVERY_REQUALIFIED = 15
+    """Guild discovery requalified notification."""
+
+    GUILD_DISCOVERY_GRACE_PERIOD_INITIAL_WARNING = 16
+    """Guild discovery initial grace period warning."""
+
+    GUILD_DISCOVERY_GRACE_PERIOD_FINAL_WARNING = 17
+    """Guild discovery final grace period warning."""
+
+    THREAD_CREATED= 18
+    """Thread creation notification."""
+
+    REPLY = 19
+    """Message is a reply to another message."""
+
+    CHAT_INPUT_COMMAND = 20
+    """Message is a chat input or slash command."""
+
+    THREAD_STARTER_MESSAGE = 21
+    """Message is a thread's starter message."""
+
+    GUILD_INVITE_REMINDER = 22
+    """Message is a guild's invite reminder."""
+
+    CONTEXT_MENU_COMMAND = 23
+    """Message is a context menu command."""
