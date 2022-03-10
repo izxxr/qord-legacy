@@ -33,7 +33,7 @@ if typing.TYPE_CHECKING:
     from qord.models.messages import Message
     from qord.models.channels import DMChannel
     from qord.core.client import Client
-    from qord.bases import MessagesSupported
+    from qord.bases import BaseMessageChannel
 
 class User(BaseModel):
     """Representation of a Discord user entity.

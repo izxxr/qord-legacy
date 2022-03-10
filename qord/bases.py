@@ -35,7 +35,7 @@ if typing.TYPE_CHECKING:
     from qord.core.rest import RestClient
 
 
-class MessagesSupported(ABC):
+class BaseMessageChannel(ABC):
     r"""A base class that implements support for messages managament.
 
     Almost all classes that support the :class:`Message` related operations

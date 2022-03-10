@@ -32,7 +32,7 @@ if typing.TYPE_CHECKING:
 class File:
     """Represents a file that is sent in messages.
 
-    Example usage with :meth:`~MessagesSupport.send` method::
+    Example usage with :meth:`~BaseMessageChannel.send` method::
 
         file = qord.File("path/to/file.png")
         await channel.send(files=[file])

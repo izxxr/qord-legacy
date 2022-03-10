@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord.bases import MessagesSupported
+from qord.bases import BaseMessageChannel
 from qord.enums import ChannelType
 from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
 
@@ -134,10 +134,10 @@ class GuildChannel(BaseModel):
         raise NotImplementedError("edit() must be implemented by subclasses.")
 
 
-class TextChannel(GuildChannel, MessagesSupported):
+class TextChannel(GuildChannel, BaseMessageChannel):
     """Represents a text messages based channel in a guild.
 
-    This class inherits :class:`GuildChannel` and :class:`MessagesSupported`.
+    This class inherits :class:`GuildChannel` and :class:`BaseMessageChannel`.
 
     Attributes
     ----------
@@ -547,7 +547,7 @@ class PrivateChannel(BaseModel):
         self.id = int(data["id"])
         self.type = int(data["type"])
 
-class DMChannel(PrivateChannel, MessagesSupported):
+class DMChannel(PrivateChannel, BaseMessageChannel):
     """Represents a direct message channel between two users.
 
     This class inherits :class:`PrivateChannel`.
