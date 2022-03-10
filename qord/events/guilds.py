@@ -38,7 +38,10 @@ class GuildAvailable(BaseEvent, event_name=GatewayEvent.GUILD_AVAILABLE):
 
     This event is called whenever a guild becomes available to the client. When
     initially connecting, This event may call several times for lazy loading of
-    client guilds. Requires the :attr:`~qord.Intents.guilds` to be enabled.
+    client guilds.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 
@@ -51,6 +54,9 @@ class GuildUnavailable(BaseEvent, event_name=GatewayEvent.GUILD_UNAVAILABLE):
 
     This event is called whenever a guild becomes unavailable to the client
     most likely due to an outage.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 
@@ -62,7 +68,10 @@ class GuildJoin(BaseEvent, event_name=GatewayEvent.GUILD_JOIN):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_JOIN` event.
 
     This event is called whenever the client user or bot joins a new
-    guild. Requires the :attr:`~qord.Intents.guilds` to be enabled.
+    guild.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 
@@ -74,8 +83,10 @@ class GuildLeave(BaseEvent, event_name=GatewayEvent.GUILD_LEAVE):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_LEAVE` event.
 
     This event is called whenever the client user or bot is removed
-    (kicked, banned or simply left) from a guild. Requires the
-    :attr:`~qord.Intents.guilds` to be enabled.
+    (kicked, banned or simply left) from a guild.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 
@@ -87,7 +98,9 @@ class GuildUpdate(BaseEvent, event_name=GatewayEvent.GUILD_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_UPDATE` event.
 
     This event is called whenever one or more properties of a guild are updated.
-    Requires the :attr:`~qord.Intents.guilds` to be enabled.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 

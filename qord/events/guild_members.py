@@ -37,8 +37,9 @@ if typing.TYPE_CHECKING:
 class GuildMemberAdd(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_ADD):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_ADD` event.
 
-    This event is called whenever a new member joins the guild. This event
-    requires the privileged intent, :attr:`~Intents.members` to be enabled.
+    This event is called whenever a new member joins the guild.
+
+    This event requires the privileged intent, :attr:`~qord.Intents.members` to be enabled.
     """
     shard: Shard
 
@@ -52,8 +53,9 @@ class GuildMemberAdd(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_ADD):
 class GuildMemberUpdate(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_UPDATE` event.
 
-    This event is called whenever a guild member is updated. This event
-    requires the privileged intent, :attr:`~Intents.members` to be enabled.
+    This event is called whenever a guild member is updated.
+
+    This event requires the privileged intent, :attr:`~qord.Intents.members` to be enabled.
     """
     shard: Shard
 
@@ -71,8 +73,9 @@ class GuildMemberRemove(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_REMOVE):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_REMOVE` event.
 
     This event is called whenever a member is removed from the guild. The
-    removal may be in form of leaving, getting kicked or banned etc. This event
-    requires the privileged intent, :attr:`~Intents.members` to be enabled.
+    removal may be in form of leaving, getting kicked or banned etc.
+
+    This event requires the privileged intent, :attr:`~qord.Intents.members` to be enabled.
     """
     shard: Shard
 

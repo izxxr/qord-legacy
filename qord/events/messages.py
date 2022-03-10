@@ -39,6 +39,10 @@ class MessageCreate(BaseEvent, event_name=GatewayEvent.MESSAGE_CREATE):
 
     This event is called whenever a new message is sent in a guild or
     private channel.
+
+    This event requires the :attr:`~qord.Intents.guild_messages` and
+    :attr:`~qord.Intents.direct_messages` intents enabled for guild and DM
+    message events respectively. These intents are enabled by default.
     """
     shard: Shard
 
@@ -50,6 +54,10 @@ class MessageDelete(BaseEvent, event_name=GatewayEvent.MESSAGE_DELETE):
     """Structure for :attr:`~qord.GatewayEvent.MESSAGE_DELETE` event.
 
     This event is called whenever a message is deleted.
+
+    This event requires the :attr:`~qord.Intents.guild_messages` and
+    :attr:`~qord.Intents.direct_messages` intents enabled for guild and DM
+    message events respectively. These intents are enabled by default.
     """
     shard: Shard
 
@@ -61,6 +69,10 @@ class MessageUpdate(BaseEvent, event_name=GatewayEvent.MESSAGE_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.MESSAGE_UPDATE` event.
 
     This event is called whenever a message is updated aka edited.
+
+    This event requires the :attr:`~qord.Intents.guild_messages` and
+    :attr:`~qord.Intents.direct_messages` intents enabled for guild and DM
+    message events respectively. These intents are enabled by default.
     """
     shard: Shard
 
@@ -77,6 +89,10 @@ class MessageBulkDelete(BaseEvent, event_name=GatewayEvent.MESSAGE_BULK_DELETE):
 
     This event is called whenever multiple messages are deleted at the same
     time in a channel.
+
+    This event requires the :attr:`~qord.Intents.guild_messages` and
+    :attr:`~qord.Intents.direct_messages` intents enabled for guild and DM
+    message events respectively. These intents are enabled by default.
     """
     shard: Shard
 

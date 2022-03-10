@@ -34,9 +34,6 @@ class BaseEvent:
     All custom events must inherit from this class. When subclassing the
     ``event_name`` parameter is required.
 
-    See :meth:`qord.Client.event` documentation for more information
-    on creating custom events.
-
     .. note::
         Parameters documented below are passed during subclassing.
 

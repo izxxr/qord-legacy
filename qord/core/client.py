@@ -66,8 +66,8 @@ class Client:
         async def on_message_create(event):
             message = event.message
 
-            if message.author.is_me():
-                # Don't respond to ourselves.
+            if message.author.bot:
+                # Don't respond to bots.
                 return
 
             if message.content == "!ping":

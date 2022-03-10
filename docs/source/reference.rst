@@ -147,6 +147,12 @@ MFALevel
 .. autoclass:: MFALevel()
     :members:
 
+MessageType
+~~~~~~~~~~~
+
+.. autoclass:: MessageType()
+    :members:
+
 Data classes
 ------------
 

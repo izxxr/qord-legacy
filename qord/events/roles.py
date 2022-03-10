@@ -38,6 +38,9 @@ class RoleCreate(BaseEvent, event_name=GatewayEvent.ROLE_CREATE):
     """Structure for :attr:`~qord.GatewayEvent.ROLE_CREATE` event.
 
     This event is called whenever a role is created in a guild.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 
@@ -53,6 +56,9 @@ class RoleUpdate(BaseEvent, event_name=GatewayEvent.ROLE_UPDATE):
 
     This event is called whenever one or more properties of a guild role
     are updated.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 
@@ -70,6 +76,9 @@ class RoleDelete(BaseEvent, event_name=GatewayEvent.ROLE_DELETE):
     """Structure for :attr:`~qord.GatewayEvent.ROLE_DELETE` event.
 
     This event is called whenever a role is deleted in a guild.
+
+    This event requires the :attr:`~qord.Intents.guilds` to be enabled. This
+    intent is enabled by default.
     """
     shard: Shard
 

@@ -7,7 +7,7 @@ Qord implements a rich interface for handling the events sent by Discord
 over gateway. These events are generally used to track the state of various
 entities.
 
-The recommended way to register an event listener, is to use the :meth:`Client.event`
+The recommended way to register an event listener, is to use the :meth:`qord.Client.event`
 decorator to decorate the callback coroutine. Example::
 
     @client.event(qord.GatewayEvent.MESSAGE_CREATE)
@@ -15,15 +15,15 @@ decorator to decorate the callback coroutine. Example::
         pass
 
 All event listeners must take a single ``event`` parameter that is an instance
-of :class:`BaseEvent` and represents the context of event and contains data
+of :class:`qord.BaseEvent` and represents the context of event and contains data
 relevant to the invoked event.
 
-The :class:`GatewayEvent` enumeration details the event names that are sent over gateway.
+The :class:`qord.GatewayEvent` enumeration details the event names that are sent over gateway.
 
 .. note::
     Toggling certain :class:`Intents` flags will also disable or enable related
     events to that intent for your bot. It is recommended to keep at least the
-    :attr:`Intents.guilds` intent enabled for proper functioning of libary.
+    :attr:`Intents.guilds` intent enabled for proper functioning of library.
 
 Custom events
 -------------

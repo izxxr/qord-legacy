@@ -42,6 +42,9 @@ class ChannelCreate(BaseEvent, event_name=GatewayEvent.CHANNEL_CREATE):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_CREATE` event.
 
     This event is called whenever a new channel is created in a guild.
+
+    Requires the :attr:`~qord.Intents.guilds` intents to be enabled. This intent
+    is enabled by default.
     """
     shard: Shard
 
@@ -57,6 +60,9 @@ class ChannelUpdate(BaseEvent, event_name=GatewayEvent.CHANNEL_UPDATE):
 
     This event is called whenever one or more properties of a guild channel
     are updated.
+
+    Requires the :attr:`~qord.Intents.guilds` intents to be enabled. This intent
+    is enabled by default.
     """
     shard: Shard
 
@@ -75,6 +81,9 @@ class ChannelPinsUpdate(BaseEvent, event_name=GatewayEvent.CHANNEL_PINS_UPDATE):
 
     This event is called whenever a message is pinned or unpinned in a channel.
     This event is not called if a pinned message is deleted.
+
+    Requires the :attr:`~qord.Intents.guilds` intents to be enabled. This intent
+    is enabled by default.
     """
     shard: Shard
 
@@ -89,6 +98,9 @@ class ChannelDelete(BaseEvent, event_name=GatewayEvent.CHANNEL_DELETE):
     """Structure for :attr:`~qord.GatewayEvent.CHANNEL_DELETE` event.
 
     This event is called whenever a channel is deleted in a guild.
+
+    Requires the :attr:`~qord.Intents.guilds` intents to be enabled. This intent
+    is enabled by default.
     """
     shard: Shard
 
@@ -103,6 +115,10 @@ class TypingStart(BaseEvent, event_name=GatewayEvent.TYPING_START):
     """Structure for :attr:`~qord.GatewayEvent.TYPING_START` event.
 
     This event is called whenever a user starts typing in a channel.
+
+    Requires the :attr:`~qord.Intents.guild_message_typing` intents to be enabled for
+    guild typing events and :attr:`~qord.Intents.direct_message_typing` for DM typing
+    events. These intents are enabled by default.
     """
     shard: Shard
 
