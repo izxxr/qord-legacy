@@ -255,6 +255,12 @@ SystemChannelFlags
 .. autoclass:: SystemChannelFlags()
     :members:
 
+MessageFlags
+~~~~~~~~~~~~
+
+.. autoclass:: MessageFlags()
+    :members:
+
 Exceptions
 ----------
 

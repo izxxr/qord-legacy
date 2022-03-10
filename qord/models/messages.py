@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
+from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord._helpers import get_optional_snowflake, parse_iso_timestamp
 
@@ -210,6 +211,8 @@ class Message(BaseModel):
         The list of attachments attached to the message.
     embeds: List[:class:`Embed`]
         The list of embeds attached to the message.
+    flags: :class:`MessageFlags`
+        The flags of this message.
     """
 
     if typing.TYPE_CHECKING:
@@ -221,6 +224,7 @@ class Message(BaseModel):
         tts: bool
         mention_everyone: bool
         pinned: bool
+        flags: MessageFlags
         author: typing.Union[User, GuildMember]
         mentions: typing.List[typing.Union[User, GuildMember]]
         mentioned_roles: typing.List[Role]
@@ -240,7 +244,7 @@ class Message(BaseModel):
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
                 "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
-                "embeds")
+                "embeds", "flags")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -254,7 +258,6 @@ class Message(BaseModel):
         # - reactions
         # - activity
         # - application
-        # - flags
         # - message_reference
         # - referenced_message
         # - interaction
@@ -272,6 +275,7 @@ class Message(BaseModel):
         self.guild = self._cache.get_guild(guild_id) if guild_id is not None else None
         self.content = data.get("content")
         self.tts = data.get("tts", False)
+        self.flags = MessageFlags(data.get("message_flags", 0))
         self.mention_everyone = data.get("mention_everyone", False)
         self.mentioned_role_ids = [int(r) for r in data.get("mention_roles", [])] # Undocumented.
         self.mentioned_channels = [ChannelMention(c, self) for c in data.get("mention_channels", [])]
