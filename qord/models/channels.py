@@ -547,6 +547,14 @@ class PrivateChannel(BaseModel):
         self.id = int(data["id"])
         self.type = int(data["type"])
 
+    async def close(self) -> None:
+        """Closes the private channel.
+
+        This should rarely be used. The channel may be reopened using
+        relevant methods like :meth:`User.create_dm` for DM channels.
+        """
+        await self._rest.delete_channel(channel_id=self.id)
+
 class DMChannel(PrivateChannel, BaseMessageChannel):
     """Represents a direct message channel between two users.
 
