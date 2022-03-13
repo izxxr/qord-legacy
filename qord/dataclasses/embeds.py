@@ -28,6 +28,8 @@ import dataclasses
 import typing
 
 
+_EI = typing.TypeVar("_EI")
+
 class Embed:
     """Represents a message embed.
 
@@ -61,6 +63,20 @@ class Embed:
     footer: :class:`EmbedFooter`
         The footer of this embed.
     """
+
+    if typing.TYPE_CHECKING:
+        url: typing.Optional[str]
+        title: typing.Optional[str]
+        description: typing.Optional[str]
+        timestamp: typing.Optional[datetime]
+        color: typing.Optional[int]
+        _thumbnail: typing.Optional[EmbedThumbnail]
+        _footer: typing.Optional[EmbedFooter]
+        _author: typing.Optional[EmbedAuthor]
+        _image: typing.Optional[EmbedImage]
+        _provider: typing.Optional[EmbedProvider]
+        _video: typing.Optional[EmbedVideo]
+        _fields: typing.List[EmbedField]
 
     def __init__(
         self,
@@ -276,7 +292,7 @@ class Embed:
         self._fields.clear()
 
     def to_dict(self) -> typing.Dict[str, typing.Any]:
-        ret = {}
+        ret: typing.Dict[str, typing.Any] = {}
 
         if self.url is not None:
             ret["url"] = self.url
@@ -349,7 +365,7 @@ class _EmbedItem:
         raise NotImplementedError
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls: typing.Type[_EI], data: typing.Dict[str, typing.Any]) -> _EI:
         raise NotImplementedError
 
 
@@ -374,7 +390,7 @@ class EmbedField(_EmbedItem):
         }
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             name=data["name"],
             value=data["value"],
@@ -412,7 +428,7 @@ class EmbedImage(_EmbedItem):
         }
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             url=data["url"],
             proxy_url=data.get("proxy_url"),
@@ -451,7 +467,7 @@ class EmbedThumbnail(_EmbedItem):
         }
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             url=data["url"],
             proxy_url=data.get("proxy_url"),
@@ -481,7 +497,7 @@ class EmbedVideo(_EmbedItem):
     """The width of the video."""
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             url=data["url"],
             proxy_url=data.get("proxy_url"),
@@ -505,7 +521,7 @@ class EmbedProvider(_EmbedItem):
     """The URL of provider."""
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             name=data.get("name"),
             url=data.get("url"),
@@ -538,7 +554,7 @@ class EmbedAuthor(_EmbedItem):
         }
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             name=data["name"],
             url=data.get("url"),
@@ -569,7 +585,7 @@ class EmbedFooter(_EmbedItem):
         }
 
     @classmethod
-    def from_dict(cls, data: typing.Dict[str, typing.Any]) -> _EmbedItem:
+    def from_dict(cls, data):
         return cls(
             text=data["text"],
             icon_url=data.get("icon_url"),
