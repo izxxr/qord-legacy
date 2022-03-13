@@ -26,7 +26,7 @@ from qord.flags.base import Flags
 
 
 class Intents(Flags):
-    r""":class:`Flags` subclass that details the gateway intents.
+    """:class:`Flags` subclass that details the gateway intents.
 
     Gateway intents allow you to toggle specific gateway events if whether
     you want to receive them or not. This also affects the caching for relevant
@@ -46,10 +46,11 @@ class Intents(Flags):
 
     - :attr:`.members`
     - :attr:`.presences`
+    - :attr:`.message_content`
     """
 
     guilds = 1 << 0
-    r"""Whether to enable guild events and caching.
+    """Whether to enable guild events and caching.
 
     This intent is generally required by most bots and disabling it will
     cause most of functionality of library to be disabled. Only disable this
@@ -57,66 +58,73 @@ class Intents(Flags):
     """
 
     members = 1 << 1
-    r"""Whether to enable events and caching for guild members. This
+    """Whether to enable events and caching for guild members. This
     also controls most of bot's user caching.
 
     This is a privileged intent, See :class:`Intents` documentation.
     """
 
     bans = 1 << 2
-    r"""Whether to enable events for guild bans."""
+    """Whether to enable events for guild bans."""
 
     emojis_and_stickers = 1 << 3
-    r"""Whether to enable events for guild stickers and emojis."""
+    """Whether to enable events for guild stickers and emojis."""
 
     integrations = 1 << 4
-    r"""Whether to enable events for guild integrations."""
+    """Whether to enable events for guild integrations."""
 
     webhooks = 1 << 5
-    r"""Whether to enable events for webhooks."""
+    """Whether to enable events for webhooks."""
 
     invites = 1 << 6
-    r"""Whether to enable events for invites."""
+    """Whether to enable events for invites."""
 
     voice_states = 1 << 7
-    r"""Whether to enable events for voice state updates."""
+    """Whether to enable events for voice state updates."""
 
     presences = 1 << 8
-    r"""Whether to enable events and for presences.
+    """Whether to enable events and for presences.
 
     This is a privileged intent, See :class:`Intents` documentation.
     """
 
     guild_messages = 1 << 9
-    r"""Whether to enable events and caching for guild messages."""
+    """Whether to enable events and caching for guild messages."""
 
     guild_message_reactions  = 1 << 10
-    r"""Whether to enable events and caching for reactions on guild messages."""
+    """Whether to enable events and caching for reactions on guild messages."""
 
     guild_message_typing = 1 << 11
-    r"""Whether to enable events for message typing in guilds."""
+    """Whether to enable events for message typing in guilds."""
 
     direct_messages = 1 << 12
-    r"""Whether to enable events and caching for direct messages."""
+    """Whether to enable events and caching for direct messages."""
 
     direct_message_reactions  = 1 << 13
-    r"""Whether to enable events and caching for reactions on direct messages."""
+    """Whether to enable events and caching for reactions on direct messages."""
 
     direct_message_typing = 1 << 14
-    r"""Whether to enable events for message typing in DMs."""
+    """Whether to enable events for message typing in DMs."""
+
+    message_content = 1 << 15
+    """Whether the bot can receive message content on message objects.
+
+    This is a privileged intent, See :class:`Intents` documentation.
+    """
 
     scheduled_events = 1 << 16
-    r"""Whether to enable events and caching for guild scheduled events."""
+    """Whether to enable events and caching for guild scheduled events."""
 
     @classmethod
     def all(cls) -> Intents:
-        r"""Returns the :class:`Intents` with all intents *including* privileged enabled."""
+        """Returns the :class:`Intents` with all intents *including* privileged enabled."""
         return cls(sum(cls.__name_value_map__.values()))
 
     @classmethod
     def unprivileged(cls) -> Intents:
-        r"""Returns the :class:`Intents` with all intents *excluding* privileged enabled."""
+        """Returns the :class:`Intents` with all intents *excluding* privileged enabled."""
         ret = cls.all()
         ret.members = False
         ret.presences = False
+        ret.message_conetnt = False
         return ret
