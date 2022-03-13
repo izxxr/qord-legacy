@@ -36,7 +36,7 @@ class MessageFlags(Flags):
     is_crosspost = 1 << 1
     """The message is a crosspost from another channel."""
 
-    suppress_embesd = 1 << 2
+    suppress_embeds = 1 << 2
     """The message does not include any embeds."""
 
     source_message_deleted = 1 << 3

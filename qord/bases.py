@@ -32,6 +32,7 @@ if typing.TYPE_CHECKING:
     from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.embeds import Embed
     from qord.dataclasses.files import File
+    from qord.flags.messages import MessageFlags
     from qord.core.rest import RestClient
 
 
@@ -99,6 +100,7 @@ class BaseMessageChannel(ABC):
         *,
         tts: bool = UNDEFINED,
         allowed_mentions: AllowedMentions = UNDEFINED,
+        flags: MessageFlags = UNDEFINED,
         embeds: typing.List[Embed] = UNDEFINED,
         files: typing.List[File] = UNDEFINED,
     ):
@@ -117,6 +119,10 @@ class BaseMessageChannel(ABC):
             The content of message.
         allowed_mentions: :class:`AllowedMentions`
             The mentions to allow in the message's content.
+        flags: :class:`MessageFlags`
+            The message flags for the sent message. Bots can only
+            apply the :attr:`~MessageFlags.suppress_embeds` flag.
+            Other flags are unsupported.
         embeds: List[:class:`Embed`]
             The list of embeds to include in the message.
         files: List[:class:`File`]
@@ -145,6 +151,14 @@ class BaseMessageChannel(ABC):
 
         if tts is not UNDEFINED:
             json["tts"] = tts
+
+        if flags is not UNDEFINED:
+            value = flags.value
+
+            if value > 0 and value != MessageFlags.suppress_embeds:
+                raise ValueError("Only MessageFlags.suppress_embeds are supported for sending messages.")
+
+            json["flags"] = value
 
         if allowed_mentions is not UNDEFINED:
             json["allowed_mentions"] = allowed_mentions.to_dict()
