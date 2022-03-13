@@ -222,6 +222,12 @@ File
 .. autoclass:: File()
     :members:
 
+MessageReference
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: MessageReference()
+    :members:
+
 Bitwise Flags
 -------------
 
