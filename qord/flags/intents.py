@@ -126,5 +126,5 @@ class Intents(Flags):
         ret = cls.all()
         ret.members = False
         ret.presences = False
-        ret.message_conetnt = False
+        ret.message_content = False
         return ret
