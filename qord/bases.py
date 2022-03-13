@@ -101,6 +101,8 @@ class BaseMessageChannel(ABC):
         tts: bool = UNDEFINED,
         allowed_mentions: AllowedMentions = UNDEFINED,
         flags: MessageFlags = UNDEFINED,
+        embed: Embed = UNDEFINED,
+        file: File = UNDEFINED,
         embeds: typing.List[Embed] = UNDEFINED,
         files: typing.List[File] = UNDEFINED,
     ):
@@ -123,10 +125,14 @@ class BaseMessageChannel(ABC):
             The message flags for the sent message. Bots can only
             apply the :attr:`~MessageFlags.suppress_embeds` flag.
             Other flags are unsupported.
+        embed: :class:`Embed`
+            The embed to include in message, cannot be mixed with ``embeds``.
         embeds: List[:class:`Embed`]
-            The list of embeds to include in the message.
+            The list of embeds to include in the message, cannot be mixed with ``embed``.
+        file: :class:`File`
+            The file to include in message, cannot be mixed with ``files``.
         files: List[:class:`File`]
-            The list of file attachments to send in message.
+            The list of file attachments to send in message, cannot be mixed with ``file``.
         tts: :class:`builtins.bool`
             Whether the sent message is a Text-To-Speech message.
 
@@ -137,6 +143,10 @@ class BaseMessageChannel(ABC):
 
         Raises
         ------
+        TypeError
+            Invalid arguments passed.
+        ValueError
+            Message flags don't have a valid value.
         HTTPForbidden
             You are not allowed to send message in this channel.
         HTTPBadRequest
@@ -144,6 +154,11 @@ class BaseMessageChannel(ABC):
         HTTPException
             The sending failed for some reason.
         """
+        if embed is not UNDEFINED and embeds is UNDEFINED:
+            raise TypeError("embed and embeds parameters cannot be mixed.")
+        if file is not UNDEFINED and files is not UNDEFINED:
+            raise TypeError("file and files parameters cannot be mixed.")
+
         json = {}
 
         if content is not UNDEFINED:
@@ -162,6 +177,15 @@ class BaseMessageChannel(ABC):
 
         if allowed_mentions is not UNDEFINED:
             json["allowed_mentions"] = allowed_mentions.to_dict()
+
+        if file is not UNDEFINED:
+            files = [file]
+
+        if embed is not UNDEFINED:
+            if embed is None:
+                json["embeds"] = []
+            else:
+                json["embeds"] = [embed.to_dict()]
 
         if embeds is not UNDEFINED:
             if embeds is None:
