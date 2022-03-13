@@ -368,6 +368,9 @@ class Message(BaseModel):
     async def delete(self) -> None:
         """Deletes this message.
 
+        To delete other's messages, the :attr:`~Permissions.manage_messages`
+        permission is required in the target channel.
+
         Raises
         ------
         HTTPNotFound
