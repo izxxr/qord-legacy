@@ -28,7 +28,7 @@ from qord.models.guild_members import GuildMember
 from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
-from qord._helpers import get_optional_snowflake, parse_iso_timestamp
+from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
 
 import typing
 
@@ -36,6 +36,8 @@ if typing.TYPE_CHECKING:
     from qord.models.roles import Role
     from qord.models.channels import TextChannel, DMChannel
     from qord.models.guilds import Guild
+    from qord.dataclasses.allowed_mentions import AllowedMentions
+    from qord.dataclasses.files import File
     from datetime import datetime
 
     MessageableT = typing.Union[TextChannel, DMChannel]
@@ -406,3 +408,95 @@ class Message(BaseModel):
 
         message_reference = MessageReference.from_message(self, fail_if_not_exists=fail_if_not_exists)
         return (await self.channel.send(*args, message_reference=message_reference, **kwargs))
+
+    async def edit(
+        self,
+        content: str = UNDEFINED,
+        *,
+        embed: Embed = UNDEFINED,
+        file: File = UNDEFINED,
+        flags: MessageFlags = UNDEFINED,
+        allowed_mentions: AllowedMentions = UNDEFINED,
+        embeds: typing.List[Embed] = UNDEFINED,
+        files: typing.List[File] = UNDEFINED,
+    ):
+        """Edits the message.
+
+        Bots can only modify the ``flags`` of other author's messages. All
+        other fields can only be edited if bot is the message's author.
+
+        When successful the message is updated in-place.
+
+        Parameters
+        ----------
+        content: :class:`builtins.str`
+            The new content of message. It is worth noting that the mentions
+            in this content will not respect the allowed mentions properties
+            that were set during sending of message. A new :class:`AllowedMentions`
+            must be supplied for new content.
+        allowed_mentions: :class:`AllowedMentions`
+            The mentions to allow in the message's new content.
+        flags: :class:`MessageFlags`
+            The message flags for the edited message. Bots can only
+            apply or remove the :attr:`~MessageFlags.suppress_embeds` flag.
+            Other flags are unsupported. This is the only field that can be
+            set or unset by bots on other user's messages.
+        embed: :class:`Embed`
+            The embed to include in message, cannot be mixed with ``embeds``.
+        embeds: List[:class:`Embed`]
+            The list of embeds to include in the message, cannot be mixed with ``embed``.
+        file: :class:`File`
+            The file to include in message, cannot be mixed with ``files``.
+        files: List[:class:`File`]
+            The list of file attachments to include in message, cannot be mixed with ``file``.
+
+        Raises
+        ------
+        TypeError
+            Invalid arguments passed.
+        HTTPForbidden
+            You are not allowed to send message in this channel.
+        HTTPBadRequest
+            The message has invalid data.
+        HTTPException
+            The editing failed for some reason.
+        """
+        if embed is not UNDEFINED and embeds is UNDEFINED:
+            raise TypeError("embed and embeds parameters cannot be mixed.")
+
+        if file is not UNDEFINED and files is not UNDEFINED:
+            raise TypeError("file and files parameters cannot be mixed.")
+
+        json = {}
+
+        if content is not UNDEFINED:
+            json["content"] = content
+
+        if flags is not UNDEFINED:
+            json["flags"] = flags.value
+
+        if allowed_mentions is not UNDEFINED:
+            json["allowed_mentions"] = allowed_mentions.to_dict()
+
+        if file is not UNDEFINED:
+            files = [file]
+
+        if embed is not UNDEFINED:
+            if embed is None:
+                json["embeds"] = []
+            else:
+                json["embeds"] = [embed.to_dict()]
+
+        if embeds is not UNDEFINED:
+            if embeds is None:
+                json["embeds"] = []
+            else:
+                json["embeds"] = [embed.to_dict() for embed in embeds]
+
+        data = await self._rest.edit_message(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                json=json,
+                files=files,
+            )
+        self._update_with_data(data)

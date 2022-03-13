@@ -147,8 +147,6 @@ class BaseMessageChannel(ABC):
         ------
         TypeError
             Invalid arguments passed.
-        ValueError
-            Message flags don't have a valid value.
         HTTPForbidden
             You are not allowed to send message in this channel.
         HTTPBadRequest
@@ -158,6 +156,7 @@ class BaseMessageChannel(ABC):
         """
         if embed is not UNDEFINED and embeds is UNDEFINED:
             raise TypeError("embed and embeds parameters cannot be mixed.")
+
         if file is not UNDEFINED and files is not UNDEFINED:
             raise TypeError("file and files parameters cannot be mixed.")
 
@@ -170,12 +169,7 @@ class BaseMessageChannel(ABC):
             json["tts"] = tts
 
         if flags is not UNDEFINED:
-            value = flags.value
-
-            if value > 0 and value != MessageFlags.suppress_embeds:
-                raise ValueError("Only MessageFlags.suppress_embeds are supported for sending messages.")
-
-            json["flags"] = value
+            json["flags"] = flags.value
 
         if allowed_mentions is not UNDEFINED:
             json["allowed_mentions"] = allowed_mentions.to_dict()

@@ -380,6 +380,48 @@ class RestClient:
 
         return data
 
+    async def edit_message(
+        self,
+        channel_id: int,
+        message_id: int,
+        json: typing.Dict[str, typing.Any] = None,
+        files: typing.List[File] = None,
+    ):
+        route = Route(
+            "PATCH", "/channels/{channel_id}/messages/{message_id}",
+            channel_id=channel_id, message_id=message_id
+        )
+
+        if not files:
+            data = await self.request(route, json=json)
+        else:
+            form = aiohttp.FormData(quote_fields=False)
+
+            attachments = json.get("attachments", [])
+
+            for index, file in enumerate(files):
+                form.add_field(
+                    f"files[{index}]",
+                    file.content,
+                    filename=file.proper_name,
+                )
+
+                attachment = {
+                    "id": index,
+                    "description": file.description,
+                }
+                attachments.append(attachment)
+
+            if json is None:
+                json = {}
+
+            json["attachments"] = attachments
+            form.add_field("payload_json", _json.dumps(json))
+
+            data = await self.request(route, data=form)
+
+        return data
+
     async def delete_message(self, channel_id: int, message_id: int):
         route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}")
         await self.request(route)
