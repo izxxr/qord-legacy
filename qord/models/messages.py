@@ -27,6 +27,7 @@ from qord.models.users import User
 from qord.models.guild_members import GuildMember
 from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
+from qord.dataclasses.message_reference import MessageReference
 from qord._helpers import get_optional_snowflake, parse_iso_timestamp
 
 import typing
@@ -163,7 +164,7 @@ class Message(BaseModel):
     id: :class:`builtins.int`
         The ID of this message.
     type: :class:`builtins.int`
-        The type of this message.
+        The type of this message. See :class:`MessageType` for possible values.
     channel_id: :class:`builtins.int`
         The channel ID that the message was sent in.
     created_at: :class:`datetime.datetime`
@@ -213,6 +214,9 @@ class Message(BaseModel):
         The list of embeds attached to the message.
     flags: :class:`MessageFlags`
         The flags of this message.
+    message_reference: Optional[:class:`MessageReference`]
+        The referenced message if any, See the :class:`MessageReference` documentation
+        for the list of scenarios when this attribute is not ``None``.
     """
 
     if typing.TYPE_CHECKING:
@@ -225,6 +229,7 @@ class Message(BaseModel):
         mention_everyone: bool
         pinned: bool
         flags: MessageFlags
+        message_reference: typing.Optional[MessageReference]
         author: typing.Union[User, GuildMember]
         mentions: typing.List[typing.Union[User, GuildMember]]
         mentioned_roles: typing.List[Role]
@@ -244,7 +249,7 @@ class Message(BaseModel):
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
                 "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
-                "embeds", "flags")
+                "embeds", "flags", "message_reference")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -258,7 +263,6 @@ class Message(BaseModel):
         # - reactions
         # - activity
         # - application
-        # - message_reference
         # - referenced_message
         # - interaction
         # - thread
@@ -284,7 +288,9 @@ class Message(BaseModel):
         self.attachments = [Attachment(a, message=self) for a in data.get("attachments", [])]
         self.embeds = [Embed.from_dict(e) for e in data.get("embeds", [])]
         edited_at = data.get("edited_timestamp")
+        message_reference = data.get("message_reference")
         self.edited_at = parse_iso_timestamp(edited_at) if edited_at is not None else None
+        self.message_reference = MessageReference.from_dict(message_reference) if message_reference is not None else None
 
         self._handle_author(data)
         self._handle_mentions(data)
@@ -371,3 +377,32 @@ class Message(BaseModel):
         """
         await self._rest.delete_message(channel_id=self.channel_id, message_id=self.id)
 
+    async def reply(self, *args, fail_if_not_exists: bool = True, **kwargs) -> Message:
+        """Replies to this message.
+
+        This is an equivalent to :meth:`~BaseMessageChannel.send` that handles
+        the instansiation of message reference. All parameters except
+        ``message_reference`` that are passed in :meth:`~BaseMessageChannel.send`
+        are valid in this method too. Additional parameters are documented below:
+
+        Parameters
+        ----------
+        *args:
+            The positional arguments of :meth:`~BaseMessageChannel.send`.
+        fail_if_not_exists: :class:`builtins.bool`
+            Whether to throw :exc:`HTTPException` if the replied message
+            does not exist. If set to ``False``, If the message is deleted, A
+            a default non-reply message would be sent.
+        **kwargs:
+            The keyword arguments of :meth:`~BaseMessageChannel.send`.
+
+        Returns
+        -------
+        :class:`Message`
+            The sent message.
+        """
+        if kwargs.pop("message_reference", None):
+            raise TypeError("Message.reply() does not support message_reference parameter.")
+
+        message_reference = MessageReference.from_message(self, fail_if_not_exists=fail_if_not_exists)
+        return (await self.channel.send(*args, message_reference=message_reference, **kwargs))

@@ -32,6 +32,7 @@ if typing.TYPE_CHECKING:
     from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.embeds import Embed
     from qord.dataclasses.files import File
+    from qord.dataclasses.message_reference import MessageReference
     from qord.flags.messages import MessageFlags
     from qord.core.rest import RestClient
 
@@ -100,6 +101,7 @@ class BaseMessageChannel(ABC):
         *,
         tts: bool = UNDEFINED,
         allowed_mentions: AllowedMentions = UNDEFINED,
+        message_reference: MessageReference = UNDEFINED,
         flags: MessageFlags = UNDEFINED,
         embed: Embed = UNDEFINED,
         file: File = UNDEFINED,
@@ -177,6 +179,9 @@ class BaseMessageChannel(ABC):
 
         if allowed_mentions is not UNDEFINED:
             json["allowed_mentions"] = allowed_mentions.to_dict()
+
+        if message_reference is not UNDEFINED:
+            json["message_reference"] = message_reference.to_dict()
 
         if file is not UNDEFINED:
             files = [file]

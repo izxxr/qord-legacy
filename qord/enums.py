@@ -345,8 +345,8 @@ class MessageType:
     CHANNEL_ICON_CHANGE = 5
     """The channel icon change notification."""
 
-    PINNED_MESSAGE = 6
-    """Pin message creation notification."""
+    CHANNEL_PIN_ADD = 6
+    """A message is pinned in a channel."""
 
     GUILD_MEMBER_JOIN = 7
     """Guild member welcome message."""
