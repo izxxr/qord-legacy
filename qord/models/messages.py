@@ -220,6 +220,13 @@ class Message(BaseModel):
     message_reference: Optional[:class:`MessageReference`]
         The referenced message if any, See the :class:`MessageReference` documentation
         for the list of scenarios when this attribute is not ``None``.
+    referenced_message: Optional[:class:`Message`]
+        The referenced message. This is only valid when :attr:`.type` is either
+        :attr:`~MessageType.REPLY` or :attr:`~MessageType.THREAD_STARTER_MESSAGE`.
+
+        For thread starter messages, This is always present. For replies however, If
+        this is None, It indicates that either the message was deleted or wasn't sent
+        loaded by Discord API.
     """
 
     if typing.TYPE_CHECKING:
