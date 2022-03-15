@@ -29,6 +29,7 @@ from qord.core.cache_impl import DefaultCache, DefaultGuildCache
 from qord.flags.intents import Intents
 from qord.models.users import User
 from qord.models.guilds import Guild
+from qord.models.channels import _is_guild_channel, _guild_channel_factory, _private_channel_factory
 from qord.exceptions import ClientSetupRequired
 from qord.events.base import BaseEvent
 
@@ -40,6 +41,7 @@ import typing
 if typing.TYPE_CHECKING:
     from aiohttp import ClientSession
     from qord.models.users import ClientUser
+    from qord.models.channels import GuildChannel, PrivateChannel
     from qord.core.cache import Cache, GuildCache
 
 
@@ -678,3 +680,48 @@ class Client:
             HTTP request failed.
         """
         await self._rest.leave_guild(guild_id)
+
+    async def fetch_channel(self, channel_id: int, /) -> typing.Union[GuildChannel, PrivateChannel]:
+        """Fetches a channel through it's ID.
+
+        .. note::
+            Due to an implementation limitation, When fetching channels related
+            to a specific guild, The relevant guild is needed to be cached by
+            the client otherwise a :class:`RuntimeError` is raised. This
+            is not the case for channel types that are not assoicated to guilds.
+
+        Parameters
+        ----------
+        channel_id: :class:`builtins.int`
+            The ID of channel to fetch.
+
+        Returns
+        -------
+        Union[:class:`GuildChannel`, :class:`PrivateChannel`]
+            The fetched channel.
+
+        Raises
+        ------
+        RuntimeError
+            The guild of channel is not cached.
+        HTTPNotFound
+            The channel does not exist.
+        HTTPException
+            The fetching failed.
+        """
+        data = await self._rest.get_channel(channel_id)
+        channel_type = int(data["type"])
+
+        if _is_guild_channel(channel_type):
+            # The guild_id field is always present for channels sent over REST.
+            guild = self._cache.get_guild(int(data["guild_id"]))
+
+            if guild is None:
+                raise RuntimeError("The channel's guild is not cached.")
+
+            cls = _guild_channel_factory(channel_type)
+            return cls(data, guild=guild)
+        else:
+            cls = _private_channel_factory(channel_type)
+            return cls(data, client=self)
+
