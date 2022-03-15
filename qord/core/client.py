@@ -533,6 +533,7 @@ class Client:
         dispatch_handler = self._dispatch
         dispatch_handler._shards_connected.clear()
         dispatch_handler._shards_ready.clear()
+        self._cache.clear()
         await self._rest.close()
 
         if clear_setup:
