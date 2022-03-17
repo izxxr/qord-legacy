@@ -160,7 +160,7 @@ class RestClient:
 
                         if lock is None:
                             lock = asyncio.Lock()
-                            # ratelimit_key is always when we're here.
+                            # ratelimit_key is never None when we're here.
                             handler.set_lock(ratelimit_key, lock) # type: ignore
 
                         coro = _release_lock(lock, retry_after)
