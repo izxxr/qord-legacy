@@ -119,11 +119,11 @@ class RatelimitHandler:
     def set_lock(self, key: str) -> asyncio.Lock:
         if key in self.locks:
             # This is a guard to prevent overwriting previously stored lock.
-            return
+            return self.locks[key]
 
         self.locks[key] = lock = asyncio.Lock()
         return lock
-        
+
     def set_ratelimit_key(self, bucket: str, key: str) -> None:
         self.ratelimit_keys[bucket] = key
 

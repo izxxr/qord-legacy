@@ -161,8 +161,10 @@ class RestClient:
                         if lock is None:
                             # ratelimit_key is never None when we're here.
                             lock = handler.set_lock(ratelimit_key) # type: ignore
-                            await lock.acquire()
                             
+                            if not lock.locked():
+                                await lock.acquire()
+
                         coro = _release_lock(lock, retry_after)
                         asyncio.create_task(coro)
 
