@@ -80,7 +80,7 @@ class RestClient:
         self.session = session
         self.session_owner: bool = session_owner
         self.ratelimit_handler = RatelimitHandler()
-        self.token = None
+        self.token: typing.Optional[str] = None
         self.max_retries = max_retries or 5
 
     def _ensure_session(self) -> aiohttp.ClientSession:
