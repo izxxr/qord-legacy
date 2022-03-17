@@ -105,6 +105,8 @@ class RestClient:
 
         token = self.token
         requires_auth = route.requires_auth
+        path = route.path
+        rl_path = route.ratelimit_path
 
         if requires_auth and token is None:
             raise ClientSetupRequired("No bot token is set yet to perform this request. " \
@@ -121,7 +123,7 @@ class RestClient:
 
         handler = self.ratelimit_handler
         unlock = True
-        lock = handler.get_lock(route.ratelimit_path)
+        lock = handler.get_lock(rl_path)
 
         await handler.wait_until_global_reset()
         await lock.acquire()
@@ -143,13 +145,13 @@ class RestClient:
 
                     if bucket is not None:
                         # Store the bucket hash for this route.
-                        handler.set_bucket(route.ratelimit_path, bucket)
+                        handler.set_bucket(rl_path, bucket)
 
                     if remaining == "0" and status != 429:
                         # This header is always present in this case.
                         retry_after = float(response_headers["X-Ratelimit-Reset-After"])
                         msg = _RATELIMIT_BUCKET_EXHAUSTED_DEBUG.format(
-                            path=route.path,
+                            path=path,
                             retry_after=retry_after
                         )
                         unlock = False # Prevent lock from releasing
@@ -216,6 +218,8 @@ class RestClient:
     async def close(self):
         if not self.session_owner:
             await self.session.close()
+
+        self.ratelimit_handler.clear()
 
     # ----- Gateway -----
 

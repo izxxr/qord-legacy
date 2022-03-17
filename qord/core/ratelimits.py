@@ -98,6 +98,11 @@ class RatelimitHandler:
         # { ratelimit_path : bucket_hash }
         self.buckets: typing.Dict[str, str] = {}
 
+    def clear(self) -> None:
+        """Clears internal ratelimit data including locks and bucket hashes."""
+        self.locks.clear()
+        self.buckets.clear()
+        
     def set_global(self) -> None:
         """Sets the global ratelimit, preventing any HTTP requests."""
         self.global_ratelimit_cleared.clear()
