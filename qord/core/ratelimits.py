@@ -78,9 +78,10 @@ class RatelimitHandler:
         # requests to exhausted ratelimit buckets.
         #
         # - The `locks` mapping contains the bucket hash to asyncio.Lock instance
-        #   relevant to that bucket's hash.
+        #   relevant to that bucket's hash. It may has route's path as key when the
+        #   bucket hash is unknown as a workaround or fallback.
         #
-        # - `ratelimit_keys` mapping on the other hand includes the bucket hashes
+        # - `buckets` mapping on the other hand includes the bucket hashes
         #   for different routes. The key of this mapping is route's path without
         #   major parameters values included and the HTTP method of the route.
         #
@@ -88,16 +89,13 @@ class RatelimitHandler:
         #   mapping. If the bucket hash exists, it creates (or gets existing) and returns
         #   the asyncio.Lock instance for that bucket. If the bucket hash is
         #   not found in look up, It indicates that ratelimit state for that route is not
-        #   yet stored in memory and is thus, unknown.
-        #
-        # - When making a request for the first time on a route, The bucket hash is not
-        #   stored. It is stored after the first request is successfully made and Discord
-        #   has sent the X-Ratelimit-Bucket header.
+        #   yet stored in memory and is thus, unknown. In which case, The route's path
+        #   is used as a "fallback" until a bucket hash is stored.
 
-        # { bucket_hash (str) : asyncio.Lock }
+        # { bucket_hash | ratelimit_path : asyncio.Lock }
         self.locks: typing.Dict[str, asyncio.Lock] = {}
 
-        # { route.path (str) : bucket_hash }
+        # { ratelimit_path : bucket_hash }
         self.buckets: typing.Dict[str, str] = {}
 
     def set_global(self) -> None:
@@ -112,34 +110,34 @@ class RatelimitHandler:
         """Blocks until global ratelimit is cleared."""
         await self.global_ratelimit_cleared.wait()
 
-    def get_lock(self, path: str) -> typing.Optional[asyncio.Lock]:
-        """Gets the asyncio.Lock instance for given route's path.
+    def get_lock(self, path: str) -> asyncio.Lock:
+        """Gets the asyncio.Lock instance for given route's path."""
 
-        If ``None`` is returned, it indicates that no lock is stored for
-        the given path yet as it's bucket hash is not known yet.
-        """
-        bucket = self.buckets.get(path)
+        # Firstly, try to retrieve the bucket hash for this path.
+        key = self.buckets.get(path)
 
-        if bucket is None:
-            # The ratelimit key for this route is unknown yet.
-            return None
+        if key is None:
+            # Bucket hash not found, As a workaround, we will be falling
+            # back to storing lock with the route's path.
+            key = path
 
         try:
-            return self.locks[bucket]
+            return self.locks[key]
         except KeyError:
-            self.locks[bucket] = lock = asyncio.Lock()
+            self.locks[key] = lock = asyncio.Lock()
             return lock
-
-    def set_lock(self, bucket: str) -> asyncio.Lock:
-        """Stores an asyncio.Lock instance for given bucket hash."""
-        if bucket in self.locks:
-            # This is a guard to prevent overwriting previously stored lock.
-            # TODO: refactor to remove this guard?
-            return self.locks[bucket]
-
-        self.locks[bucket] = lock = asyncio.Lock()
-        return lock
 
     def set_bucket(self, path: str, bucket: str) -> None:
         """Stores the bucket hash for the given route's path."""
+
+        # If we have a "fallback" lock stored in the locks mapping with
+        # the route's path, We want to store that lock with the bucket hash
+        # as key and remove the route's path from the mapping.
+        try:
+            lock = self.locks.pop(path)
+        except KeyError:
+            pass
+        else:
+            self.locks[bucket] = lock
+
         self.buckets[path] = bucket

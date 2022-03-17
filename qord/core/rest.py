@@ -124,9 +124,7 @@ class RestClient:
         lock = handler.get_lock(route.ratelimit_path)
 
         await handler.wait_until_global_reset()
-
-        if lock is not None:
-            await lock.acquire()
+        await lock.acquire()
 
         for attempt in range(self.max_retries):
             try:
@@ -145,7 +143,6 @@ class RestClient:
 
                     if bucket is not None:
                         # Store the bucket hash for this route.
-                        # After this, get_lock() for this path would not return None.
                         handler.set_bucket(route.ratelimit_path, bucket)
 
                     if remaining == "0" and status != 429:
@@ -157,13 +154,6 @@ class RestClient:
                         )
                         unlock = False # Prevent lock from releasing
                         _LOGGER.debug(msg)
-
-                        if lock is None:
-                            # bucket is never None when we're here.
-                            lock = handler.set_lock(bucket) # type: ignore
-
-                            if not lock.locked():
-                                await lock.acquire()
 
                         coro = _release_lock(lock, retry_after)
                         asyncio.create_task(coro)
