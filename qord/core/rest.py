@@ -48,7 +48,7 @@ _RATELIMIT_CLEAR_INFO  = "The ratelimit has been cleared, retrying the request n
 _GLOBAL_RATELIMIT_HIT_WARNING = "The global ratelimit has been hit! Further HTTP requests would " \
                                 "be blocked for next {retry_after}s."
 _GLOBAL_RATELIMIT_CLEAR_INFO  = "The global ratelimit is cleared. HTTP requests will not be blocked anymore."
-_RATELIMIT_BUCKET_EXHAUSTED_DEBUG = "Requests limit has been reached for bucket {path!r}, " \
+_RATELIMIT_BUCKET_EXHAUSTED_DEBUG = "Requests limit has been reached for route {path!r}, " \
                                     "delaying further requests for {retry_after}s"
 
 
@@ -120,13 +120,13 @@ class RestClient:
             headers["X-Audit-Log-Reason"] = reason
 
         handler = self.ratelimit_handler
-        lock = handler.get_lock(route.bucket)
         unlock = True
+        lock = handler.get_lock(route.ratelimit_path)
+
+        await handler.wait_until_global_reset()
 
         if lock is not None:
             await lock.acquire()
-
-        await handler.wait_until_global_reset()
 
         for attempt in range(self.max_retries):
             try:
@@ -141,12 +141,12 @@ class RestClient:
                     response_headers = response.headers
 
                     remaining = response_headers.get("X-Ratelimit-Remaining")
-                    ratelimit_key = response_headers.get("X-Ratelimit-Bucket")
+                    bucket = response_headers.get("X-Ratelimit-Bucket")
 
-                    if ratelimit_key is not None:
-                        # Store the ratelimit key for this bucket.
-                        # After this, get_lock() for this bucket would not return None.
-                        handler.set_ratelimit_key(route.bucket, ratelimit_key)
+                    if bucket is not None:
+                        # Store the bucket hash for this route.
+                        # After this, get_lock() for this path would not return None.
+                        handler.set_bucket(route.ratelimit_path, bucket)
 
                     if remaining == "0" and status != 429:
                         # This header is always present in this case.
@@ -159,9 +159,9 @@ class RestClient:
                         _LOGGER.debug(msg)
 
                         if lock is None:
-                            # ratelimit_key is never None when we're here.
-                            lock = handler.set_lock(ratelimit_key) # type: ignore
-                            
+                            # bucket is never None when we're here.
+                            lock = handler.set_lock(bucket) # type: ignore
+
                             if not lock.locked():
                                 await lock.acquire()
 
@@ -220,7 +220,8 @@ class RestClient:
                     raise HTTPException(response, data)
             finally:
                 if unlock and lock is not None:
-                    lock.release()
+                    if lock.locked():
+                        lock.release()
 
     async def close(self):
         if not self.session_owner:
