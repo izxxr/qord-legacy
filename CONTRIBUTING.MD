@@ -8,9 +8,9 @@ you many perks across the server.
 
 ## Usage
 This library is fairly new and does not implement a feature rich API yet, So in order to get a simple bot running, you would have to do some
-hacking with the internal components of the library. 
+hacking with the internal components of the library.
 
-There is no front facing documentation for internal API but don't fret! You don't have to rely on reading the source code, 
+There is no front facing documentation for internal API but don't fret! You don't have to rely on reading the source code,
 Feel free to ping me (nerdguyahmad#3195) in our [Discord server](https://discord.gg/nE9cGtzayA) and ask me questions.
 
 Before usage, Install this library using pip.
@@ -57,7 +57,7 @@ We will extend the above example!
 
 Let's first import the `Route` class that help us define a structure to specific endpoint.
 ```py
-from qord.core.routes import Route
+from qord.core.ratelimits import Route
 ```
 
 Now let us create a new `on_gateway_dispatch` event for messages handling. (You can do that in existing event too if you want).
@@ -67,7 +67,7 @@ async def on_gateway_dispatch(event):
   if event.title == "MESSAGE_CREATE":
     content = event.data['content']
     channel_id = event.data['channel_id']
-    
+
     if content == "!ping":
       route = Route("POST", "/channels/{channel_id}", channel_id=channel_id)
       await client._rest.request(route, json={"content": "Pong!"})
@@ -88,7 +88,7 @@ Note that this might seem confusing at first sight but it's not, Feel free to as
 ### Gateway Events
 As described before, gateway events are received and handled using the event mentioned and used above.
 
-Finally, Consider reading [Discord Documentation](https://discord.dev) to get yourself more aware of how things are working underthehood. 
+Finally, Consider reading [Discord Documentation](https://discord.dev) to get yourself more aware of how things are working underthehood.
 
 **References:**
 
@@ -108,7 +108,7 @@ your feature or bug and open the issue. Make sure to properly describe the bug. 
 
 ### Directly contributing to the codebase
 Use [GitHub pull request](https://github.com/nerdguyahmad/qord/pulls) for making code contributions. We assume you already know the basics about how pulls and forks
-work on GitHub. However if this is your first time, don't fret! There are several articles online that explain it like 
+work on GitHub. However if this is your first time, don't fret! There are several articles online that explain it like
 [this one](https://www.dataschool.io/how-to-contribute-on-github/).
 
 - Fork the repository.
