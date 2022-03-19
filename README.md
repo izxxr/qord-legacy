@@ -6,8 +6,8 @@ Python library for Discord API based around asyncio.
 - Object oriented, user friendly interface with no dirty payloads.
 - Properly typed according to [PEP-484](https://www.python.org/dev/peps/pep-0484/)
 - Easy to customise and manage.
+- Robust handling of HTTP ratelimits.
 - Supports automatic gateway sharding.
-- Supports custom implementation of caching. 
 
 ## Alpha phase
 Qord is currently under it's development (alpha) stage. This means that some features may be missing or potentially incomplete and furthermore, broken.
