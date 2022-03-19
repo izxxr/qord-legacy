@@ -29,7 +29,8 @@ from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
 from qord.enums import MessageType
-from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
+from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
+from qord.internal.undefined import UNDEFINED
 
 import typing
 

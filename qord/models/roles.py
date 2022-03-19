@@ -24,12 +24,12 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.flags.permissions import Permissions
-from qord._helpers import (
+from qord.internal.undefined import UNDEFINED
+from qord.internal.helpers import (
     get_image_data,
     get_optional_snowflake,
     create_cdn_url,
     BASIC_STATIC_EXTS,
-    UNDEFINED,
 )
 
 import typing

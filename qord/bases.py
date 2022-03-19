@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from qord.models.messages import Message
-from qord._helpers import UNDEFINED
+from qord.internal.undefined import UNDEFINED
 
 from abc import ABC, abstractmethod
 import typing

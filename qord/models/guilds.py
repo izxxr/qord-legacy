@@ -29,7 +29,8 @@ from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel
 from qord.flags.system_channel import SystemChannelFlags
 from qord.enums import ChannelType
-from qord._helpers import (
+from qord.internal.undefined import UNDEFINED
+from qord.internal.helpers import (
     get_optional_snowflake,
     create_cdn_url,
     get_image_data,
@@ -37,7 +38,6 @@ from qord._helpers import (
     parse_iso_timestamp,
     BASIC_STATIC_EXTS,
     BASIC_EXTS,
-    UNDEFINED,
 )
 
 import typing

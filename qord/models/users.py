@@ -25,7 +25,8 @@ from __future__ import annotations
 from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
-from qord._helpers import create_cdn_url, get_image_data, UNDEFINED, BASIC_EXTS
+from qord.internal.helpers import create_cdn_url, get_image_data, BASIC_EXTS
+from qord.internal.undefined import UNDEFINED
 
 import typing
 

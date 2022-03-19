@@ -28,7 +28,7 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
-from qord._helpers import parse_iso_timestamp
+from qord.internal.helpers import parse_iso_timestamp
 from qord import events
 
 from datetime import datetime

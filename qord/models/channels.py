@@ -26,7 +26,8 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.bases import BaseMessageChannel
 from qord.enums import ChannelType
-from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
+from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
+from qord.internal.undefined import UNDEFINED
 
 import typing
 

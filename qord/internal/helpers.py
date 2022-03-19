@@ -20,31 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-r"""*Non-public* internal utilities."""
 
 from __future__ import annotations
 
-from base64 import b64encode
 from datetime import datetime
+from base64 import b64encode
 import typing
 
 BASE_CDN_URL = "https://cdn.discordapp.com"
 BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
-
-
-class _Undefined:
-    def __bool__(self) -> bool:
-        return False
-
-    def __eq__(self, o: object) -> bool:
-        return False
-
-    def __repr__(self) -> str:
-        return "..."
-
-UNDEFINED: typing.Any = _Undefined()
-
 
 def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typing.List[str] = None):
     r"""Create a CDN URL with provided path, file extension and size."""

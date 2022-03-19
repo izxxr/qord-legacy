@@ -24,7 +24,8 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord._helpers import parse_iso_timestamp, create_cdn_url, UNDEFINED, BASIC_EXTS
+from qord.internal.helpers import parse_iso_timestamp, create_cdn_url, BASIC_EXTS
+from qord.internal.undefined import UNDEFINED
 from datetime import datetime
 
 import typing

@@ -22,7 +22,7 @@
 
 from __future__ import annotations
 
-from qord._helpers import parse_iso_timestamp
+from qord.internal.helpers import parse_iso_timestamp
 from datetime import datetime
 import dataclasses
 import typing

@@ -22,7 +22,7 @@
 
 from __future__ import annotations
 
-from qord._helpers import get_optional_snowflake
+from qord.internal.helpers import get_optional_snowflake
 import typing
 
 if typing.TYPE_CHECKING:
