@@ -31,23 +31,34 @@ from qord.exceptions import (
     HTTPServerError,
 )
 from qord.project_info import __version__, __github__
-from qord.core.routes import Route
+from qord.core.ratelimits import Route, RatelimitHandler
 
 import aiohttp
+import asyncio
+import logging
 import typing
 import json as _json
 
 if typing.TYPE_CHECKING:
     from qord.dataclasses.files import File
 
-class RestClient:
-    r"""REST handling implementation including ratelimits prevention and handling."""
+_LOGGER = logging.getLogger(__name__)
+_RATELIMIT_HIT_WARNING = "A ratelimit has been hit! Retrying this request after the delay of {retry_after}s."
+_RATELIMIT_CLEAR_INFO  = "The ratelimit has been cleared, retrying the request now."
+_GLOBAL_RATELIMIT_HIT_WARNING = "The global ratelimit has been hit! Further HTTP requests would " \
+                                "be blocked for next {retry_after}s."
+_GLOBAL_RATELIMIT_CLEAR_INFO  = "The global ratelimit is cleared. HTTP requests will not be blocked anymore."
+_RATELIMIT_BUCKET_EXHAUSTED_DEBUG = "Requests limit has been reached for route {path!r}, " \
+                                    "delaying further requests for {retry_after}s"
 
-    if typing.TYPE_CHECKING:
-        session: typing.Optional[aiohttp.ClientSession]
-        session_owner: bool
-        token: typing.Optional[str]
-        max_retries: int
+
+async def _release_lock(lock: asyncio.Lock, delay: float) -> None:
+    await asyncio.sleep(delay)
+    lock.release()
+
+
+class RestClient:
+    """REST handling implementation including ratelimits prevention and handling."""
 
     def __init__(self, *,
         session: aiohttp.ClientSession = None,
@@ -58,15 +69,18 @@ class RestClient:
         if session and not isinstance(session, aiohttp.ClientSession):
             raise TypeError(f"Parameter 'session' must be an instance of aiohttp.ClientSession " \
                             f"object, Not {session.__class__!r}")
+
         if max_retries is None or max_retries == 0:
             max_retries = 1
+
         if not isinstance(max_retries, int) or max_retries > 5:
             raise TypeError(f"Parameter 'max_retries' must be an integer less than 5. " \
                             f"{max_retries!r} is not valid.")
 
         self.session = session
         self.session_owner: bool = session_owner
-        self.token = None
+        self.ratelimit_handler = RatelimitHandler()
+        self.token: typing.Optional[str] = None
         self.max_retries = max_retries or 5
 
     def _ensure_session(self) -> aiohttp.ClientSession:
@@ -79,7 +93,7 @@ class RestClient:
         return self.session
 
     async def _resolve_response(self, response):
-        if response.headers["content_type"] == "application/json":
+        if response.headers["Content-Type"] == "application/json":
             data = await response.json()
         else:
             data = await response.text()
@@ -91,6 +105,8 @@ class RestClient:
 
         token = self.token
         requires_auth = route.requires_auth
+        path = route.path
+        rl_path = route.ratelimit_path
 
         if requires_auth and token is None:
             raise ClientSetupRequired("No bot token is set yet to perform this request. " \
@@ -105,39 +121,105 @@ class RestClient:
         if reason is not None:
             headers["X-Audit-Log-Reason"] = reason
 
+        handler = self.ratelimit_handler
+        unlock = True
+        lock = handler.get_lock(rl_path)
+
+        await handler.wait_until_global_reset()
+        await lock.acquire()
+
         for attempt in range(self.max_retries):
-            async with session.request(
-                route.method,
-                route.url,
-                headers=headers,
-                **options
-            ) as response:
+            try:
+                async with session.request(
+                    route.method,
+                    route.url,
+                    headers=headers,
+                    **options
+                ) as response:
 
-                status = response.status
+                    status = response.status
+                    response_headers = response.headers
 
-                if status == 204:
-                    # 204 *No Content*
-                    return None
+                    remaining = response_headers.get("X-Ratelimit-Remaining")
+                    bucket = response_headers.get("X-Ratelimit-Bucket")
 
-                data = await response.json()
+                    if bucket is not None:
+                        # Store the bucket hash for this route.
+                        handler.set_bucket(rl_path, bucket)
 
-                if status < 300:
-                    return data
-                elif status == 400:
-                    raise HTTPBadRequest(response, data)
-                elif status == 403:
-                    raise HTTPForbidden(response, data)
-                elif status == 404:
-                    raise HTTPNotFound(response, data)
-                elif status >= 500:
-                    raise HTTPServerError(response, data)
+                    if remaining == "0" and status != 429:
+                        # This header is always present in this case.
+                        retry_after = float(response_headers["X-Ratelimit-Reset-After"])
+                        msg = _RATELIMIT_BUCKET_EXHAUSTED_DEBUG.format(
+                            path=path,
+                            retry_after=retry_after
+                        )
+                        unlock = False # Prevent lock from releasing
+                        _LOGGER.debug(msg)
 
-                # unhandleable status code, raise it.
-                raise HTTPException(response, data)
+                        coro = _release_lock(lock, retry_after)
+                        asyncio.create_task(coro)
+
+                    if status == 204:
+                        # 204 *No Content*
+                        return None
+
+                    data = await self._resolve_response(response)
+
+                    if status < 300:
+                        return data
+
+                    elif status == 429:
+                        if response_headers.get("Via") is None:
+                            # Missing the `Via` header usually indicates a CF ban.
+                            raise HTTPException(response, data)
+
+                        # data is always a valid JSON here.
+                        retry_after = float(data["retry_after"]) # type: ignore
+                        is_global = data.get("global", False) # type: ignore
+
+                        if is_global:
+                            msg = _GLOBAL_RATELIMIT_HIT_WARNING.format(retry_after=retry_after)
+                            handler.set_global()
+                        else:
+                            msg = _RATELIMIT_HIT_WARNING.format(retry_after=retry_after)
+
+                        _LOGGER.critical(msg)
+                        await asyncio.sleep(retry_after)
+
+                        if is_global:
+                            msg = _GLOBAL_RATELIMIT_CLEAR_INFO
+                            handler.reset_global()
+                        else:
+                            msg = _RATELIMIT_CLEAR_INFO
+
+                        _LOGGER.info(msg)
+                        continue
+
+                    elif status == 400:
+                        raise HTTPBadRequest(response, data)
+
+                    elif status == 403:
+                        raise HTTPForbidden(response, data)
+
+                    elif status == 404:
+                        raise HTTPNotFound(response, data)
+
+                    elif status >= 500:
+                        raise HTTPServerError(response, data)
+
+                    # unhandleable status code, raise it.
+                    raise HTTPException(response, data)
+            finally:
+                if unlock and lock is not None:
+                    if lock.locked():
+                        lock.release()
 
     async def close(self):
         if not self.session_owner:
             await self.session.close()
+
+        self.ratelimit_handler.clear()
 
     # ----- Gateway -----
 
@@ -423,5 +505,7 @@ class RestClient:
         return data
 
     async def delete_message(self, channel_id: int, message_id: int):
-        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}")
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}",
+                      channel_id=channel_id, message_id=message_id)
+
         await self.request(route)
