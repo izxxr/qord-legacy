@@ -22,6 +22,8 @@
 
 from __future__ import annotations
 
+from qord.internal.undefined import UNDEFINED
+
 import typing
 import os
 
@@ -70,8 +72,8 @@ class File:
         content: typing.Union[str, bytes, BufferedReader],
         /,
         *,
-        name: str = None,
-        description: str = None,
+        name: str = UNDEFINED,
+        description: str = UNDEFINED,
         spoiler: bool = False,
     ) -> None:
 
@@ -79,11 +81,11 @@ class File:
             with open(content, "rb") as f:
                 self.content = f.read()
 
-            if name is None:
+            if name is UNDEFINED:
                 name = os.path.basename(content)
 
         elif isinstance(content, bytes):
-            if name is None:
+            if name is UNDEFINED:
                 raise TypeError("name parameter must be passed when passing in bytes object.")
 
             self.content = content
@@ -94,10 +96,10 @@ class File:
 
             self.content = content.read()
 
-            if name is None:
+            if name is UNDEFINED:
                 name = content.name
 
-        if name is None:
+        if name is UNDEFINED:
             raise RuntimeError("Could not resolve the file name, probably invalid type.")
 
         self.name = name

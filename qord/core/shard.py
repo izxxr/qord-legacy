@@ -53,7 +53,7 @@ _ZLIB_SUFFIX = b'\x00\x00\xff\xff'
 _UNHANDLEABLE_CODES = (4004, 4010, 4012, 4013, 4014)
 
 class _SignalResume(Exception):
-    def __init__(self, resume: bool = True, delay: float = None) -> None:
+    def __init__(self, resume: bool = True, delay: typing.Optional[float] = None) -> None:
         self.resume = resume
         self.delay = delay
 
@@ -408,7 +408,10 @@ class Shard:
 
         if _clean:
             self._clear_gateway_data()
-            self._worker_task.cancel()
+
+            if self._worker_task is not None:
+                self._worker_task.cancel()
+            
             self._running = False
             self._worker_task = None
 

@@ -23,6 +23,8 @@
 
 from __future__ import annotations
 
+from qord.internal.undefined import UNDEFINED
+
 from datetime import datetime
 from base64 import b64encode
 import typing
@@ -31,7 +33,7 @@ BASE_CDN_URL = "https://cdn.discordapp.com"
 BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
 
-def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typing.List[str] = None):
+def create_cdn_url(path: str, extension: str, size: int = UNDEFINED, valid_exts: typing.List[str] = UNDEFINED):
     r"""Create a CDN URL with provided path, file extension and size."""
 
     if valid_exts is None:
@@ -46,7 +48,7 @@ def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typi
 
     ret = f"{BASE_CDN_URL}{path}.{extension}"
 
-    if size is not None:
+    if size is not UNDEFINED:
         if size < 64 and size > 4096:
             raise ValueError("size must be between 64 and 4096. Got %s instead." % size)
         if not (size & (size-1) == 0) and (size != 0 and size-1 != 0):

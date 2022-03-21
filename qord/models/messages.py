@@ -317,6 +317,11 @@ class Message(BaseModel):
         for user_data in data.get("mentions", []):
             user_id = int(user_data["id"])
             if "member" in user_data:
+                # Mention is in a guild
+
+                if guild is None:
+                    continue
+
                 try:
                     member = guild._cache.get_member(user_id)
                 except AttributeError:
@@ -396,8 +401,14 @@ class Message(BaseModel):
             # For replies, the channel is always same as message channel
             channel = self.channel
         else:
-            channel_id = int(referenced_message_data["channel_id"]) # Always present
-            channel = self.guild._cache.get_channel(channel_id)
+            # In case of threads, the channel is never other than a guild channel.
+            guild = self.guild
+
+            if guild is None:
+                channel = None
+            else:
+                channel_id = int(referenced_message_data["channel_id"]) # Always present
+                channel = guild._cache.get_channel(channel_id)
 
         if channel is None:
             self.referenced_message = None

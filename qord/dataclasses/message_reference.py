@@ -88,8 +88,8 @@ class MessageReference:
     def __init__(
         self,
         message_id: int,
-        channel_id: int = None,
-        guild_id: int = None,
+        channel_id: typing.Optional[int] = None,
+        guild_id: typing.Optional[int] = None,
         *,
         fail_if_not_exists: bool = True,
     ) -> None:

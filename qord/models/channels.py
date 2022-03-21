@@ -111,7 +111,7 @@ class GuildChannel(BaseModel):
         """
         return f"<#{self.id}>"
 
-    async def delete(self, *, reason: str = None) -> None:
+    async def delete(self, *, reason: typing.Optional[str] = None) -> None:
         """Deletes this channel.
 
         Requires the :attr:`~Permissions.manage_channels` on the bot
@@ -201,7 +201,7 @@ class TextChannel(GuildChannel, BaseMessageChannel):
         topic: typing.Optional[str] = UNDEFINED,
         slowmode_delay: typing.Optional[int] = UNDEFINED,
         default_auto_archive_duration: int = UNDEFINED,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> None:
         """Edits the channel.
 
@@ -274,7 +274,7 @@ class TextChannel(GuildChannel, BaseMessageChannel):
         if default_auto_archive_duration is not UNDEFINED:
             if not default_auto_archive_duration in (60, 1440, 4320, 10080):
                 raise ValueError("Invalid value given for default_auto_archive_duration " \
-                                "supported values are 60, 1440, 4320 and 10080.")
+                                "supported values are 60, 1440, 4320 and 10080.") # type: ignore
 
             json["default_auto_archive_duration"] = default_auto_archive_duration
 
@@ -326,7 +326,7 @@ class CategoryChannel(GuildChannel):
         *,
         name: str = UNDEFINED,
         position: int = UNDEFINED,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> None:
         """Edits the channel.
 
@@ -423,7 +423,7 @@ class VoiceChannel(GuildChannel):
         rtc_region: typing.Optional[str] = UNDEFINED,
         user_limit: typing.Optional[int] = UNDEFINED,
         video_quality_mode: int = UNDEFINED,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> None:
         """Edits the channel.
 

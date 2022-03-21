@@ -57,8 +57,8 @@ class AllowedMentions:
         roles: bool = False,
         everyone: bool = False,
         replied_user: bool = False,
-        mentioned_roles: typing.Sequence[int] = None,
-        mentioned_users: typing.Sequence[int] = None,
+        mentioned_roles: typing.Optional[typing.Sequence[int]] = None,
+        mentioned_users: typing.Optional[typing.Sequence[int]] = None,
     ) -> None:
 
         self._mentioned_roles = set(mentioned_roles) if mentioned_roles is not None else set()

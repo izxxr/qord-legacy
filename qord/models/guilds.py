@@ -28,7 +28,6 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel
 from qord.flags.system_channel import SystemChannelFlags
-from qord.enums import ChannelType
 from qord.internal.undefined import UNDEFINED
 from qord.internal.helpers import (
     get_optional_snowflake,
@@ -47,7 +46,7 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
-    from qord.models.channels import CategoryChannel, TextChannel, VoiceChannel
+    from qord.models.channels import CategoryChannel
 
 
 class Guild(BaseModel):
@@ -210,7 +209,7 @@ class Guild(BaseModel):
         if not isinstance(self._cache, GuildCache):
             raise TypeError(
                 f"Client.get_guild_cache() returned an unexpected object of type " \
-                f"{self._cache.__class__!r}, Expected a GuildCache instance."
+                f"{self._cache.__class__!r}, Expected a GuildCache instance." # type: ignore
             )
         self._cache.clear()
         self._create_guild(data)
@@ -374,7 +373,7 @@ class Guild(BaseModel):
         role_id = self.id
         return self._cache.get_role(role_id)
 
-    def icon_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the icon URL for this guild.
 
         If guild has no custom icon set, ``None`` is returned.
@@ -405,7 +404,7 @@ class Guild(BaseModel):
         """
         if self.icon is None:
             return None
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "gif" if self.is_icon_animated() else "png"
 
         return create_cdn_url(
@@ -415,7 +414,7 @@ class Guild(BaseModel):
             valid_exts=BASIC_EXTS,
         )
 
-    def banner_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def banner_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the banner URL for this guild.
 
         If guild has no custom banner set, ``None`` is returned.
@@ -443,7 +442,7 @@ class Guild(BaseModel):
         """
         if self.banner is None:
             return
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "png"
 
         return create_cdn_url(
@@ -453,7 +452,7 @@ class Guild(BaseModel):
             valid_exts=BASIC_STATIC_EXTS,
         )
 
-    def splash_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def splash_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the splash URL for this guild.
 
         If guild has no custom splash set, ``None`` is returned.
@@ -481,7 +480,7 @@ class Guild(BaseModel):
         """
         if self.splash is None:
             return
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "png"
 
         return create_cdn_url(
@@ -491,7 +490,7 @@ class Guild(BaseModel):
             valid_exts=BASIC_STATIC_EXTS,
         )
 
-    def discovery_splash_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def discovery_splash_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the discovery splash URL for this guild.
 
         If guild has no custom discovery splash set, ``None`` is returned.
@@ -519,7 +518,7 @@ class Guild(BaseModel):
         """
         if self.discovery_splash is None:
             return
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "png"
 
         return create_cdn_url(
@@ -576,14 +575,14 @@ class Guild(BaseModel):
         return [Role(role, guild=self) for role in roles]
 
     async def create_role(self, *,
-        name: str = None,
-        permissions: Permissions = None,
-        color: int = None,
-        hoist: bool = None,
-        icon: bytes = None,
-        unicode_emoji: str = None,
-        mentionable: bool = None,
-        reason: str = None,
+        name: str = UNDEFINED,
+        permissions: Permissions = UNDEFINED,
+        color: int = UNDEFINED,
+        hoist: bool = UNDEFINED,
+        icon: bytes = UNDEFINED,
+        unicode_emoji: str = UNDEFINED,
+        mentionable: bool = UNDEFINED,
+        reason: typing.Optional[str] = None,
     ) -> Role:
         """Creates a role in this guild.
 
@@ -629,19 +628,25 @@ class Guild(BaseModel):
         """
         json = {}
 
-        if name is not None:
+        if name is not UNDEFINED:
             json["name"] = name
-        if permissions is not None:
+
+        if permissions is not UNDEFINED:
             json["permissions"] = str(permissions.value)
-        if color is not None:
+
+        if color is not UNDEFINED:
             json["color"] = color
-        if hoist is not None:
+
+        if hoist is not UNDEFINED:
             json["hoist"] = hoist
-        if icon is not None:
+
+        if icon is not UNDEFINED:
             json["icon"] = get_image_data(icon)
-        if unicode_emoji is not None:
+
+        if unicode_emoji is not UNDEFINED:
             json["unicode_emoji"] = unicode_emoji
-        if mentionable is not None:
+
+        if mentionable is not UNDEFINED:
             json["mentionable"] = mentionable
 
         data = await self._rest.create_role(guild_id=self.id, json=json, reason=reason)
@@ -799,7 +804,7 @@ class Guild(BaseModel):
         if position is not UNDEFINED:
             json["position"] = position
 
-        if parent is not UNDEFINED:
+        if parent is not None:
             json["parent_id"] = parent.id
 
         if nsfw is not UNDEFINED:

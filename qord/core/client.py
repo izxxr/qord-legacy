@@ -119,12 +119,12 @@ class Client:
         session: ClientSession = None,
         session_owner: bool = False,
         max_retries: int = 5,
-        shards_count: int = None,
         debug_events: bool = False,
         connect_timeout: float = 5.0,
         ready_timeout: float = 2.0,
-        intents: Intents = None,
-        cache: Cache = None,
+        shards_count: typing.Optional[int] = None,
+        intents: typing.Optional[Intents] = None,
+        cache: typing.Optional[Cache] = None,
     ) -> None:
 
         if shards_count is not None and shards_count < 1:
@@ -461,7 +461,7 @@ class Client:
             "Launching %s shards (%s shard%s concurrently per 5 seconds)",
             self._shards_count,
             self._max_concurrency,
-            's' if self._max_concurrency > 1 else '',
+            's' if self._max_concurrency > 1 else '', # type: ignore
         )
         self._shards_fut = future = asyncio.Future()
 
@@ -472,7 +472,7 @@ class Client:
 
             waiters = []
 
-            for i in range(self._max_concurrency): # type: ignore
+            for _ in range(self._max_concurrency): # type: ignore
                 try:
                     shard = shards[0]
                 except IndexError:

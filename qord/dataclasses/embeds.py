@@ -81,15 +81,15 @@ class Embed:
     def __init__(
         self,
         *,
-        url: str = None,
-        title: str = None,
-        color: int = None,
-        description: str = None,
-        timestamp: datetime = None,
-        author: EmbedAuthor = None,
-        image: EmbedImage = None,
-        thumbnail: EmbedThumbnail = None,
-        footer: EmbedFooter = None,
+        url: typing.Optional[str] = None,
+        title: typing.Optional[str] = None,
+        color: typing.Optional[int] = None,
+        description: typing.Optional[str] = None,
+        timestamp: typing.Optional[datetime] = None,
+        author: typing.Optional[EmbedAuthor] = None,
+        image: typing.Optional[EmbedImage] = None,
+        thumbnail: typing.Optional[EmbedThumbnail] = None,
+        footer: typing.Optional[EmbedFooter] = None,
     ):
         self.url = url
         self.title = title
@@ -229,7 +229,7 @@ class Embed:
         name: str,
         value: str,
         inline: bool = False,
-        index: int = None,
+        index: typing.Optional[int] = None,
     ) -> EmbedField:
         """Sets a field on the embed at provided position.
 
@@ -264,7 +264,7 @@ class Embed:
 
         return field
 
-    def pop_field(self, index: int = None) -> typing.Optional[EmbedField]:
+    def pop_field(self, index: typing.Optional[int] = None) -> typing.Optional[EmbedField]:
         """Removes a field from the provided position (last by default).
 
         Parameters

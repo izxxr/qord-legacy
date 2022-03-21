@@ -233,7 +233,7 @@ class GuildMember(BaseModel):
             return guild_avatar
         return self.user.avatar
 
-    def avatar_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def avatar_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         r"""Returns the avatar URL for this member.
 
         This method returns URL for the member's displayed :attr:`.avatar`
@@ -269,7 +269,7 @@ class GuildMember(BaseModel):
 
         if avatar is None:
             return self.user.avatar_url(extension=extension, size=size)
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "gif" if self.is_avatar_animated() else "png"
 
         return create_cdn_url(
@@ -318,7 +318,7 @@ class GuildMember(BaseModel):
         now = datetime.now()
         return now < timeout_until
 
-    async def kick(self, *, reason: str = None) -> None:
+    async def kick(self, *, reason: typing.Optional[str] = None) -> None:
         r"""Kicks the member from the associated guild.
 
         Bot requires the :attr:`~Permissions.kick_members` permission in the
@@ -347,7 +347,7 @@ class GuildMember(BaseModel):
         mute: bool = UNDEFINED,
         deaf: bool = UNDEFINED,
         timeout_until: datetime = UNDEFINED,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ):
         r"""Edits this member.
 
@@ -418,7 +418,7 @@ class GuildMember(BaseModel):
         *roles: Role,
         overwrite: bool = False,
         ignore_extra: bool = True,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> typing.List[Role]:
         r"""Adds the provided roles to the members.
 
@@ -485,7 +485,7 @@ class GuildMember(BaseModel):
         self,
         *roles: Role,
         ignore_extra: bool = True,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> typing.List[Role]:
         r"""Removes the provided roles from the members.
 

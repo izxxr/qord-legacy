@@ -152,7 +152,7 @@ class Role(BaseModel):
         """
         return f"<@&{self.id}>"
 
-    def icon_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         r"""Returns the icon URL for this user.
 
         If role has no icon set, This method would return ``None``.
@@ -181,7 +181,7 @@ class Role(BaseModel):
         """
         if self.icon is None:
             return None
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "png"
 
         return create_cdn_url(
@@ -270,7 +270,7 @@ class Role(BaseModel):
         """
         return (not self.is_higher_than(other))
 
-    async def delete(self, *, reason: str = None) -> None:
+    async def delete(self, *, reason: typing.Optional[str] = None) -> None:
         r"""Deletes this role.
 
         This operation requires the :attr:`~Permissions.manage_roles` permission
@@ -292,14 +292,14 @@ class Role(BaseModel):
         await self._rest.delete_role(guild_id=self.guild.id, role_id=self.id, reason=reason)
 
     async def edit(self, *,
-        name: str = None,
-        permissions: Permissions = None,
-        hoist: bool = None,
-        mentionable: bool = None,
+        name: str = UNDEFINED,
+        permissions: Permissions = UNDEFINED,
+        hoist: bool = UNDEFINED,
+        mentionable: bool = UNDEFINED,
         icon: typing.Optional[bytes] = UNDEFINED,
         unicode_emoji: typing.Optional[str] = UNDEFINED,
         color: typing.Optional[int] = UNDEFINED,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> None:
         r"""Edits this role.
 
@@ -345,18 +345,24 @@ class Role(BaseModel):
         """
         json = {}
 
-        if name is not None:
+        if name is not UNDEFINED:
             json["name"] = name
-        if permissions is not None:
+
+        if permissions is not UNDEFINED:
             json["permissions"] = str(permissions.value)
-        if hoist is not None:
+
+        if hoist is not UNDEFINED:
             json["hoist"] = hoist
-        if mentionable is not None:
+
+        if mentionable is not UNDEFINED:
             json["mentionable"] = mentionable
+
         if color is not UNDEFINED:
             json["color"] = 0 if color is None else color # '0' is default.
+
         if icon is not UNDEFINED:
             json["icon"] = None if icon is None else get_image_data(icon)
+
         if unicode_emoji is not UNDEFINED:
             json["unicode_emoji"] = unicode_emoji
 
