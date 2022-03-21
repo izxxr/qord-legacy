@@ -21,6 +21,10 @@ Fixes
 ~~~~~
 
 - Fixed cache not cleaning up on client closure.
+- Fixed typing issues across the library.
+    - Passing ``None`` is not supported in various places especially ``x_url()`` methods.
+    - ``None`` is now allowed in ``reason`` parameters in REST methods.
+    - Other minor improvements and fixes.
 
 
 v0.3.0a1 (Pre-release)
