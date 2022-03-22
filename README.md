@@ -1,5 +1,13 @@
-# Qord
-Python library for Discord API based around asyncio.
+
+<div align="center">
+	<h1>Qord</h1>
+	<div align="center" id="readmeBadges">
+		<img src="https://img.shields.io/discord/940601074031677448?color=%234069e2&label=Discord">
+		<img src="https://img.shields.io/pypi/dm/qord?color=%233674a5">
+		<img src="https://img.shields.io/github/commit-activity/w/nerdguyahmad/qord">
+	</div>
+	<p>Python library for Discord API based around asyncio.</p>
+</div>
 
 **Features:**
 
