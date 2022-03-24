@@ -31,3 +31,4 @@ from qord.dataclasses.allowed_mentions import *
 from qord.dataclasses.embeds import *
 from qord.dataclasses.files import *
 from qord.dataclasses.message_reference import *
+from qord.dataclasses.permission_overwrite import *

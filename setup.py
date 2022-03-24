@@ -20,6 +20,8 @@ PACKAGES = [
     "qord.events",
     "qord.flags",
     "qord.models",
+    "qord.internal",
+    "qord.dataclasses",
 ]
 
 setup(
