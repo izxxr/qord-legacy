@@ -6,7 +6,7 @@ Releases
 This page details the changelog containing every notable change of every releases.
 
 - The release with "Unreleased" in title indicates that the release is not yet released and is under development.
-- The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release. 
+- The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release.
 
 v0.3.0 (Unreleased)
 -------------------
@@ -15,6 +15,7 @@ Additions
 ~~~~~~~~~
 
 - Added handling of HTTP ratelimits.
+- Added support for channel permission overwrites.
 - Added :attr:`Message.referenced_message` attribute.
 
 Fixes
@@ -121,4 +122,4 @@ Fixes
 v0.1.0
 ------
 
-- Initial release. 
+- Initial release.
