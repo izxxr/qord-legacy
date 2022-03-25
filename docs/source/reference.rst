@@ -165,67 +165,73 @@ Shard
 AllowedMentions
 ~~~~~~~~~~~~~~~
 
-.. autoclass:: AllowedMentions()
+.. autoclass:: AllowedMentions
     :members:
 
 Embed
 ~~~~~
 
-.. autoclass:: Embed()
+.. autoclass:: Embed
     :members:
 
 EmbedImage
 ~~~~~~~~~~
 
-.. autoclass:: EmbedImage()
+.. autoclass:: EmbedImage
     :members:
 
 EmbedThumbnail
 ~~~~~~~~~~~~~~
 
-.. autoclass:: EmbedThumbnail()
+.. autoclass:: EmbedThumbnail
     :members:
 
 EmbedVideo
 ~~~~~~~~~~
 
-.. autoclass:: EmbedVideo()
+.. autoclass:: EmbedVideo
     :members:
 
 EmbedField
 ~~~~~~~~~~
 
-.. autoclass:: EmbedField()
+.. autoclass:: EmbedField
     :members:
 
 EmbedAuthor
 ~~~~~~~~~~~
 
-.. autoclass:: EmbedAuthor()
+.. autoclass:: EmbedAuthor
     :members:
 
 EmbedFooter
 ~~~~~~~~~~~
 
-.. autoclass:: EmbedFooter()
+.. autoclass:: EmbedFooter
     :members:
 
 EmbedProvider
 ~~~~~~~~~~~~~
 
-.. autoclass:: EmbedProvider()
+.. autoclass:: EmbedProvider
     :members:
 
 File
 ~~~~
 
-.. autoclass:: File()
+.. autoclass:: File
     :members:
 
 MessageReference
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: MessageReference()
+.. autoclass:: MessageReference
+    :members:
+
+PermissionOverwrite
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PermissionOverwrite
     :members:
 
 Bitwise Flags
@@ -421,6 +427,12 @@ DMChannel
 
 .. autoclass:: DMChannel()
     :inherited-members:
+    :members:
+
+ChannelPermissionOverwrite
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChannelPermissionOverwrite()
     :members:
 
 Message
