@@ -161,3 +161,8 @@ class Permissions(Flags):
 
     moderate_members = 1 << 40
     r"""Allows moderating members including managing members timeout."""
+
+    @classmethod
+    def all(cls) -> Permissions:
+        """Creates a :class:`Permissions` instance with all permissions enabled."""
+        return cls(2199023255551)

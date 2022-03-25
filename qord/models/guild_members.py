@@ -26,8 +26,9 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.internal.helpers import parse_iso_timestamp, create_cdn_url, BASIC_EXTS
 from qord.internal.undefined import UNDEFINED
-from datetime import datetime
+from qord.flags.permissions import Permissions
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
@@ -317,6 +318,29 @@ class GuildMember(BaseModel):
             return False
         now = datetime.now()
         return now < timeout_until
+
+    def permissions(self) -> Permissions:
+        """Computes the permissions for this member in the parent guild.
+
+        Returns
+        -------
+        :class:`Permissions`
+            The computed permissions.
+        """
+        guild = self.guild
+
+        if guild.owner_id == self.id:
+            return Permissions.all()
+
+        permissions = guild.default_role.permissions
+
+        for role in self.roles:
+            permissions.value |= role.permissions.value
+
+        if permissions.administrator:
+            return Permissions.all()
+
+        return permissions
 
     async def kick(self, *, reason: typing.Optional[str] = None) -> None:
         r"""Kicks the member from the associated guild.
