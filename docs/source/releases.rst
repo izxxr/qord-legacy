@@ -17,6 +17,8 @@ Additions
 - Added handling of HTTP ratelimits.
 - Added support for channel permission overwrites.
 - Added :attr:`Message.referenced_message` attribute.
+- Added module ``qord.utils``, see :ref:`reference-utilities` for more info.
+- Added :func:`qord.utils.create_timestamp` helper function.
 
 Fixes
 ~~~~~
