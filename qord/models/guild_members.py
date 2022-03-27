@@ -75,7 +75,7 @@ def _user_features(cls):
 
 @_user_features
 class GuildMember(BaseModel):
-    r"""Representation of a guild member.
+    """Representation of a guild member.
 
     A guild member is simply a user that is part of a specific :class:`Guild`.
     Every guild member has an underlying :class:`User` object attached to it.
@@ -202,7 +202,7 @@ class GuildMember(BaseModel):
 
     @property
     def name(self) -> str:
-        r"""Returns the name of this member as displayed in the guild.
+        """Returns the name of this member as displayed in the guild.
 
         This property would return the :attr:`.nickname` of the member if it's
         present and would fallback to underlying user's :attr:`~User.name` if
@@ -219,7 +219,7 @@ class GuildMember(BaseModel):
 
     @property
     def avatar(self) -> typing.Optional[str]:
-        r"""Returns the avatar's hash of this member as displayed in the guild.
+        """Returns the avatar's hash of this member as displayed in the guild.
 
         This property would return the :attr:`.guild_avatar` of this member if
         available and would fallback to underlying user's :attr:`~User.avatar`
@@ -235,7 +235,7 @@ class GuildMember(BaseModel):
         return self.user.avatar
 
     def avatar_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
-        r"""Returns the avatar URL for this member.
+        """Returns the avatar URL for this member.
 
         This method returns URL for the member's displayed :attr:`.avatar`
         i.e use the guild specific member avatar if present otherwise
@@ -281,7 +281,7 @@ class GuildMember(BaseModel):
         )
 
     def is_avatar_animated(self) -> bool:
-        r"""Checks whether the member's avatar is animated.
+        """Checks whether the member's avatar is animated.
 
         This method checks for the :attr:`.avatar` to be animated i.e either
         one of member's guild specific or underlying user's avatar should be
@@ -298,7 +298,7 @@ class GuildMember(BaseModel):
         return avatar.startswith("a_")
 
     def is_boosting(self) -> bool:
-        r"""Checks whether the member is boosting the guild.
+        """Checks whether the member is boosting the guild.
 
         Returns
         -------
@@ -307,7 +307,7 @@ class GuildMember(BaseModel):
         return self.premium_since is not None
 
     def is_timed_out(self) -> bool:
-        r"""Checks whether the member is timed out.
+        """Checks whether the member is timed out.
 
         Returns
         -------
@@ -321,6 +321,11 @@ class GuildMember(BaseModel):
 
     def permissions(self) -> Permissions:
         """Computes the permissions for this member in the parent guild.
+
+        This returns overall permissions for this member in the guild. In order
+        to get more precise permissions set for the member in a specific guild channel,
+        Consider using :meth:`GuildChannel.permissions_for` that also takes channel's
+        overwrites into account while computation.
 
         Returns
         -------
@@ -343,7 +348,7 @@ class GuildMember(BaseModel):
         return permissions
 
     async def kick(self, *, reason: typing.Optional[str] = None) -> None:
-        r"""Kicks the member from the associated guild.
+        """Kicks the member from the associated guild.
 
         Bot requires the :attr:`~Permissions.kick_members` permission in the
         relevant guild to perform this action.
@@ -373,7 +378,7 @@ class GuildMember(BaseModel):
         timeout_until: datetime = UNDEFINED,
         reason: typing.Optional[str] = None,
     ):
-        r"""Edits this member.
+        """Edits this member.
 
         When successfully edited, The member instance would be updated with new
         data in place.
@@ -444,7 +449,7 @@ class GuildMember(BaseModel):
         ignore_extra: bool = True,
         reason: typing.Optional[str] = None,
     ) -> typing.List[Role]:
-        r"""Adds the provided roles to the members.
+        """Adds the provided roles to the members.
 
         The behaviour of this method is summarized as:
 
@@ -511,7 +516,7 @@ class GuildMember(BaseModel):
         ignore_extra: bool = True,
         reason: typing.Optional[str] = None,
     ) -> typing.List[Role]:
-        r"""Removes the provided roles from the members.
+        """Removes the provided roles from the members.
 
         The behaviour of this method is summarized as:
 

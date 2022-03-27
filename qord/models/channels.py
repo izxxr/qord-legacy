@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
+from qord.models.roles import Role
 from qord.bases import BaseMessageChannel
 from qord.enums import ChannelType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
@@ -197,47 +198,66 @@ class GuildChannel(BaseModel):
         """
         return self._permission_overwrites.get(entity_id)
 
-    def permissions_for(self, member: GuildMember) -> Permissions:
-        """Computes permissions for the given member.
+    def permissions_for(self, entity: typing.Union[GuildMember, Role]) -> Permissions:
+        """Computes permissions for the given member or role in this channel.
 
-        This method takes in account the member's base permissions as well
-        as channel permission overwrites.
+        This method takes in account the member's or role's base permissions
+        as well as channel permission overwrites.
 
         Parameters
         ----------
-        member: :class:`GuildMember`
-            The member to get permissions for.
+        entity: Union[:class:`GuildMember`, :class:`Role`]
+            The member or role to get permissions for.
 
         Returns
         -------
         :class:`Permissions`
         """
-        permissions = member.permissions()
+        if isinstance(entity, Role):
+            permissions = entity.permissions
+            is_role = True
+        else:
+            permissions = entity.permissions()
+            is_role = False
 
         if permissions.administrator:
-            # member.permissions() already returns Permissions.all() for admins
-            # so we don't have to redo it.
+            # Member.permissions() already returns Permissions.all() if
+            # the permissions contain Administrator permission so we don't
+            # have to redo it
+            if is_role:
+                permissions = Permissions.all()
             return permissions
 
+        # Faster value manipulation
         value = permissions.value
-        default_role_overwrite = self.get_permission_overwrite(self.guild.id)
+        get_overwrite = self.get_permission_overwrite
+
+        # Apply @everyone's overwrite first.
+        default_role_overwrite = get_overwrite(self.guild.id)
 
         if default_role_overwrite:
             value &= ~default_role_overwrite._deny
             value |= default_role_overwrite._allow
 
-        for role in member.roles:
-            role_overwrite = self.get_permission_overwrite(role.id)
+        # Apply overwrite for this entity, role or member
+        entity_overwrite = get_overwrite(entity.id)
+
+        if entity_overwrite:
+            value &= ~entity_overwrite._deny
+            value |= entity_overwrite._allow
+
+        # Roles don't need any more computation
+        if is_role:
+            permissions.value = value
+            return permissions
+
+        # For members, also apply the overwrites for member's roles
+        for role in entity.roles:  # type: ignore -- Always a Member object
+            role_overwrite = get_overwrite(role.id)
 
             if role_overwrite:
                 value |= role_overwrite._allow
                 value &= ~role_overwrite._deny
-
-        member_overwrite = self.get_permission_overwrite(member.id)
-
-        if member_overwrite:
-            value &= ~member_overwrite._deny
-            value |= member_overwrite._allow
 
         permissions.value = value
         return permissions
