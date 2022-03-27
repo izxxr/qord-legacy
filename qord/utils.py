@@ -62,8 +62,7 @@ def create_timestamp(
 
     if isinstance(time, datetime):
         time = round(time.timestamp())
-
-    if isinstance(time, float):
+    elif isinstance(time, float):
         time = round(time)
 
     if style is None:
