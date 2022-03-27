@@ -279,6 +279,8 @@ MessageFlags
 .. autoclass:: MessageFlags()
     :members:
 
+.. _reference-utilities:
+
 Utilities
 ~~~~~~~~~
 
