@@ -51,8 +51,9 @@ class ChannelPermissionOverwrite(BaseModel):
     id: :class:`builtins.int`
         The ID of entity that this permission overwrite is for. This can either
         be ID of a role or member.
-    type: :class:`PermissionOverwriteType`
-        The type of entity that this permission overwrite is for.
+    type: :class:`builtins.int`
+        The type of entity that this permission overwrite is for. See :class:`PermissionOverwriteType`
+        for possible values.
     overwrite: :class:`PermissionOverwrite`
         The actual permission overwrite for the given entity.
     """

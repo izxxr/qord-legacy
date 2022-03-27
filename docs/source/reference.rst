@@ -153,6 +153,12 @@ MessageType
 .. autoclass:: MessageType()
     :members:
 
+PermissionOverwriteType
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PermissionOverwriteType()
+    :members:
+
 Data classes
 ------------
 
@@ -272,6 +278,14 @@ MessageFlags
 
 .. autoclass:: MessageFlags()
     :members:
+
+Utilities
+~~~~~~~~~
+
+These are some utilities provided by ``qord.utils`` module that can be useful for many
+general use cases.
+
+.. autofunction:: qord.utils.create_timestamp
 
 Exceptions
 ----------
