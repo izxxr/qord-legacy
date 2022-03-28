@@ -115,7 +115,7 @@ class MessageReference:
         # For API responses, The message_id key is optional while
         # it is annotated as `int` in constructor to aid user facing API.
         return cls(
-            message_id=get_optional_snowflake(data, "message_id"), # type: ignore -- See above
+            message_id=get_optional_snowflake(data, "message_id"), # type: ignore # See above
             channel_id=int(data["channel_id"]),
             guild_id=get_optional_snowflake(data, "guild_id"),
         )

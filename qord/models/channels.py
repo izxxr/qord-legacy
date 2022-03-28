@@ -256,7 +256,7 @@ class GuildChannel(BaseModel, Comparable):
             return permissions
 
         # For members, also apply the overwrites for member's roles
-        for role in entity.roles:  # type: ignore -- Always a Member object
+        for role in entity.roles:  # type: ignore # Always a Member object
             role_overwrite = get_overwrite(role.id)
 
             if role_overwrite:
