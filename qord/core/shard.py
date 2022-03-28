@@ -411,7 +411,7 @@ class Shard:
 
             if self._worker_task is not None:
                 self._worker_task.cancel()
-            
+
             self._running = False
             self._worker_task = None
 

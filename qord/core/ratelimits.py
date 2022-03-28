@@ -102,7 +102,7 @@ class RatelimitHandler:
         """Clears internal ratelimit data including locks and bucket hashes."""
         self.locks.clear()
         self.buckets.clear()
-        
+
     def set_global(self) -> None:
         """Sets the global ratelimit, preventing any HTTP requests."""
         self.global_ratelimit_cleared.clear()

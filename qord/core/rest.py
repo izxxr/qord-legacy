@@ -62,7 +62,7 @@ class RestClient:
     """REST handling implementation including ratelimits prevention and handling."""
 
     def __init__(self, *,
-        session: aiohttp.ClientSession = None,
+        session: typing.Optional[aiohttp.ClientSession] = None,
         session_owner: bool = True,
         max_retries: int = 5,
     ) -> None:
@@ -217,7 +217,7 @@ class RestClient:
                         lock.release()
 
     async def close(self):
-        if not self.session_owner:
+        if not self.session_owner and self.session is not None:
             await self.session.close()
 
         self.ratelimit_handler.clear()

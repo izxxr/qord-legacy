@@ -337,7 +337,7 @@ class GuildMember(BaseModel):
         if guild.owner_id == self.id:
             return Permissions.all()
 
-        permissions = guild.default_role.permissions
+        permissions = guild.default_role.permissions # type: ignore
 
         for role in self.roles:
             permissions.value |= role.permissions.value

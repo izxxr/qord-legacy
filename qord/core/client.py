@@ -116,15 +116,15 @@ class Client:
 
     def __init__(self,
         *,
-        session: ClientSession = None,
+        session: typing.Optional[ClientSession] = None,
+        shards_count: typing.Optional[int] = None,
+        intents: typing.Optional[Intents] = None,
+        cache: typing.Optional[Cache] = None,
         session_owner: bool = False,
         max_retries: int = 5,
         debug_events: bool = False,
         connect_timeout: float = 5.0,
         ready_timeout: float = 2.0,
-        shards_count: typing.Optional[int] = None,
-        intents: typing.Optional[Intents] = None,
-        cache: typing.Optional[Cache] = None,
     ) -> None:
 
         if shards_count is not None and shards_count < 1:
