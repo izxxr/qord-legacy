@@ -34,7 +34,7 @@ import typing
 
 
 def create_timestamp(
-    time: typing.Union[datetime, int, float],
+    time: typing.Optional[typing.Union[datetime, int, float]] = None,
     style: typing.Optional[str] = None,
 ) -> str:
 
@@ -42,10 +42,10 @@ def create_timestamp(
 
     Parameters
     ----------
-    time: Union[:class:`datetime.datetime`, :class:`builtins.int`, :class:`builtins.float`]
-        The timestamp to use. If a datetime object is given, The
-        epoch timestamp would be extracted from it. If a float is
-        given, It would be rounded of.
+    time: Optional[Union[:class:`datetime.datetime`, :class:`builtins.int`, :class:`builtins.float`]]
+        The timestamp to use. If not given, The result of :meth:`datetime.datetime.now` is used.
+        If a datetime object is given, The epoch timestamp would be extracted from it. If
+        a float is given, It would be rounded of.
     style: :class:`builtins.str`
         The style for the timestamp. If not provided, The default style
         is used, See :class:`TimestampStyle` for all possible values.
@@ -59,11 +59,11 @@ def create_timestamp(
     :class:`builtins.str`
         The created timestamp in proper format.
     """
-
-    if isinstance(time, datetime):
+    if time is None:
+        ts = round(datetime.now().timestamp())
+    elif isinstance(time, datetime):
         time = round(time.timestamp())
-
-    if isinstance(time, float):
+    elif isinstance(time, float):
         time = round(time)
 
     if style is None:
