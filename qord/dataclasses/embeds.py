@@ -291,6 +291,55 @@ class Embed:
         """Clears the fields that are currently present on the embed."""
         self._fields.clear()
 
+    def total_length(self) -> int:
+        """Returns the total length of this embed's content.
+
+        This takes in account the length of embed's content that are
+        able to be set by bots, that are:
+
+        - Fields name and values
+        - Title and description
+        - Footer text
+        - Author name
+
+        This method can be useful when validating the embed's total
+        length before sending the embed. The total length of sent
+        embed must be less than or equal to 6000.
+
+        ``len(embed)`` operation is equivalent to calling this method.
+
+        Returns
+        -------
+        :class:`builtins.int`
+            The total length of embed's content.
+        """
+        ret = 0
+
+        author, footer = (self._author, self._footer)
+        title, description = (self.title, self.description)
+
+        if author is not None:
+            name = author.name
+            ret += len(name) if name is not None else 0
+
+        if footer is not None:
+            text = footer.text
+            ret += len(text) if text is not None else 0
+
+        if title is not None:
+            ret += len(title)
+
+        if description is not None:
+            ret += len(description)
+
+        for f in self._fields:
+            ret += sum((len(f.name), len(f.value)))
+
+        return ret
+
+    # Support for len(embed)
+    __len__ = total_length
+
     def to_dict(self) -> typing.Dict[str, typing.Any]:
         ret: typing.Dict[str, typing.Any] = {}
 

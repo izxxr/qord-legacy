@@ -16,10 +16,11 @@ Additions
 
 - Added handling of HTTP ratelimits.
 - Added support for channel permission overwrites.
-- Added :attr:`Message.referenced_message` attribute.
-- Added module ``qord.utils``, see :ref:`reference-utilities` for more info.
-- Added :func:`qord.utils.create_timestamp` helper function.
 - Added equality comparison support for various Discord models.
+- Added module ``qord.utils``, see :ref:`reference-utilities` for more info.
+- Added :attr:`Message.referenced_message` attribute.
+- Added :func:`qord.utils.create_timestamp` helper function.
+- Added :meth:`Embed.total_length` and ``len()`` support on :class:`Embed`
 
 Fixes
 ~~~~~
