@@ -60,7 +60,7 @@ def create_timestamp(
         The created timestamp in proper format.
     """
     if time is None:
-        ts = round(datetime.now().timestamp())
+        time = round(datetime.now().timestamp())
     elif isinstance(time, datetime):
         time = round(time.timestamp())
     elif isinstance(time, float):
