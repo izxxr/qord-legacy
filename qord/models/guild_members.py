@@ -26,6 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.internal.helpers import parse_iso_timestamp, create_cdn_url, BASIC_EXTS
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 from qord.flags.permissions import Permissions
 
 from datetime import datetime
@@ -74,7 +75,7 @@ def _user_features(cls):
     return cls
 
 @_user_features
-class GuildMember(BaseModel):
+class GuildMember(BaseModel, Comparable):
     """Representation of a guild member.
 
     A guild member is simply a user that is part of a specific :class:`Guild`.
@@ -88,6 +89,8 @@ class GuildMember(BaseModel):
         For example, :attr:`.avatar` and other avatar related methods and attributes
         also consider the guild specific avatar of member for relevant functionality
         with addition to user's global avatar.
+
+    |supports-comparison|
 
     Attributes
     ----------

@@ -27,6 +27,7 @@ from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
 from qord.internal.helpers import create_cdn_url, get_image_data, BASIC_EXTS
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 
 import typing
 
@@ -36,7 +37,7 @@ if typing.TYPE_CHECKING:
     from qord.core.client import Client
     from qord.bases import BaseMessageChannel
 
-class User(BaseModel):
+class User(BaseModel, Comparable):
     """Representation of a Discord user entity.
 
     Attributes

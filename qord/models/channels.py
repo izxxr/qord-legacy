@@ -29,6 +29,7 @@ from qord.bases import BaseMessageChannel
 from qord.enums import ChannelType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 from qord.flags.permissions import Permissions
 from qord.dataclasses.permission_overwrite import PermissionOverwrite
 
@@ -94,7 +95,7 @@ class ChannelPermissionOverwrite(BaseModel):
         self.overwrite = PermissionOverwrite.from_permissions(allow, deny)
 
 
-class GuildChannel(BaseModel):
+class GuildChannel(BaseModel, Comparable):
     """The base class for channel types that are associated to a specific guild.
 
     For each channel types, Library provides separate subclasses that implement
@@ -107,6 +108,8 @@ class GuildChannel(BaseModel):
     - :class:`CategoryChannel`
     - :class:`VoiceChannel`
     - :class:`StageChannel`
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -671,11 +674,13 @@ class StageChannel(VoiceChannel):
 
     __slots__ = ()
 
-class PrivateChannel(BaseModel):
+class PrivateChannel(BaseModel, Comparable):
     """Base class for channel types that are private and not associated to a guild.
 
     Currently only one channel type is available for private channels that is
     :class:`DMChannel`.
+
+    |supports-comparison|
 
     Attributes
     ----------

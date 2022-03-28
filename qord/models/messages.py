@@ -31,6 +31,7 @@ from qord.dataclasses.message_reference import MessageReference
 from qord.enums import MessageType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 
 import typing
 
@@ -87,8 +88,10 @@ class ChannelMention(BaseModel):
         self.type = data["type"]
         self.name = data["name"]
 
-class Attachment(BaseModel):
+class Attachment(BaseModel, Comparable):
     """Represents an attachment that is attached to a message.
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -158,8 +161,10 @@ class Attachment(BaseModel):
         self.width = data.get("width")
         self.ephemeral = data.get("ephemeral", False)
 
-class Message(BaseModel):
+class Message(BaseModel, Comparable):
     """Represents a message generated in channels by users, bots and webhooks.
+
+    |supports-comparison|
 
     Attributes
     ----------

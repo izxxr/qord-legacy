@@ -38,7 +38,7 @@ if typing.TYPE_CHECKING:
 
 
 class BaseMessageChannel(ABC):
-    r"""A base class that implements support for messages managament.
+    """A base class that implements support for messages managament.
 
     Almost all classes that support the :class:`Message` related operations
     inherit this class. The most common example is :class:`TextChannel`.

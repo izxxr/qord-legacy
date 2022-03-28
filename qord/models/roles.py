@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.flags.permissions import Permissions
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 from qord.internal.helpers import (
     get_image_data,
     get_optional_snowflake,
@@ -38,8 +39,10 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
 
 
-class Role(BaseModel):
-    r"""Representation of a guild's role.
+class Role(BaseModel, Comparable):
+    """Representation of a guild's role.
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -144,7 +147,7 @@ class Role(BaseModel):
 
     @property
     def mention(self) -> str:
-        r"""Returns the string used for mentioning this role in Discord.
+        """Returns the string used for mentioning this role in Discord.
 
         Returns
         -------
@@ -153,7 +156,7 @@ class Role(BaseModel):
         return f"<@&{self.id}>"
 
     def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
-        r"""Returns the icon URL for this user.
+        """Returns the icon URL for this user.
 
         If role has no icon set, This method would return ``None``.
 
@@ -192,7 +195,7 @@ class Role(BaseModel):
         )
 
     def is_bot_managed(self) -> bool:
-        r"""Checks whether the role is managed by a bot.
+        """Checks whether the role is managed by a bot.
 
         Bot managed roles don't have the :attr:`.bot_id`
         set to ``None``.
@@ -204,7 +207,7 @@ class Role(BaseModel):
         return self.bot_id is not None
 
     def is_integration_managed(self) -> bool:
-        r"""Checks whether the role is managed by an integration.
+        """Checks whether the role is managed by an integration.
 
         Integration managed roles don't have the :attr:`.bot_id`
         set to ``None``.
@@ -216,7 +219,7 @@ class Role(BaseModel):
         return self.integration_id is not None
 
     def is_default(self) -> bool:
-        r"""Checks whether this role is the guild's default
+        """Checks whether this role is the guild's default
         i.e the "@everyone" role.
 
         Guild default roles have the same ID as the parent
@@ -229,7 +232,7 @@ class Role(BaseModel):
         return (self.id == self.guild.id)
 
     def is_higher_than(self, other: Role) -> bool:
-        r"""Compares this role with another role of the same guild
+        """Compares this role with another role of the same guild
         and checks whether this role is higher than the other.
 
         Parameters
@@ -254,7 +257,7 @@ class Role(BaseModel):
         return self.position > other.position
 
     def is_lower_than(self, other: Role) -> bool:
-        r"""Compares this role with another role of the same guild
+        """Compares this role with another role of the same guild
         and checks whether this role is lower than the other.
 
         Parameters
@@ -271,7 +274,7 @@ class Role(BaseModel):
         return (not self.is_higher_than(other))
 
     async def delete(self, *, reason: typing.Optional[str] = None) -> None:
-        r"""Deletes this role.
+        """Deletes this role.
 
         This operation requires the :attr:`~Permissions.manage_roles` permission
         for the client user in the guild.
@@ -301,7 +304,7 @@ class Role(BaseModel):
         color: typing.Optional[int] = UNDEFINED,
         reason: typing.Optional[str] = None,
     ) -> None:
-        r"""Edits this role.
+        """Edits this role.
 
         This operation requires the :attr:`~Permissions.manage_roles` permission
         for the client user in the parent guild.

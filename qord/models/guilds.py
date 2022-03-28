@@ -29,6 +29,7 @@ from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel
 from qord.flags.system_channel import SystemChannelFlags
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 from qord.internal.helpers import (
     get_optional_snowflake,
     create_cdn_url,
@@ -49,8 +50,10 @@ if typing.TYPE_CHECKING:
     from qord.models.channels import CategoryChannel
 
 
-class Guild(BaseModel):
+class Guild(BaseModel, Comparable):
     """Representation of a Discord guild entity often referred as "Server" in the UI.
+
+    |supports-comparison|
 
     Attributes
     ----------

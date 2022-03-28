@@ -24,15 +24,11 @@ from __future__ import annotations
 
 import typing
 
-class _Undefined:
-    def __bool__(self) -> bool:
-        return False
+class Comparable:
+    __slots__ = ()
 
-    def __eq__(self, o: object) -> bool:
-        return False
+    id: int
 
-    def __repr__(self) -> str:
-        return "..."
+    def __eq__(self, other: typing.Any) -> bool:
+        return isinstance(other, self.__class__) and other.id == self.id
 
-UNDEFINED: typing.Any = _Undefined()
-"""A sentinel used at places where None is ambiguous"""
