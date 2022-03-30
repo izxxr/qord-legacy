@@ -17,10 +17,10 @@ Python library for Discord API based around asyncio.
 - Robust handling of HTTP ratelimits.
 - Supports automatic gateway sharding.
 
-## Alpha phase
-Qord is currently under it's development (alpha) stage. This means that some features may be missing or potentially incomplete and furthermore, broken.
+## Development stage
+Qord is currently under it's initial development (alpha) stage. During this phase, There may be breaking changes and public user-facing API should not be considered stable. There would be no efforts in keeping backward compatibility. While the library currently supports the basic functionalities required to build a bot, many essential features are yet to be implemented and for this reason, Qord isn't yet a library to choose for making full fledged bots.
 
-Qord currently supports the basic functionalities required to build a bot however many essential features are yet to be implemented. For this reason, Qord isn't yet a library to choose for making full fledged bots. The library would be in a decently stable and production ready state when it reaches the 1.0 version (The first stable version).
+The complete lifetime of 0.x version is considered the development phase. More info about this [semantic versioning specification is here](https://semver.org/#spec-item-4)
 
 ## Installation
 Qord is installed using Python's traditional package manager, pip.
