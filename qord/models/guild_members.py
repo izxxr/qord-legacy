@@ -24,7 +24,6 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord.models.channels import GuildChannel
 from qord.internal.helpers import parse_iso_timestamp, create_cdn_url, BASIC_EXTS
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable
@@ -34,6 +33,7 @@ from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.models.channels import GuildChannel
     from qord.models.roles import Role
     from qord.models.guilds import Guild
     from qord.flags.users import UserFlags
@@ -368,6 +368,8 @@ class GuildMember(BaseModel, Comparable):
         :class:`Permissions`
             The computed permissions.
         """
+        from qord.models.channels import GuildChannel # HACK: circular imports
+
         if not isinstance(channel, GuildChannel):
             raise TypeError("Parameter 'channel' must be an instance of GuildChannel.")
 

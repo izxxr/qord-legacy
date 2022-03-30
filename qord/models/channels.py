@@ -24,7 +24,6 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord.models.roles import Role
 from qord.bases import BaseMessageChannel
 from qord.enums import ChannelPermissionType, ChannelType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
@@ -41,6 +40,7 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.models.users import User
     from qord.models.guild_members import GuildMember
+    from qord.models.roles import Role
 
 
 class ChannelPermission(BaseModel):
