@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
+from qord.models.channels import GuildChannel
 from qord.internal.helpers import parse_iso_timestamp, create_cdn_url, BASIC_EXTS
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable
@@ -327,7 +328,7 @@ class GuildMember(BaseModel, Comparable):
 
         This returns overall permissions for this member in the guild. In order
         to get more precise permissions set for the member in a specific guild channel,
-        Consider using :meth:`GuildChannel.permissions_for` that also takes channel's
+        Consider using :meth:`.permissions_in` that also takes channel's
         overwrites into account while computation.
 
         Returns
@@ -348,6 +349,64 @@ class GuildMember(BaseModel, Comparable):
         if permissions.administrator:
             return Permissions.all()
 
+        return permissions
+
+    def permissions_in(self, channel: GuildChannel) -> Permissions:
+        """Computes the permissions of this member in a :class:`GuildChannel`.
+
+        This method computes the permissions by taking in account the
+        member's base permissions as well as the permission overrides
+        of that channel.
+
+        Parameters
+        ----------
+        channel: :class:`GuildChannel`
+            The target channel for which the member's permissions should be computed.
+
+        Returns
+        -------
+        :class:`Permissions`
+            The computed permissions.
+        """
+        if not isinstance(channel, GuildChannel):
+            raise TypeError("Parameter 'channel' must be an instance of GuildChannel.")
+
+        permissions = self.permissions() # Base permissions
+
+        if permissions.administrator:
+            # If we're here, the permissions should always be Permissions.all()
+            # since permissions() method handles that already.
+            return permissions
+
+        value = permissions.value
+        get_permission_overwrite = channel.permission_overwrite_for
+
+        # Apply @everyone's overwrite first.
+        default_role = self.guild.default_role
+        assert default_role is not None
+
+        default_role_overwrite = get_permission_overwrite(default_role)
+
+        if default_role_overwrite:
+            value &= ~default_role_overwrite._deny
+            value |= default_role_overwrite._allow
+
+        # Apply overwrite for this member
+        member_overwrite = get_permission_overwrite(self)
+
+        if member_overwrite:
+            value &= ~member_overwrite._deny
+            value |= member_overwrite._allow
+
+        # Apply the overwrites for member's roles
+        for role in self.roles:
+            role_overwrite = get_permission_overwrite(role)
+
+            if role_overwrite:
+                value |= role_overwrite._allow
+                value &= ~role_overwrite._deny
+
+        permissions.value = value
         return permissions
 
     async def kick(self, *, reason: typing.Optional[str] = None) -> None:

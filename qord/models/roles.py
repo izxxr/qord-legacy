@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 from qord.models.base import BaseModel
+from qord.models.channels import GuildChannel
 from qord.flags.permissions import Permissions
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable
@@ -293,6 +294,55 @@ class Role(BaseModel, Comparable):
             The deletion failed failed.
         """
         await self._rest.delete_role(guild_id=self.guild.id, role_id=self.id, reason=reason)
+
+    def permissions_in(self, channel: GuildChannel) -> Permissions:
+        """Computes the permissions of this role in a :class:`GuildChannel`.
+
+        This method computes the permissions by taking in account the
+        role's base permissions as well as the permission overrides
+        of that channel.
+
+        Parameters
+        ----------
+        channel: :class:`GuildChannel`
+            The target channel for which the role's permissions should be computed.
+
+        Returns
+        -------
+        :class:`Permissions`
+            The computed permissions.
+        """
+        if not isinstance(channel, GuildChannel):
+            raise TypeError("Parameter 'channel' must be an instance of GuildChannel.")
+
+        permissions = self.permissions
+
+        if permissions.administrator:
+            return Permissions.all()
+
+        value = permissions.value
+        get_permission_overwrite = channel.permission_overwrite_for
+
+        # Apply @everyone's overwrite first.
+        default_role = self.guild.default_role
+        assert default_role is not None
+
+        default_role_overwrite = get_permission_overwrite(default_role)
+
+        if default_role_overwrite:
+            value &= ~default_role_overwrite._deny
+            value |= default_role_overwrite._allow
+
+        # Apply overwrite for this role
+        role_overwrite = get_permission_overwrite(self)
+
+        if role_overwrite:
+            value &= ~role_overwrite._deny
+            value |= role_overwrite._allow
+
+        # Roles don't need any more computation
+        permissions.value = value
+        return permissions
 
     async def edit(self, *,
         name: str = UNDEFINED,

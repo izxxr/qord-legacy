@@ -425,8 +425,8 @@ class TimestampStyle:
     RELATIVE_TIME = "R"
     """Relative time e.g 2 months ago"""
 
-class PermissionOverwriteType:
-    """An enumeration that details types of a :class:`ChannelPermissionOverwrite` object."""
+class ChannelPermissionType:
+    """An enumeration that details type of target in a :class:`ChannelPermission` object."""
 
     ROLE = 0
     """Overwrite belonging to a role."""

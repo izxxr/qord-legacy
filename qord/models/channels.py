@@ -26,7 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.roles import Role
 from qord.bases import BaseMessageChannel
-from qord.enums import ChannelType
+from qord.enums import ChannelPermissionType, ChannelType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable
@@ -43,33 +43,32 @@ if typing.TYPE_CHECKING:
     from qord.models.guild_members import GuildMember
 
 
-class ChannelPermissionOverwrite(BaseModel):
-    """Represents the detail of a permission overwrite in a :class:`GuildChannel`
-    for a specific role or member.
+class ChannelPermission(BaseModel):
+    """Represents the detail of a channel permission override for a specific target.
 
     Attributes
     ----------
-    id: :class:`builtins.int`
-        The ID of entity that this permission overwrite is for. This can either
+    target_id: :class:`builtins.int`
+        The ID of target that this permission overwrite is for. This can either
         be ID of a role or member.
     type: :class:`builtins.int`
-        The type of entity that this permission overwrite is for. See :class:`PermissionOverwriteType`
-        for possible values.
-    overwrite: :class:`PermissionOverwrite`
-        The actual permission overwrite for the given entity.
+        The type of target that this permission overwrite is for.
+        See :class:`ChannelPermissionType` for possible values.
+    permission_overwrite: :class:`PermissionOverwrite`
+        The permission overwrite for the given target.
     """
 
     if typing.TYPE_CHECKING:
-        id: int
-        type: int
-        overwrite: PermissionOverwrite
+        target_id: int
+        target_type: int
+        permission_overwrite: PermissionOverwrite
         channel: GuildChannel
 
     __slots__ = (
         "channel",
-        "id",
-        "type",
-        "overwrite",
+        "target_id",
+        "target_type",
+        "permission_overwrite",
         "_client",
         "_allow",
         "_deny",
@@ -86,13 +85,38 @@ class ChannelPermissionOverwrite(BaseModel):
             Permissions(int(data["deny"])),
         )
 
-        # Raw bitwise values (private), used by GuildChannel.permissions_for
+        # Raw bitwise values (private)
         self._allow = allow.value
         self._deny = deny.value
 
-        self.id = int(data["id"])
-        self.type = data["type"]
-        self.overwrite = PermissionOverwrite.from_permissions(allow, deny)
+        self.target_id = int(data["id"])
+        self.target_type = data["type"]
+        self.permission_overwrite = PermissionOverwrite.from_permissions(allow, deny)
+
+    @property
+    def target(self) -> typing.Optional[typing.Union[Role, GuildMember]]:
+        """The target that the permission is for.
+
+        .. note::
+            This property is resolved from relevant channel's guild cache.
+            If the client is missing :attr:`Intents.members` and the permission
+            override is for a guild member, This would potentially return ``None``.
+            In which case, you should consider fetching the member directly using
+            the given :attr:`.target_id`
+
+        Returns
+        -------
+        Optional[:class:`Role`, :class:`GuildMember`]
+            The resolved target, or ``None`` if couldn't be resolved.
+        """
+        cache = self.channel.guild.cache
+        target_type = self.target_type
+
+        if target_type == ChannelPermissionType.ROLE:
+            return cache.get_role(self.target_id)
+
+        elif target_type == ChannelPermissionType.MEMBER:
+            return cache.get_member(self.target_id)
 
 
 class GuildChannel(BaseModel, Comparable):
@@ -135,7 +159,7 @@ class GuildChannel(BaseModel, Comparable):
         position: int
         nsfw: bool
         parent_id: typing.Optional[int]
-        _permission_overwrites: typing.Dict[int, ChannelPermissionOverwrite]
+        _permission_overwrites: typing.Dict[int, ChannelPermission]
 
     __slots__ = (
         "_client",
@@ -162,19 +186,9 @@ class GuildChannel(BaseModel, Comparable):
         self.position = data.get("position", 1)
         self.parent_id = get_optional_snowflake(data, "parent_id")
         self._permission_overwrites = {
-            int(po["id"]): ChannelPermissionOverwrite(po, channel=self)
+            int(po["id"]): ChannelPermission(po, channel=self)
             for po in data.get("permission_overwrites", [])
         }
-
-    @property
-    def permission_overwrites(self) -> typing.List[ChannelPermissionOverwrite]:
-        """The list of permission overwrites set on this channel.
-
-        Returns
-        -------
-        List[:class:`ChannelPermissionOverwrite`]
-        """
-        return list(self._permission_overwrites.values())
 
     @property
     def mention(self) -> str:
@@ -186,85 +200,31 @@ class GuildChannel(BaseModel, Comparable):
         """
         return f"<#{self.id}>"
 
-    def get_permission_overwrite(self, entity_id: int) -> typing.Optional[ChannelPermissionOverwrite]:
-        """Gets the permission overwrite for the given entity ID.
-
-        Parameters
-        ----------
-        entity_id: :class:`builtins.int`
-            The ID of entity to get the overwrite for.
+    @property
+    def permission_overwrites(self) -> typing.List[ChannelPermission]:
+        """The list of permission overwrites set on this channel.
 
         Returns
         -------
-        Optional[:class:`ChannelPermissionOverwrite`]
+        List[:class:`ChannelPermission`]
+        """
+        return list(self._permission_overwrites.values())
+
+    def permission_overwrite_for(self, target: typing.Union[GuildMember, Role]) -> typing.Optional[ChannelPermission]:
+        """Gets the permission overwrite for the given target.
+
+        Parameters
+        ----------
+        target: Union[:class:`Role`, :class:`GuildMember`]
+            The target to get the overwrite for.
+
+        Returns
+        -------
+        Optional[:class:`ChannelPermission`]
             The permission overwrite, if any. If no overwrite is explicitly
             configured, None is returned.
         """
-        return self._permission_overwrites.get(entity_id)
-
-    def permissions_for(self, entity: typing.Union[GuildMember, Role]) -> Permissions:
-        """Computes permissions for the given member or role in this channel.
-
-        This method takes in account the member's or role's base permissions
-        as well as channel permission overwrites.
-
-        Parameters
-        ----------
-        entity: Union[:class:`GuildMember`, :class:`Role`]
-            The member or role to get permissions for.
-
-        Returns
-        -------
-        :class:`Permissions`
-        """
-        if isinstance(entity, Role):
-            permissions = entity.permissions
-            is_role = True
-        else:
-            permissions = entity.permissions()
-            is_role = False
-
-        if permissions.administrator:
-            # Member.permissions() already returns Permissions.all() if
-            # the permissions contain Administrator permission so we don't
-            # have to redo it
-            if is_role:
-                permissions = Permissions.all()
-            return permissions
-
-        # Faster value manipulation
-        value = permissions.value
-        get_overwrite = self.get_permission_overwrite
-
-        # Apply @everyone's overwrite first.
-        default_role_overwrite = get_overwrite(self.guild.id)
-
-        if default_role_overwrite:
-            value &= ~default_role_overwrite._deny
-            value |= default_role_overwrite._allow
-
-        # Apply overwrite for this entity, role or member
-        entity_overwrite = get_overwrite(entity.id)
-
-        if entity_overwrite:
-            value &= ~entity_overwrite._deny
-            value |= entity_overwrite._allow
-
-        # Roles don't need any more computation
-        if is_role:
-            permissions.value = value
-            return permissions
-
-        # For members, also apply the overwrites for member's roles
-        for role in entity.roles:  # type: ignore # Always a Member object
-            role_overwrite = get_overwrite(role.id)
-
-            if role_overwrite:
-                value |= role_overwrite._allow
-                value &= ~role_overwrite._deny
-
-        permissions.value = value
-        return permissions
+        return self._permission_overwrites.get(target.id)
 
     async def delete(self, *, reason: typing.Optional[str] = None) -> None:
         """Deletes this channel.

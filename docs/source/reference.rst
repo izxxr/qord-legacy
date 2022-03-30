@@ -153,10 +153,10 @@ MessageType
 .. autoclass:: MessageType()
     :members:
 
-PermissionOverwriteType
+ChanenlPermissionType
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: PermissionOverwriteType()
+.. autoclass:: ChanenlPermissionType()
     :members:
 
 Data classes
@@ -445,10 +445,10 @@ DMChannel
     :inherited-members:
     :members:
 
-ChannelPermissionOverwrite
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+ChannelPermission
+~~~~~~~~~~~~~~~~~
 
-.. autoclass:: ChannelPermissionOverwrite()
+.. autoclass:: ChannelPermission()
     :members:
 
 Message
