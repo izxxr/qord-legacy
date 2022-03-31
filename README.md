@@ -36,7 +36,9 @@ To whet your appetite, Let's get a quickstart with an example of a simple "Ping-
 ```py
 import qord
 
-client = qord.Client()
+intents = qord.Intents.unprivileged()
+intents.message_content = True
+client = qord.Client(intents=intents)
 
 @client.event(qord.GatewayEvent.READY)
 async def on_ready(event):
@@ -48,16 +50,18 @@ async def on_ready(event):
 @client.event(qord.GatewayEvent.MESSAGE_CREATE)
 async def on_message_create(event):
   message = event.message
-	
+
   if message.author.bot:
     # Don't respond to bot messages.
     return
-	
+
   if message.content == "!ping":
     await message.channel.send("Pong!")
 
 client.start("BOT_TOKEN")
 ```
+
+For a brief explanation of this example, see [it's explanation](https://github.com/nerdguyahmad/qord/blob/master/examples/basic.py). More examples in the [`examples`](https://github.com/nerdguyahmad/qord/blob/master/examples) directory.
 
 ## Contributing
 Qord is under heavy development. You can help us in reaching 100% coverage of Discord API by reporting bugs, suggesting features or even directly contributing to the code base, See [Contribution Guidelines](https://github.com/nerdguyahmad/qord/blob/main/CONTRIBUTING.MD).
@@ -66,7 +70,7 @@ Qord is under heavy development. You can help us in reaching 100% coverage of Di
 
 <br>
 <div align="center">
-  <a href="https://qord.rtfd.io">Documentation</a> • <a href="https://discord.gg/nE9cGtzayA">Discord Server</a> • <a href="https://pypi.org/project/qord">PyPi</a> 
+  <a href="https://qord.rtfd.io">Documentation</a> • <a href="https://discord.gg/nE9cGtzayA">Discord Server</a> • <a href="https://pypi.org/project/qord">PyPi</a>
   • <a href="https://github.com/nerdguyahmad/qord">GitHub</a> • <a href="https://github.com/nerdguyahmad/qord/issues">Issues Tracker</a>
   <br><br>
   <sup>Copyright (C) nerdguyahmad and contributors 2022, Under the MIT license.</sup>
