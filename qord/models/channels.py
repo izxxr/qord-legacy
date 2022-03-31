@@ -159,7 +159,7 @@ class GuildChannel(BaseModel, Comparable):
         position: int
         nsfw: bool
         parent_id: typing.Optional[int]
-        _permission_overwrites: typing.Dict[int, ChannelPermission]
+        _permissions: typing.Dict[int, ChannelPermission]
 
     __slots__ = (
         "_client",
@@ -170,7 +170,7 @@ class GuildChannel(BaseModel, Comparable):
         "name",
         "position",
         "parent_id",
-        "_permission_overwrites",
+        "_permissions",
     )
 
     def __init__(self, data: typing.Dict[str, typing.Any], guild: Guild) -> None:
@@ -185,7 +185,7 @@ class GuildChannel(BaseModel, Comparable):
         self.name = data["name"]
         self.position = data.get("position", 1)
         self.parent_id = get_optional_snowflake(data, "parent_id")
-        self._permission_overwrites = {
+        self._permissions = {
             int(po["id"]): ChannelPermission(po, channel=self)
             for po in data.get("permission_overwrites", [])
         }
@@ -201,16 +201,16 @@ class GuildChannel(BaseModel, Comparable):
         return f"<#{self.id}>"
 
     @property
-    def permission_overwrites(self) -> typing.List[ChannelPermission]:
+    def permissions(self) -> typing.List[ChannelPermission]:
         """The list of permission overwrites set on this channel.
 
         Returns
         -------
         List[:class:`ChannelPermission`]
         """
-        return list(self._permission_overwrites.values())
+        return list(self._permissions.values())
 
-    def permission_overwrite_for(self, target: typing.Union[GuildMember, User, Role]) -> typing.Optional[ChannelPermission]:
+    def permission_overwrite_for(self, target: typing.Union[GuildMember, User, Role]) -> typing.Optional[PermissionOverwrite]:
         """Gets the permission overwrite for the given target.
 
         Parameters
@@ -220,11 +220,18 @@ class GuildChannel(BaseModel, Comparable):
 
         Returns
         -------
-        Optional[:class:`ChannelPermission`]
+        Optional[:class:`PermissionOverwrite`]
             The permission overwrite, if any. If no overwrite is explicitly
             configured, None is returned.
         """
-        return self._permission_overwrites.get(target.id)
+        permission = self._permissions.get(target.id)
+
+        if permission is not None:
+            return permission.permission_overwrite
+
+    def _get_permission(self, target: typing.Any) -> typing.Optional[ChannelPermission]:
+        # This method is for internal usage in permissions_in() methods
+        return self._permissions.get(target.id)
 
     async def delete(self, *, reason: typing.Optional[str] = None) -> None:
         """Deletes this channel.

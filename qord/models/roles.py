@@ -321,7 +321,7 @@ class Role(BaseModel, Comparable):
             return Permissions.all()
 
         value = permissions.value
-        get_permission_overwrite = channel.permission_overwrite_for
+        get_permission_overwrite = channel._get_permission
 
         # Apply @everyone's overwrite first.
         default_role = self.guild.default_role
