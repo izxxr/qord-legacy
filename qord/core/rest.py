@@ -410,6 +410,27 @@ class RestClient:
         data = await self.request(route, json=json, reason=reason)
         return data
 
+    async def set_permission_overwrite(
+        self,
+        channel_id: int,
+        overwrite_id: int,
+        json: typing.Dict[str, typing.Any],
+        reason: typing.Optional[str] = None,
+    ):
+        route = Route("PUT", "/channels/{channel_id}/permissions/{overwrite_id}",
+                      channel_id=channel_id, overwrite_id=overwrite_id)
+        await self.request(route, json=json, reason=reason)
+
+    async def remove_permission_overwrite(
+        self,
+        channel_id: int,
+        overwrite_id: int,
+        reason: typing.Optional[str] = None,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/permissions/{overwrite_id}",
+                      channel_id=channel_id, overwrite_id=overwrite_id)
+        await self.request(route, reason=reason)
+
     # --- Messages --- #
 
     async def get_message(self, channel_id: int, message_id: int):

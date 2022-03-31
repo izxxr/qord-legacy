@@ -210,12 +210,12 @@ class GuildChannel(BaseModel, Comparable):
         """
         return list(self._permission_overwrites.values())
 
-    def permission_overwrite_for(self, target: typing.Union[GuildMember, Role]) -> typing.Optional[ChannelPermission]:
+    def permission_overwrite_for(self, target: typing.Union[GuildMember, User, Role]) -> typing.Optional[ChannelPermission]:
         """Gets the permission overwrite for the given target.
 
         Parameters
         ----------
-        target: Union[:class:`Role`, :class:`GuildMember`]
+        target: Union[:class:`Role`, :class:`User`, :class:`GuildMember`]
             The target to get the overwrite for.
 
         Returns
@@ -246,6 +246,123 @@ class GuildChannel(BaseModel, Comparable):
         """
         await self._rest.delete_channel(channel_id=self.id, reason=reason)
 
+    async def _edit_permission_overwrites_payload(
+        self,
+        permission_overwrites: typing.Dict[typing.Union[GuildMember, User, Role], PermissionOverwrite]
+    ) -> typing.List[typing.Dict[str, typing.Any]]:
+
+        # Circular imports
+        from qord.models.guild_members import GuildMember
+        from qord.models.roles import Role
+
+        ret = []
+
+        for obj, overwrite in permission_overwrites.items():
+            if isinstance(obj, (GuildMember, User)):
+                target_type = ChannelPermissionType.MEMBER
+            elif isinstance(obj, Role):
+                target_type = ChannelPermissionType.ROLE
+            else:
+                raise TypeError(f"Expected key of permission_overwrites dictionary to be an instance of GuildMember or Role, got {obj.__class__}")
+
+            allow, deny = overwrite.permissions()
+            ret.append({
+                "id": obj.id,
+                "type": target_type,
+                "allow": allow.value,
+                "deny": deny.value,
+            })
+
+        return ret
+
+    async def set_permission_overwrite(
+        self,
+        target: typing.Union[GuildMember, User, Role],
+        overwrite: PermissionOverwrite,
+        reason: typing.Optional[str] = None,
+    ) -> None:
+        """Sets a permission overwrite for the given target on the channel.
+
+        This requires :attr:`~Permissions.manage_channels` permission for the
+        given channel and only those permissions that the bot has can be overriden
+        in the overwrite.
+
+        Parameters
+        ----------
+        target: Union[:class:`GuildMember`, :class:`User`, :class:`Role`]
+            The role or member for which the permission overwrite is being set.
+        overwrite: :class:`PermissionOverwrite`
+            The new permission overwrite to set.
+        reason: :class:`builtins.str`
+            The audit log reason for this operation.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this or you are trying to override
+            permissions that are not on the bot.
+        HTTPException
+            The operation failed.
+        """
+        # Circular imports
+        from qord.models.guild_members import GuildMember
+        from qord.models.roles import Role
+
+        if isinstance(target, (GuildMember, User)):
+            target_type = ChannelPermissionType.MEMBER
+        elif isinstance(target, Role):
+            target_type = ChannelPermissionType.ROLE
+        else:
+            raise TypeError(f"Expected key of permission_overwrites dictionary to be an instance of GuildMember or Role, got {target.__class__}")
+
+        allow, deny = overwrite.permissions()
+        json = {
+            "type": target_type,
+            "allow": allow.value,
+            "deny": deny.value,
+        }
+
+        await self._rest.set_permission_overwrite(
+            channel_id=self.id,
+            overwrite_id=target.id,
+            json=json,
+            reason=reason
+        )
+
+    async def remove_permission_overwrite(
+        self,
+        target: typing.Union[GuildMember, User, Role],
+        reason: typing.Optional[str] = None,
+    ) -> None:
+        """Removes the permission overwrite for the given targets.
+
+        This requires :attr:`~Permissions.manage_channels` permission
+        in the given channel.
+
+        Parameters
+        ----------
+        target: Union[:class:`GuildMember`, :class:`User`, :class:`Role`]
+            The role or member for which the permission overwrite
+            is being removed.
+        reason: :class:`builtins.str`
+            The audit log reason for this operation.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPNotFound
+            Permission overwrite does not exist for this user.
+        HTTPException
+            The operation failed.
+        """
+        await self._rest.remove_permission_overwrite(
+            channel_id=self.id,
+            overwrite_id=target.id,
+            reason=reason
+        )
+
+    # TODO: Refactor this to take common parameters like name and permission_overwrites
     async def edit(self, **kwargs) -> None:
         raise NotImplementedError("edit() must be implemented by subclasses.")
 
@@ -316,6 +433,7 @@ class TextChannel(GuildChannel, BaseMessageChannel):
         topic: typing.Optional[str] = UNDEFINED,
         slowmode_delay: typing.Optional[int] = UNDEFINED,
         default_auto_archive_duration: int = UNDEFINED,
+        permission_overwrites: typing.Dict[typing.Union[GuildMember, User, Role], PermissionOverwrite] = UNDEFINED,
         reason: typing.Optional[str] = None,
     ) -> None:
         """Edits the channel.
@@ -348,6 +466,10 @@ class TextChannel(GuildChannel, BaseMessageChannel):
         default_auto_archive_duration: :class:`builtins.int`
             The default auto archive duration after which in active threads
             are archived automatically (in minutes). Valid values are 60, 1440, 4320 and 10080.
+        permission_overwrites: Dict[Union[:class:`GuildMember`, :class:`User`, :class:`Role`], :class:`PermissionOverwrite`]
+            The permission overwrites of this channel. This is a dictionary with key being the
+            target whose permission overwrite is being edited and value is the new
+            permission overwrite.
         reason: :class:`builtins.str`
             The reason for performing this action that shows up on guild's audit log.
 
@@ -396,6 +518,9 @@ class TextChannel(GuildChannel, BaseMessageChannel):
         if parent is not UNDEFINED:
             json["parent_id"] = parent.id if parent is not None else None
 
+        if permission_overwrites is not UNDEFINED:
+            json["permission_overwrites"] = self._edit_permission_overwrites_payload(permission_overwrites)
+
         if json:
             data = await self._rest.edit_channel(
                 channel_id=self.id,
@@ -441,6 +566,7 @@ class CategoryChannel(GuildChannel):
         *,
         name: str = UNDEFINED,
         position: int = UNDEFINED,
+        permission_overwrites: typing.Dict[typing.Union[GuildMember, User, Role], PermissionOverwrite] = UNDEFINED,
         reason: typing.Optional[str] = None,
     ) -> None:
         """Edits the channel.
@@ -457,6 +583,10 @@ class CategoryChannel(GuildChannel):
             The name of this channel.
         position: :class:`builtins.int`
             The position of this channel in channels list.
+        permission_overwrites: Dict[Union[:class:`GuildMember`, :class:`User`, :class:`Role`], :class:`PermissionOverwrite`]
+            The permission overwrites of this channel. This is a dictionary with key being the
+            target whose permission overwrite is being edited and value is the new
+            permission overwrite.
         reason: :class:`builtins.str`
             The reason for performing this action that shows up on guild's audit log.
 
@@ -476,6 +606,9 @@ class CategoryChannel(GuildChannel):
 
         if position is not UNDEFINED:
             json["position"] = position
+
+        if permission_overwrites is not UNDEFINED:
+            json["permission_overwrites"] = self._edit_permission_overwrites_payload(permission_overwrites)
 
         if json:
             data = await self._rest.edit_channel(
@@ -538,6 +671,7 @@ class VoiceChannel(GuildChannel):
         rtc_region: typing.Optional[str] = UNDEFINED,
         user_limit: typing.Optional[int] = UNDEFINED,
         video_quality_mode: int = UNDEFINED,
+        permission_overwrites: typing.Dict[typing.Union[GuildMember, User, Role], PermissionOverwrite] = UNDEFINED,
         reason: typing.Optional[str] = None,
     ) -> None:
         """Edits the channel.
@@ -570,6 +704,10 @@ class VoiceChannel(GuildChannel):
         video_quality_mode: :class:`builtins.int`
             The video quality mode of the voice channel. See :class:`VideoQualityMode`
             for valid values.
+        permission_overwrites: Dict[Union[:class:`GuildMember`, :class:`User`, :class:`Role`], :class:`PermissionOverwrite`]
+            The permission overwrites of this channel. This is a dictionary with key being the
+            target whose permission overwrite is being edited and value is the new
+            permission overwrite.
         reason: :class:`builtins.str`
             The reason for performing this action that shows up on guild's audit log.
 
@@ -610,6 +748,9 @@ class VoiceChannel(GuildChannel):
 
         if parent is not UNDEFINED:
             json["parent_id"] = parent.id if parent is not None else None
+
+        if permission_overwrites is not UNDEFINED:
+            json["permission_overwrites"] = self._edit_permission_overwrites_payload(permission_overwrites)
 
         if json:
             data = await self._rest.edit_channel(
