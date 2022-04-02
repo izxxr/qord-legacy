@@ -33,7 +33,7 @@ from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
-    from qord.models.channels import GuildChannel
+    from qord.models.channels import GuildChannel, VoiceChannel
     from qord.models.roles import Role
     from qord.models.guilds import Guild
     from qord.flags.users import UserFlags
@@ -436,10 +436,11 @@ class GuildMember(BaseModel, Comparable):
         self,
         *,
         nickname: typing.Optional[str] = UNDEFINED,
-        roles: typing.List[Role] = UNDEFINED,
+        roles: typing.Optional[typing.List[Role]] = UNDEFINED,
         mute: bool = UNDEFINED,
         deaf: bool = UNDEFINED,
         timeout_until: datetime = UNDEFINED,
+        channel: typing.Optional[VoiceChannel] = UNDEFINED,
         reason: typing.Optional[str] = None,
     ):
         """Edits this member.
@@ -449,7 +450,7 @@ class GuildMember(BaseModel, Comparable):
 
         Parameters
         ----------
-        nickname: :class:`builtins.str`
+        nickname: Optional[:class:`builtins.str`]
             The member's guild nickname. ``None`` could be used to remove the nickname
             and reset guild name to the default username.
         roles: List[:class:`Role`]
@@ -465,6 +466,10 @@ class GuildMember(BaseModel, Comparable):
         timeout_until: :class:`datetime.datetime`
             The time until the member will be timed out. ``None`` can be used
             to remove timeout.
+        channel: Optional[:class:`VoiceChannel`]
+            The channel to move this member to, requires member to be in a voice
+            channel already. ``None`` can be used to disconnect the member from
+            existing voice channel.
         reason: :class:`builtins.str`
             The reason for this action that shows up on audit log.
 
@@ -495,6 +500,9 @@ class GuildMember(BaseModel, Comparable):
             json["communication_disabled_until"] = (
                 timeout_until.isoformat() if timeout_until is not None else None
             )
+
+        if channel is not UNDEFINED:
+            json["channel_id"] = channel.id if channel is not None else None
 
         if json:
             guild = self.guild

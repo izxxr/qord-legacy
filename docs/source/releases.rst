@@ -21,6 +21,7 @@ Additions
 - Added :attr:`Message.referenced_message` attribute.
 - Added :func:`qord.utils.create_timestamp` helper function.
 - Added :meth:`Embed.total_length` and ``len()`` support on :class:`Embed`
+- Added ``channel`` keyword argument in :attr:`GuildMember.edit`
 
 Fixes
 ~~~~~
