@@ -1,0 +1,16 @@
+name: Greetings
+
+on: [pull_request, issues]
+
+jobs:
+  greeting:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+    - uses: actions/first-interaction@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: 'Hi, It looks like this is your first issue in this repository. We appreciate your contribution! :+1: If you have any questions about your issue, Consider discussing it in our [Discord Server](https://discord.gg/nE9cGtzayA)'
+        pr-message: 'Thank you for contributing to Qord! :+1: As this is your first contribution, We recommend joining our [Discord server](https://discord.gg/nE9cGtzayA) for asking questions about your pull request and to discuss any major changes.'
