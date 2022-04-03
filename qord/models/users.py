@@ -151,7 +151,7 @@ class User(BaseModel, Comparable):
         -------
         :class:`builtins.str`
         """
-        return f"<@!{self.id}>"
+        return f"<@{self.id}>"
 
     @property
     def dm(self) -> typing.Optional[DMChannel]:

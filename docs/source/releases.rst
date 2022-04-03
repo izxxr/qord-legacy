@@ -23,6 +23,11 @@ Additions
 - Added :meth:`Embed.total_length` and ``len()`` support on :class:`Embed`
 - Added ``channel`` keyword argument in :attr:`GuildMember.edit`
 
+Improvements/Misc.
+~~~~~~~~~~~~~~~~~~
+
+- :attr:`User.mention` string no longer includes ``!``, This is done in order to comply with the recent change done to Discord client. For more information, see `this issue <https://github.com/discord/discord-api-docs/issues/4734>`_
+
 Fixes
 ~~~~~
 
