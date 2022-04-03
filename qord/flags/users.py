@@ -24,6 +24,12 @@ from __future__ import annotations
 
 from qord.flags.base import Flags
 
+
+__all__ = (
+    "UserFlags",
+)
+
+
 class UserFlags(Flags):
     r""":class:`Flags` subclass that details the flags of a :class:`User`. This is mostly
     obtained using :attr:`User.flags` attribute.

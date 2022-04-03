@@ -25,6 +25,11 @@ from __future__ import annotations
 from qord.flags.base import Flags
 
 
+__all__ = (
+    "Intents",
+)
+
+
 class Intents(Flags):
     """:class:`Flags` subclass that details the gateway intents.
 

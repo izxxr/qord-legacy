@@ -33,6 +33,12 @@ if typing.TYPE_CHECKING:
     from qord.models.channels import GuildChannel, PrivateChannel
     from qord.models.messages import Message
 
+
+__all__ = (
+    "Cache",
+    "GuildCache",
+)
+
 class Cache(ABC):
     """Base class for creating custom cache handlers.
 

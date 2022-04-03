@@ -29,6 +29,11 @@ if typing.TYPE_CHECKING:
     _OverwriteValue = typing.Optional[bool]
 
 
+__all__ = (
+    "PermissionOverwrite",
+)
+
+
 class PermissionOverwrite:
     """A class representing the permissions overwrite on a guild channel.
 

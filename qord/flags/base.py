@@ -27,6 +27,11 @@ import typing
 # Thanks to discord.py for being a good base design for Flags.
 # This is inspired by discord.py
 
+__all__ = (
+    "Flags",
+)
+
+
 class Flags:
     r"""A class that interfaces manipulating bitwise flags.
 

@@ -32,6 +32,11 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.models.users import User
 
+
+__all__ = (
+    "UserUpdate",
+)
+
 @dataclass(frozen=True)
 class UserUpdate(BaseEvent, event_name=GatewayEvent.USER_UPDATE):
     """Structure for :attr:`~qord.GatewayEvent.USER_UPDATE` event.

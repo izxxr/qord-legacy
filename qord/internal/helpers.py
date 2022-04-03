@@ -29,6 +29,19 @@ from datetime import datetime
 from base64 import b64encode
 import typing
 
+
+__all__ = (
+    "BASE_CDN_URL",
+    "BASIC_STATIC_EXTS",
+    "BASIC_EXTS",
+    "create_cdn_url",
+    "get_optional_snowflake",
+    "compute_shard_id",
+    "get_image_data",
+    "parse_iso_timestamp",
+)
+
+
 BASE_CDN_URL = "https://cdn.discordapp.com"
 BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
@@ -41,7 +54,7 @@ def create_cdn_url(path: str, extension: str, size: int = UNDEFINED, valid_exts:
         # are currently png, jpg, webp.
         # When using with endpoints that have special formats
         # consider passing the valid formats explicitly.
-        valid_exts = ["png", "jpeg", "jpg", "webp"]
+        valid_exts = BASIC_STATIC_EXTS
 
     if not extension.lower() in valid_exts:
         raise ValueError(f"Invalid image extension {extension!r}, Expected one of {', '.join(valid_exts)}")

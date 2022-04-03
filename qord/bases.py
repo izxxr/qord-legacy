@@ -37,6 +37,11 @@ if typing.TYPE_CHECKING:
     from qord.core.rest import RestClient
 
 
+__all__ = (
+    "BaseMessageChannel",
+)
+
+
 class BaseMessageChannel(ABC):
     """A base class that implements support for messages managament.
 

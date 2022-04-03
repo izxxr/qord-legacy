@@ -39,6 +39,11 @@ if typing.TYPE_CHECKING:
     from qord.flags.users import UserFlags
 
 
+__all__ = (
+    "GuildMember",
+)
+
+
 def _user_features(cls):
     ignore = (
         "avatar",

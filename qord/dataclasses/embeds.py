@@ -28,6 +28,18 @@ import dataclasses
 import typing
 
 
+__all__ = (
+    "Embed",
+    "EmbedImage",
+    "EmbedThumbnail",
+    "EmbedProvider",
+    "EmbedVideo",
+    "EmbedAuthor",
+    "EmbedFooter",
+    "EmbedField",
+)
+
+
 _EI = typing.TypeVar("_EI")
 
 class Embed:

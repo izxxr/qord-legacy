@@ -43,6 +43,10 @@ import json as _json
 if typing.TYPE_CHECKING:
     from qord.dataclasses.files import File
 
+__all__ = (
+    "RestClient",
+)
+
 _LOGGER = logging.getLogger(__name__)
 _RATELIMIT_HIT_WARNING = "A ratelimit has been hit! Retrying this request after the delay of {retry_after}s."
 _RATELIMIT_CLEAR_INFO  = "The ratelimit has been cleared, retrying the request now."

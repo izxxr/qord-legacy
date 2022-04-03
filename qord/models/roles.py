@@ -40,6 +40,11 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
 
 
+__all__ = (
+    "Role",
+)
+
+
 class Role(BaseModel, Comparable):
     """Representation of a guild's role.
 

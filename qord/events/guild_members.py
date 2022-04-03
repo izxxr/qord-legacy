@@ -33,6 +33,13 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.models.guild_members import GuildMember
 
+__all__ = (
+    "GuildMemberAdd",
+    "GuildMemberUpdate",
+    "GuildMemberRemove",
+)
+
+
 @dataclass(frozen=True)
 class GuildMemberAdd(BaseEvent, event_name=GatewayEvent.GUILD_MEMBER_ADD):
     """Structure for :attr:`~qord.GatewayEvent.GUILD_MEMBER_ADD` event.
