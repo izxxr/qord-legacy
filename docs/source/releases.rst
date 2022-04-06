@@ -28,6 +28,7 @@ Improvements/Misc.
 
 - :attr:`User.mention` string no longer includes ``!``, This is done in order to comply with the recent change done to Discord client. For more information, see `this issue <https://github.com/discord/discord-api-docs/issues/4734>`_
 - :attr:`DefaultCache.private_channels` cache is now bound to limit of 256 channels.
+- :class:`File` constructor no longer raises :exc:`RuntimeError` on failing to resolve file name and now fallbacks to ``untitled``
 
 Fixes
 ~~~~~
