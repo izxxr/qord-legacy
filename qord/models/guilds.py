@@ -240,10 +240,6 @@ class Guild(BaseModel, Comparable):
         cache = self._cache
         client_cache = self._client_cache
 
-        for raw_role in data.get("roles", []):
-            role = Role(raw_role, guild=self)
-            cache.add_role(role)
-
         for raw_member in data.get("members", []):
             member = GuildMember(raw_member, guild=self)
             cache.add_member(member)
@@ -310,6 +306,12 @@ class Guild(BaseModel, Comparable):
         self.system_channel_id = get_optional_snowflake(data, "system_channel_id")
         self.rules_channel_id = get_optional_snowflake(data, "rules_channel_id")
         self.public_updates_channel_id = get_optional_snowflake(data, "public_updates_channel_id")
+
+        cache = self._cache
+
+        for raw_role in data.get("roles", []):
+            role = Role(raw_role, guild=self)
+            cache.add_role(role)
 
     @property
     def cache(self) -> GuildCache:

@@ -36,7 +36,7 @@ Fixes
     - Passing ``None`` is not supported in various places especially ``x_url()`` methods.
     - ``None`` is now allowed in ``reason`` parameters in REST methods.
     - Other minor improvements and fixes.
-
+- Fixed :meth:`GuildCache.roles` returning empty list for HTTP retrieved guilds.
 
 v0.3.0a1 (Pre-release)
 ----------------------
