@@ -35,6 +35,7 @@ Fixes
 - Fixed typing issues across the library.
     - Passing ``None`` is not supported in various places especially ``x_url()`` methods.
     - ``None`` is now allowed in ``reason`` parameters in REST methods.
+    - Various methods of cache handlers now use :class:`typing.List` rather than the :attr:`typing.Sequence`
     - Other minor improvements and fixes.
 - Fixed :meth:`GuildCache.roles` returning empty list for HTTP retrieved guilds.
 
