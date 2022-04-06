@@ -380,10 +380,20 @@ class GuildMember(BaseModel, Comparable):
 
         permissions = self.permissions() # Base permissions
 
+        # Handling special cases first:
+        # - Administrator: All permissions
+        # - Timed out: Only specific permissions given
+
         if permissions.administrator:
             # If we're here, the permissions should always be Permissions.all()
             # since permissions() method handles that already.
             return permissions
+
+        if self.is_timed_out():
+            # Timed out members temporarily lose all permissions except these:
+            # This case does not apply to administrators or owners, we have already
+            # handled that above.
+            return Permissions(view_channel=True, read_message_history=True)
 
         value = permissions.value
         get_permission_overwrite = channel._get_permission
