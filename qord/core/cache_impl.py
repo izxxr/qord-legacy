@@ -130,7 +130,12 @@ class DefaultCache(Cache):
         if not isinstance(private_channel, PrivateChannel):
             raise TypeError("Parameter private_channel must be an instance of PrivateChannel")
 
-        self._private_channels[private_channel.id] = private_channel
+        private_channels = self._private_channels
+
+        if len(private_channels) >= 256:
+            private_channels.clear()
+
+        private_channels[private_channel.id] = private_channel
 
     def get_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
         if not isinstance(channel_id, int):
