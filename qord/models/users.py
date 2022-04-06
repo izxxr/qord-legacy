@@ -37,6 +37,13 @@ if typing.TYPE_CHECKING:
     from qord.core.client import Client
     from qord.bases import BaseMessageChannel
 
+
+__all__ = (
+    "User",
+    "ClientUser",
+)
+
+
 class User(BaseModel, Comparable):
     """Representation of a Discord user entity.
 
@@ -144,7 +151,7 @@ class User(BaseModel, Comparable):
         -------
         :class:`builtins.str`
         """
-        return f"<@!{self.id}>"
+        return f"<@{self.id}>"
 
     @property
     def dm(self) -> typing.Optional[DMChannel]:

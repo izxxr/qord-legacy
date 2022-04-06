@@ -24,6 +24,10 @@ from __future__ import annotations
 
 import typing
 
+__all__ = (
+    "AllowedMentions",
+)
+
 class AllowedMentions:
     """Represents the allowed mentions of a message.
 

@@ -24,6 +24,11 @@ from __future__ import annotations
 
 import typing
 
+__all__ = (
+    "UNDEFINED",
+)
+
+
 class _Undefined:
     def __bool__(self) -> bool:
         return False

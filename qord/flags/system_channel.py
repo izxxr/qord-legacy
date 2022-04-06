@@ -25,6 +25,11 @@ from __future__ import annotations
 from qord.flags.base import Flags
 
 
+__all__ = (
+    "SystemChannelFlags",
+)
+
+
 class SystemChannelFlags(Flags):
     r""":class:`Flags` subclass that details the flags for a guild's system channel."""
 

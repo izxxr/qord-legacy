@@ -35,6 +35,10 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.core.client import Client
 
+__all__ = (
+    "Shard",
+)
+
 class GatewayOP:
     DISPATCH = 0
     HEARTBEAT = 1

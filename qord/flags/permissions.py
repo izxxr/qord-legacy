@@ -25,6 +25,11 @@ from __future__ import annotations
 from qord.flags.base import Flags
 
 
+__all__ = (
+    "Permissions",
+)
+
+
 class Permissions(Flags):
     r"""A class that provides rich interface for manipulating permissions bitwise value.
 

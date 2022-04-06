@@ -29,6 +29,10 @@ if typing.TYPE_CHECKING:
     from qord.models.messages import Message
 
 
+__all__ = (
+    "MessageReference",
+)
+
 class MessageReference:
     """Represents a reference to another message in a :class:`Message`.
 

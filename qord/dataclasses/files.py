@@ -31,6 +31,11 @@ if typing.TYPE_CHECKING:
     from io import BufferedReader
 
 
+__all__ = (
+    "File",
+)
+
+
 class File:
     """Represents a file that is sent in messages.
 

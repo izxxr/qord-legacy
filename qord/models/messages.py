@@ -45,6 +45,14 @@ if typing.TYPE_CHECKING:
 
     MessageableT = typing.Union[TextChannel, DMChannel]
 
+
+__all__ = (
+    "ChannelMention",
+    "Attachment",
+    "Message",
+)
+
+
 class ChannelMention(BaseModel):
     """Represents a mention to a specific channel in a message's content.
 

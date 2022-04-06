@@ -22,10 +22,10 @@ Abstract Classes
 Other classes provided by the library can inherit these classes to implement the
 relevant common functionality.
 
-MessagesSupported
-~~~~~~~~~~~~~~~~~
+BaseMessageChannel
+~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MessagesSupported()
+.. autoclass:: BaseMessageChannel()
     :members:
 
 Cache Handlers
@@ -153,10 +153,10 @@ MessageType
 .. autoclass:: MessageType()
     :members:
 
-ChanenlPermissionType
+ChannelPermissionType
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: ChanenlPermissionType()
+.. autoclass:: ChannelPermissionType()
     :members:
 
 Data classes

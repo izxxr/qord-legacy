@@ -50,6 +50,11 @@ if typing.TYPE_CHECKING:
     from qord.models.channels import CategoryChannel
 
 
+__all__ = (
+    "Guild",
+)
+
+
 class Guild(BaseModel, Comparable):
     """Representation of a Discord guild entity often referred as "Server" in the UI.
 
