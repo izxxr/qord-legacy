@@ -20,7 +20,7 @@ Additions
 - Added module ``qord.utils``, see :ref:`reference-utilities` for more info.
 - Added :attr:`Message.referenced_message` attribute.
 - Added :func:`qord.utils.create_timestamp` helper function.
-- Added :meth:`Embed.total_length` and ``len()`` support on :class:`Embed`
+- Added :meth:`Embed.total_length` and :meth:`builtins.len()` support on :class:`Embed`
 - Added ``channel`` keyword argument in :attr:`GuildMember.edit`
 
 Improvements/Misc.
