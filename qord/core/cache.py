@@ -33,6 +33,12 @@ if typing.TYPE_CHECKING:
     from qord.models.channels import GuildChannel, PrivateChannel
     from qord.models.messages import Message
 
+
+__all__ = (
+    "Cache",
+    "GuildCache",
+)
+
 class Cache(ABC):
     """Base class for creating custom cache handlers.
 
@@ -83,12 +89,12 @@ class Cache(ABC):
         """Clears the entire cache."""
 
     @abstractmethod
-    def users(self) -> typing.Sequence[User]:
+    def users(self) -> typing.List[User]:
         """Returns all users that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`User`]
+        List[:class:`User`]
         """
 
     @abstractmethod
@@ -134,12 +140,12 @@ class Cache(ABC):
         """
 
     @abstractmethod
-    def guilds(self) -> typing.Sequence[Guild]:
+    def guilds(self) -> typing.List[Guild]:
         """Returns all guilds that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`Guild`]
+        List[:class:`Guild`]
         """
 
     @abstractmethod
@@ -185,13 +191,13 @@ class Cache(ABC):
         """
 
     @abstractmethod
-    def messages(self) -> typing.Sequence[Message]:
+    def messages(self) -> typing.List[Message]:
         """Gets all messages that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`Message`]
-            The sequence of messages cached.
+        List[:class:`Message`]
+            The list of messages cached.
         """
 
     @abstractmethod
@@ -241,13 +247,13 @@ class Cache(ABC):
         """
 
     @abstractmethod
-    def private_channels(self) -> typing.Sequence[PrivateChannel]:
+    def private_channels(self) -> typing.List[PrivateChannel]:
         """Gets all private channels that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`PrivateChannel`]
-            The sequence of private channels cached.
+        List[:class:`PrivateChannel`]
+            The list of private channels cached.
         """
 
     @abstractmethod
@@ -313,12 +319,12 @@ class GuildCache(ABC):
         """Clears the entire cache."""
 
     @abstractmethod
-    def roles(self) -> typing.Sequence[Role]:
+    def roles(self) -> typing.List[Role]:
         """Returns all roles that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`Role`]
+        List[:class:`Role`]
         """
 
     @abstractmethod
@@ -364,12 +370,12 @@ class GuildCache(ABC):
         """
 
     @abstractmethod
-    def members(self) -> typing.Sequence[GuildMember]:
+    def members(self) -> typing.List[GuildMember]:
         """Returns all members that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`GuildMember`]
+        List[:class:`GuildMember`]
         """
 
     @abstractmethod
@@ -416,12 +422,12 @@ class GuildCache(ABC):
 
 
     @abstractmethod
-    def channels(self) -> typing.Sequence[GuildChannel]:
+    def channels(self) -> typing.List[GuildChannel]:
         """Returns all channels that are currently cached.
 
         Returns
         -------
-        Sequence[:class:`GuildChannel`]
+        List[:class:`GuildChannel`]
         """
 
     @abstractmethod

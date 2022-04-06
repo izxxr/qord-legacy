@@ -27,6 +27,10 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
 
+__all__ = (
+    "BaseEvent",
+    "BaseGatewayEvent",
+)
 
 class BaseEvent:
     """Base class for events.

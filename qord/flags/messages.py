@@ -24,6 +24,12 @@ from __future__ import annotations
 
 from qord.flags.base import Flags
 
+
+__all__ = (
+    "MessageFlags",
+)
+
+
 class MessageFlags(Flags):
     """:class:`Flags` subclass that details the flags of a :class:`Message`.
 

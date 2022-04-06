@@ -22,31 +22,19 @@
 
 from __future__ import annotations
 
-from qord.events.base import BaseEvent
-from qord.enums import GatewayEvent
-
 import typing
-from dataclasses import dataclass
-
-if typing.TYPE_CHECKING:
-    from qord.core.shard import Shard
-    from qord.models.users import User
 
 
 __all__ = (
-    "UserUpdate",
+    "Comparable",
 )
 
-@dataclass(frozen=True)
-class UserUpdate(BaseEvent, event_name=GatewayEvent.USER_UPDATE):
-    """Structure for :attr:`~qord.GatewayEvent.USER_UPDATE` event.
 
-    This event is called whenever one or more properties of a user are updated.
-    """
-    shard: Shard
+class Comparable:
+    __slots__ = ()
 
-    before: User
-    """The user before the update."""
+    id: int
 
-    after: User
-    """The user after the update."""
+    def __eq__(self, other: typing.Any) -> bool:
+        return isinstance(other, self.__class__) and other.id == self.id
+

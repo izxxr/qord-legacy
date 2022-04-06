@@ -3,7 +3,7 @@ from setuptools import setup
 with open("README.MD", "r", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
-VERSION = "0.3.0a1"
+VERSION = "0.3.0a2"
 GITHUB = "https://github.com/nerdguyahmad/qord"
 DOCUMENTATION = "https://qord.readthedocs.io"
 LICENSE = "MIT"
@@ -20,6 +20,8 @@ PACKAGES = [
     "qord.events",
     "qord.flags",
     "qord.models",
+    "qord.internal",
+    "qord.dataclasses",
 ]
 
 setup(
@@ -32,7 +34,7 @@ setup(
         "Documentation": DOCUMENTATION,
         "Issue tracker": GITHUB + "/issues",
     },
-    description='[WIP] Python library for Discord API based around asyncio.',
+    description='Python library for Discord API based around asyncio.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     include_package_data=True,

@@ -395,3 +395,41 @@ class MessageType:
 
     CONTEXT_MENU_COMMAND = 23
     """Message is a context menu command."""
+
+
+class TimestampStyle:
+    """An enumeration that details all styles for a markdown timestamp."""
+
+    SHORT_TIME = "t"
+    """Short time e.g 16:20"""
+
+    LONG_TIME = "T"
+    """Long time e.g 16:20:30"""
+
+    SHORT_DATE = "d"
+    """Short date e.g 20/04/2021"""
+
+    LONG_DATE = "D"
+    """Long date e.g 20 April 2021"""
+
+    SHORT_DATE_TIME = "f"
+    """Short date and time e.g 20 April 2021 16:20
+
+    This is default style that is applied when no style
+    is provided in the timestamp.
+    """
+
+    LONG_DATE_TIME = "F"
+    """Long date and time e.g Tuesday, 20 April 2021 16:20"""
+
+    RELATIVE_TIME = "R"
+    """Relative time e.g 2 months ago"""
+
+class ChannelPermissionType:
+    """An enumeration that details type of target in a :class:`ChannelPermission` object."""
+
+    ROLE = 0
+    """Overwrite belonging to a role."""
+
+    MEMBER = 1
+    """Overwrite belonging to a guild member."""

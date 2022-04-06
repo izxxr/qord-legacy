@@ -25,6 +25,11 @@ from __future__ import annotations
 from qord.flags.base import Flags
 
 
+__all__ = (
+    "Permissions",
+)
+
+
 class Permissions(Flags):
     r"""A class that provides rich interface for manipulating permissions bitwise value.
 
@@ -161,3 +166,8 @@ class Permissions(Flags):
 
     moderate_members = 1 << 40
     r"""Allows moderating members including managing members timeout."""
+
+    @classmethod
+    def all(cls) -> Permissions:
+        """Creates a :class:`Permissions` instance with all permissions enabled."""
+        return cls(2199023255551)

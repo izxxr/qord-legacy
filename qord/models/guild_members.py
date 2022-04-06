@@ -24,15 +24,24 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
-from qord._helpers import parse_iso_timestamp, create_cdn_url, UNDEFINED, BASIC_EXTS
-from datetime import datetime
+from qord.internal.helpers import parse_iso_timestamp, create_cdn_url, BASIC_EXTS
+from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
+from qord.flags.permissions import Permissions
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.models.channels import GuildChannel, VoiceChannel
     from qord.models.roles import Role
     from qord.models.guilds import Guild
     from qord.flags.users import UserFlags
+
+
+__all__ = (
+    "GuildMember",
+)
 
 
 def _user_features(cls):
@@ -72,8 +81,8 @@ def _user_features(cls):
     return cls
 
 @_user_features
-class GuildMember(BaseModel):
-    r"""Representation of a guild member.
+class GuildMember(BaseModel, Comparable):
+    """Representation of a guild member.
 
     A guild member is simply a user that is part of a specific :class:`Guild`.
     Every guild member has an underlying :class:`User` object attached to it.
@@ -86,6 +95,8 @@ class GuildMember(BaseModel):
         For example, :attr:`.avatar` and other avatar related methods and attributes
         also consider the guild specific avatar of member for relevant functionality
         with addition to user's global avatar.
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -200,7 +211,7 @@ class GuildMember(BaseModel):
 
     @property
     def name(self) -> str:
-        r"""Returns the name of this member as displayed in the guild.
+        """Returns the name of this member as displayed in the guild.
 
         This property would return the :attr:`.nickname` of the member if it's
         present and would fallback to underlying user's :attr:`~User.name` if
@@ -217,7 +228,7 @@ class GuildMember(BaseModel):
 
     @property
     def avatar(self) -> typing.Optional[str]:
-        r"""Returns the avatar's hash of this member as displayed in the guild.
+        """Returns the avatar's hash of this member as displayed in the guild.
 
         This property would return the :attr:`.guild_avatar` of this member if
         available and would fallback to underlying user's :attr:`~User.avatar`
@@ -232,8 +243,8 @@ class GuildMember(BaseModel):
             return guild_avatar
         return self.user.avatar
 
-    def avatar_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
-        r"""Returns the avatar URL for this member.
+    def avatar_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
+        """Returns the avatar URL for this member.
 
         This method returns URL for the member's displayed :attr:`.avatar`
         i.e use the guild specific member avatar if present otherwise
@@ -268,7 +279,7 @@ class GuildMember(BaseModel):
 
         if avatar is None:
             return self.user.avatar_url(extension=extension, size=size)
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "gif" if self.is_avatar_animated() else "png"
 
         return create_cdn_url(
@@ -279,7 +290,7 @@ class GuildMember(BaseModel):
         )
 
     def is_avatar_animated(self) -> bool:
-        r"""Checks whether the member's avatar is animated.
+        """Checks whether the member's avatar is animated.
 
         This method checks for the :attr:`.avatar` to be animated i.e either
         one of member's guild specific or underlying user's avatar should be
@@ -296,7 +307,7 @@ class GuildMember(BaseModel):
         return avatar.startswith("a_")
 
     def is_boosting(self) -> bool:
-        r"""Checks whether the member is boosting the guild.
+        """Checks whether the member is boosting the guild.
 
         Returns
         -------
@@ -305,7 +316,7 @@ class GuildMember(BaseModel):
         return self.premium_since is not None
 
     def is_timed_out(self) -> bool:
-        r"""Checks whether the member is timed out.
+        """Checks whether the member is timed out.
 
         Returns
         -------
@@ -317,8 +328,106 @@ class GuildMember(BaseModel):
         now = datetime.now()
         return now < timeout_until
 
-    async def kick(self, *, reason: str = None) -> None:
-        r"""Kicks the member from the associated guild.
+    def permissions(self) -> Permissions:
+        """Computes the permissions for this member in the parent guild.
+
+        This returns overall permissions for this member in the guild. In order
+        to get more precise permissions set for the member in a specific guild channel,
+        Consider using :meth:`.permissions_in` that also takes channel's
+        overwrites into account while computation.
+
+        Returns
+        -------
+        :class:`Permissions`
+            The computed permissions.
+        """
+        guild = self.guild
+
+        if guild.owner_id == self.id:
+            return Permissions.all()
+
+        permissions = guild.default_role.permissions # type: ignore
+
+        for role in self.roles:
+            permissions.value |= role.permissions.value
+
+        if permissions.administrator:
+            return Permissions.all()
+
+        return permissions
+
+    def permissions_in(self, channel: GuildChannel) -> Permissions:
+        """Computes the permissions of this member in a :class:`GuildChannel`.
+
+        This method computes the permissions by taking in account the
+        member's base permissions as well as the permission overrides
+        of that channel.
+
+        Parameters
+        ----------
+        channel: :class:`GuildChannel`
+            The target channel for which the member's permissions should be computed.
+
+        Returns
+        -------
+        :class:`Permissions`
+            The computed permissions.
+        """
+        from qord.models.channels import GuildChannel # HACK: circular imports
+
+        if not isinstance(channel, GuildChannel):
+            raise TypeError("Parameter 'channel' must be an instance of GuildChannel.")
+
+        permissions = self.permissions() # Base permissions
+
+        # Handling special cases first:
+        # - Administrator: All permissions
+        # - Timed out: Only specific permissions given
+
+        if permissions.administrator:
+            # If we're here, the permissions should always be Permissions.all()
+            # since permissions() method handles that already.
+            return permissions
+
+        if self.is_timed_out():
+            # Timed out members temporarily lose all permissions except these:
+            # This case does not apply to administrators or owners, we have already
+            # handled that above.
+            return Permissions(view_channel=True, read_message_history=True)
+
+        value = permissions.value
+        get_permission_overwrite = channel._get_permission
+
+        # Apply @everyone's overwrite first.
+        default_role = self.guild.default_role
+        assert default_role is not None
+
+        default_role_overwrite = get_permission_overwrite(default_role)
+
+        if default_role_overwrite:
+            value &= ~default_role_overwrite._deny
+            value |= default_role_overwrite._allow
+
+        # Apply overwrite for this member
+        member_overwrite = get_permission_overwrite(self)
+
+        if member_overwrite:
+            value &= ~member_overwrite._deny
+            value |= member_overwrite._allow
+
+        # Apply the overwrites for member's roles
+        for role in self.roles:
+            role_overwrite = get_permission_overwrite(role)
+
+            if role_overwrite:
+                value |= role_overwrite._allow
+                value &= ~role_overwrite._deny
+
+        permissions.value = value
+        return permissions
+
+    async def kick(self, *, reason: typing.Optional[str] = None) -> None:
+        """Kicks the member from the associated guild.
 
         Bot requires the :attr:`~Permissions.kick_members` permission in the
         relevant guild to perform this action.
@@ -342,20 +451,21 @@ class GuildMember(BaseModel):
         self,
         *,
         nickname: typing.Optional[str] = UNDEFINED,
-        roles: typing.List[Role] = UNDEFINED,
+        roles: typing.Optional[typing.List[Role]] = UNDEFINED,
         mute: bool = UNDEFINED,
         deaf: bool = UNDEFINED,
         timeout_until: datetime = UNDEFINED,
-        reason: str = None,
+        channel: typing.Optional[VoiceChannel] = UNDEFINED,
+        reason: typing.Optional[str] = None,
     ):
-        r"""Edits this member.
+        """Edits this member.
 
         When successfully edited, The member instance would be updated with new
         data in place.
 
         Parameters
         ----------
-        nickname: :class:`builtins.str`
+        nickname: Optional[:class:`builtins.str`]
             The member's guild nickname. ``None`` could be used to remove the nickname
             and reset guild name to the default username.
         roles: List[:class:`Role`]
@@ -371,6 +481,10 @@ class GuildMember(BaseModel):
         timeout_until: :class:`datetime.datetime`
             The time until the member will be timed out. ``None`` can be used
             to remove timeout.
+        channel: Optional[:class:`VoiceChannel`]
+            The channel to move this member to, requires member to be in a voice
+            channel already. ``None`` can be used to disconnect the member from
+            existing voice channel.
         reason: :class:`builtins.str`
             The reason for this action that shows up on audit log.
 
@@ -402,6 +516,9 @@ class GuildMember(BaseModel):
                 timeout_until.isoformat() if timeout_until is not None else None
             )
 
+        if channel is not UNDEFINED:
+            json["channel_id"] = channel.id if channel is not None else None
+
         if json:
             guild = self.guild
             data = await guild._rest.edit_guild_member(
@@ -417,9 +534,9 @@ class GuildMember(BaseModel):
         *roles: Role,
         overwrite: bool = False,
         ignore_extra: bool = True,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> typing.List[Role]:
-        r"""Adds the provided roles to the members.
+        """Adds the provided roles to the members.
 
         The behaviour of this method is summarized as:
 
@@ -484,9 +601,9 @@ class GuildMember(BaseModel):
         self,
         *roles: Role,
         ignore_extra: bool = True,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> typing.List[Role]:
-        r"""Removes the provided roles from the members.
+        """Removes the provided roles from the members.
 
         The behaviour of this method is summarized as:
 

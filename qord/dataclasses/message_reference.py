@@ -22,12 +22,16 @@
 
 from __future__ import annotations
 
-from qord._helpers import get_optional_snowflake
+from qord.internal.helpers import get_optional_snowflake
 import typing
 
 if typing.TYPE_CHECKING:
     from qord.models.messages import Message
 
+
+__all__ = (
+    "MessageReference",
+)
 
 class MessageReference:
     """Represents a reference to another message in a :class:`Message`.
@@ -88,8 +92,8 @@ class MessageReference:
     def __init__(
         self,
         message_id: int,
-        channel_id: int = None,
-        guild_id: int = None,
+        channel_id: typing.Optional[int] = None,
+        guild_id: typing.Optional[int] = None,
         *,
         fail_if_not_exists: bool = True,
     ) -> None:
@@ -115,7 +119,7 @@ class MessageReference:
         # For API responses, The message_id key is optional while
         # it is annotated as `int` in constructor to aid user facing API.
         return cls(
-            message_id=get_optional_snowflake(data, "message_id"), # type: ignore -- See above
+            message_id=get_optional_snowflake(data, "message_id"), # type: ignore # See above
             channel_id=int(data["channel_id"]),
             guild_id=get_optional_snowflake(data, "guild_id"),
         )

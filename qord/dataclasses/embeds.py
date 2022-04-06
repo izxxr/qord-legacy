@@ -22,10 +22,22 @@
 
 from __future__ import annotations
 
-from qord._helpers import parse_iso_timestamp
+from qord.internal.helpers import parse_iso_timestamp
 from datetime import datetime
 import dataclasses
 import typing
+
+
+__all__ = (
+    "Embed",
+    "EmbedImage",
+    "EmbedThumbnail",
+    "EmbedProvider",
+    "EmbedVideo",
+    "EmbedAuthor",
+    "EmbedFooter",
+    "EmbedField",
+)
 
 
 _EI = typing.TypeVar("_EI")
@@ -81,15 +93,15 @@ class Embed:
     def __init__(
         self,
         *,
-        url: str = None,
-        title: str = None,
-        color: int = None,
-        description: str = None,
-        timestamp: datetime = None,
-        author: EmbedAuthor = None,
-        image: EmbedImage = None,
-        thumbnail: EmbedThumbnail = None,
-        footer: EmbedFooter = None,
+        url: typing.Optional[str] = None,
+        title: typing.Optional[str] = None,
+        color: typing.Optional[int] = None,
+        description: typing.Optional[str] = None,
+        timestamp: typing.Optional[datetime] = None,
+        author: typing.Optional[EmbedAuthor] = None,
+        image: typing.Optional[EmbedImage] = None,
+        thumbnail: typing.Optional[EmbedThumbnail] = None,
+        footer: typing.Optional[EmbedFooter] = None,
     ):
         self.url = url
         self.title = title
@@ -229,7 +241,7 @@ class Embed:
         name: str,
         value: str,
         inline: bool = False,
-        index: int = None,
+        index: typing.Optional[int] = None,
     ) -> EmbedField:
         """Sets a field on the embed at provided position.
 
@@ -264,7 +276,7 @@ class Embed:
 
         return field
 
-    def pop_field(self, index: int = None) -> typing.Optional[EmbedField]:
+    def pop_field(self, index: typing.Optional[int] = None) -> typing.Optional[EmbedField]:
         """Removes a field from the provided position (last by default).
 
         Parameters
@@ -290,6 +302,55 @@ class Embed:
     def clear_fields(self) -> None:
         """Clears the fields that are currently present on the embed."""
         self._fields.clear()
+
+    def total_length(self) -> int:
+        """Returns the total length of this embed's content.
+
+        This takes in account the length of embed's content that are
+        able to be set by bots, that are:
+
+        - Fields name and values
+        - Title and description
+        - Footer text
+        - Author name
+
+        This method can be useful when validating the embed's total
+        length before sending the embed. The total length of sent
+        embed must be less than or equal to 6000.
+
+        ``len(embed)`` operation is equivalent to calling this method.
+
+        Returns
+        -------
+        :class:`builtins.int`
+            The total length of embed's content.
+        """
+        ret = 0
+
+        author, footer = (self._author, self._footer)
+        title, description = (self.title, self.description)
+
+        if author is not None:
+            name = author.name
+            ret += len(name) if name is not None else 0
+
+        if footer is not None:
+            text = footer.text
+            ret += len(text) if text is not None else 0
+
+        if title is not None:
+            ret += len(title)
+
+        if description is not None:
+            ret += len(description)
+
+        for f in self._fields:
+            ret += sum((len(f.name), len(f.value)))
+
+        return ret
+
+    # Support for len(embed)
+    __len__ = total_length
 
     def to_dict(self) -> typing.Dict[str, typing.Any]:
         ret: typing.Dict[str, typing.Any] = {}

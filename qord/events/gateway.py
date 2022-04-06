@@ -32,6 +32,14 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
 
 
+__all__ = (
+    "GatewayDispatch",
+    "ShardReady",
+    "Ready",
+    "Resumed",
+)
+
+
 @dataclass(frozen=True)
 class GatewayDispatch(BaseEvent, event_name=GatewayEvent.GATEWAY_DISPATCH):
     """Structure of a :attr:`~qord.GatewayEvent.GATEWAY_DISPATCH` event.

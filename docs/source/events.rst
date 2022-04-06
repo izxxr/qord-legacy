@@ -186,7 +186,7 @@ ChannelUpdate
 ChannelPinsUpdate
 ~~~~~~~~~~~~~~~~~
 
-.. autoclass:: ChannelPinsUpdate()
+.. autoclass:: qord.events.ChannelPinsUpdate()
     :members:
 
 ChannelDelete

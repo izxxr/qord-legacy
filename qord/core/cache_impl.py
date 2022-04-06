@@ -33,6 +33,10 @@ from qord.models.messages import Message
 import weakref
 import typing
 
+__all__ = (
+    "DefaultCache",
+    "DefaultGuildCache",
+)
 
 class DefaultCache(Cache):
     r"""In-memory cache implementation.
@@ -51,7 +55,7 @@ class DefaultCache(Cache):
         self._guilds = dict()
         self._messages = dict()
 
-    def users(self) -> typing.Sequence[User]:
+    def users(self) -> typing.List[User]:
         return list(self._users.values())
 
     def get_user(self, user_id: int) -> typing.Optional[User]:
@@ -72,7 +76,7 @@ class DefaultCache(Cache):
 
         return self._users.pop(user_id, None)
 
-    def guilds(self) -> typing.Sequence[Guild]:
+    def guilds(self) -> typing.List[Guild]:
         return list(self._guilds.values())
 
     def get_guild(self, guild_id: int) -> typing.Optional[Guild]:
@@ -93,7 +97,7 @@ class DefaultCache(Cache):
 
         return self._guilds.pop(guild_id, None)
 
-    def messages(self) -> typing.Sequence[Message]:
+    def messages(self) -> typing.List[Message]:
         return list(self._messages.values())
 
     def get_message(self, message_id: int) -> typing.Optional[Message]:
@@ -119,14 +123,19 @@ class DefaultCache(Cache):
 
         return self._messages.pop(message_id, None)
 
-    def private_channels(self) -> typing.Sequence[PrivateChannel]:
+    def private_channels(self) -> typing.List[PrivateChannel]:
         return list(self._private_channels.values())
 
     def add_private_channel(self, private_channel: PrivateChannel) -> None:
         if not isinstance(private_channel, PrivateChannel):
             raise TypeError("Parameter private_channel must be an instance of PrivateChannel")
 
-        self._private_channels[private_channel.id] = private_channel
+        private_channels = self._private_channels
+
+        if len(private_channels) >= 256:
+            private_channels.clear()
+
+        private_channels[private_channel.id] = private_channel
 
     def get_private_channel(self, channel_id: int) -> typing.Optional[PrivateChannel]:
         if not isinstance(channel_id, int):
@@ -158,7 +167,7 @@ class DefaultGuildCache(GuildCache):
         self._members: typing.Dict[int, GuildMember] = {}
         self._channels: typing.Dict[int, GuildChannel] = {}
 
-    def roles(self) -> typing.Sequence[Role]:
+    def roles(self) -> typing.List[Role]:
         roles = list(self._roles.values())
         # Multiple roles may share same positions so
         # we cannot rely on this behaviour.
@@ -183,7 +192,7 @@ class DefaultGuildCache(GuildCache):
 
         return self._roles.pop(role_id, None)
 
-    def members(self) -> typing.Sequence[GuildMember]:
+    def members(self) -> typing.List[GuildMember]:
         return list(self._members.values())
 
     def add_member(self, member: GuildMember) -> None:
@@ -204,7 +213,7 @@ class DefaultGuildCache(GuildCache):
 
         return self._members.pop(user_id, None)
 
-    def channels(self) -> typing.Sequence[GuildChannel]:
+    def channels(self) -> typing.List[GuildChannel]:
         ret = list(self._channels.values())
         # Multiple channels may share the same position so
         # we cannot rely on this behaviour.

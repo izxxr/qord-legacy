@@ -22,10 +22,10 @@ Abstract Classes
 Other classes provided by the library can inherit these classes to implement the
 relevant common functionality.
 
-MessagesSupported
-~~~~~~~~~~~~~~~~~
+BaseMessageChannel
+~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: MessagesSupported()
+.. autoclass:: BaseMessageChannel()
     :members:
 
 Cache Handlers
@@ -153,6 +153,12 @@ MessageType
 .. autoclass:: MessageType()
     :members:
 
+ChannelPermissionType
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChannelPermissionType()
+    :members:
+
 Data classes
 ------------
 
@@ -165,67 +171,73 @@ Shard
 AllowedMentions
 ~~~~~~~~~~~~~~~
 
-.. autoclass:: AllowedMentions()
+.. autoclass:: AllowedMentions
     :members:
 
 Embed
 ~~~~~
 
-.. autoclass:: Embed()
+.. autoclass:: Embed
     :members:
 
 EmbedImage
 ~~~~~~~~~~
 
-.. autoclass:: EmbedImage()
+.. autoclass:: EmbedImage
     :members:
 
 EmbedThumbnail
 ~~~~~~~~~~~~~~
 
-.. autoclass:: EmbedThumbnail()
+.. autoclass:: EmbedThumbnail
     :members:
 
 EmbedVideo
 ~~~~~~~~~~
 
-.. autoclass:: EmbedVideo()
+.. autoclass:: EmbedVideo
     :members:
 
 EmbedField
 ~~~~~~~~~~
 
-.. autoclass:: EmbedField()
+.. autoclass:: EmbedField
     :members:
 
 EmbedAuthor
 ~~~~~~~~~~~
 
-.. autoclass:: EmbedAuthor()
+.. autoclass:: EmbedAuthor
     :members:
 
 EmbedFooter
 ~~~~~~~~~~~
 
-.. autoclass:: EmbedFooter()
+.. autoclass:: EmbedFooter
     :members:
 
 EmbedProvider
 ~~~~~~~~~~~~~
 
-.. autoclass:: EmbedProvider()
+.. autoclass:: EmbedProvider
     :members:
 
 File
 ~~~~
 
-.. autoclass:: File()
+.. autoclass:: File
     :members:
 
 MessageReference
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: MessageReference()
+.. autoclass:: MessageReference
+    :members:
+
+PermissionOverwrite
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PermissionOverwrite
     :members:
 
 Bitwise Flags
@@ -266,6 +278,16 @@ MessageFlags
 
 .. autoclass:: MessageFlags()
     :members:
+
+.. _reference-utilities:
+
+Utilities
+~~~~~~~~~
+
+These are some utilities provided by ``qord.utils`` module that can be useful for many
+general use cases.
+
+.. autofunction:: qord.utils.create_timestamp
 
 Exceptions
 ----------
@@ -421,6 +443,12 @@ DMChannel
 
 .. autoclass:: DMChannel()
     :inherited-members:
+    :members:
+
+ChannelPermission
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ChannelPermission()
     :members:
 
 Message

@@ -28,6 +28,12 @@ import typing
 if typing.TYPE_CHECKING:
     from qord.core.client import Client
 
+
+__all__ = (
+    "BaseModel",
+)
+
+
 class BaseModel(ABC):
     r"""Common base class for all other Discord models.
 

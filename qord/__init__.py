@@ -5,7 +5,7 @@ Qord
 A high level library for building Discord bots.
 """
 
-from qord import events
+from qord import events, utils
 from qord.bases import *
 from qord.enums import *
 from qord.exceptions import *
@@ -31,3 +31,4 @@ from qord.dataclasses.allowed_mentions import *
 from qord.dataclasses.embeds import *
 from qord.dataclasses.files import *
 from qord.dataclasses.message_reference import *
+from qord.dataclasses.permission_overwrite import *

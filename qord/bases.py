@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from qord.models.messages import Message
-from qord._helpers import UNDEFINED
+from qord.internal.undefined import UNDEFINED
 
 from abc import ABC, abstractmethod
 import typing
@@ -37,8 +37,13 @@ if typing.TYPE_CHECKING:
     from qord.core.rest import RestClient
 
 
+__all__ = (
+    "BaseMessageChannel",
+)
+
+
 class BaseMessageChannel(ABC):
-    r"""A base class that implements support for messages managament.
+    """A base class that implements support for messages managament.
 
     Almost all classes that support the :class:`Message` related operations
     inherit this class. The most common example is :class:`TextChannel`.

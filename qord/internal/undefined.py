@@ -24,28 +24,20 @@ from __future__ import annotations
 
 import typing
 
-_REST_BASE_URL = "https://discord.com/api/v10"
+__all__ = (
+    "UNDEFINED",
+)
 
-class Route:
-    __slots__ = ("method", "path", "requires_auth", "params")
 
-    def __init__(self,
-        method: typing.Literal["GET", "POST", "PUT", "DELETE", "PATCH"],
-        path: str,
-        *,
-        requires_auth: bool = True,
-        **params: typing.Any,
-    ) -> None:
+class _Undefined:
+    def __bool__(self) -> bool:
+        return False
 
-        self.method = method
-        self.path = path
-        self.requires_auth = requires_auth
-        self.params = params
-
-    @property
-    def url(self) -> str:
-        return _REST_BASE_URL + self.path.format_map(self.params)
+    def __eq__(self, o: object) -> bool:
+        return False
 
     def __repr__(self) -> str:
-        return f"{self.method} {self.url}"
+        return "..."
 
+UNDEFINED: typing.Any = _Undefined()
+"""A sentinel used at places where None is ambiguous"""

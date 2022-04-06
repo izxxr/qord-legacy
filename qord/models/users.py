@@ -25,7 +25,9 @@ from __future__ import annotations
 from qord.flags.users import UserFlags
 from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
-from qord._helpers import create_cdn_url, get_image_data, UNDEFINED, BASIC_EXTS
+from qord.internal.helpers import create_cdn_url, get_image_data, BASIC_EXTS
+from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 
 import typing
 
@@ -35,7 +37,14 @@ if typing.TYPE_CHECKING:
     from qord.core.client import Client
     from qord.bases import BaseMessageChannel
 
-class User(BaseModel):
+
+__all__ = (
+    "User",
+    "ClientUser",
+)
+
+
+class User(BaseModel, Comparable):
     """Representation of a Discord user entity.
 
     Attributes
@@ -142,7 +151,7 @@ class User(BaseModel):
         -------
         :class:`builtins.str`
         """
-        return f"<@!{self.id}>"
+        return f"<@{self.id}>"
 
     @property
     def dm(self) -> typing.Optional[DMChannel]:
@@ -176,7 +185,7 @@ class User(BaseModel):
         """
         return create_cdn_url(f"/embed/avatars/{self.default_avatar}", extension="png")
 
-    def avatar_url(self, extension: str = None, size: int = None) -> str:
+    def avatar_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> str:
         """Returns the avatar URL for this user.
 
         If user has no custom avatar set, This returns the result
@@ -208,7 +217,7 @@ class User(BaseModel):
         """
         if self.avatar is None:
             return self.default_avatar_url()
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "gif" if self.is_avatar_animated() else "png"
 
         return create_cdn_url(
@@ -218,7 +227,7 @@ class User(BaseModel):
             valid_exts=BASIC_EXTS,
         )
 
-    def banner_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
+    def banner_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the banner URL for this user.
 
         If user has no custom banner set, ``None`` is returned.
@@ -249,7 +258,7 @@ class User(BaseModel):
         """
         if self.banner is None:
             return
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "gif" if self.is_banner_animated() else "png"
 
         return create_cdn_url(
@@ -368,7 +377,7 @@ class ClientUser(User):
         self.verified = data.get("verified")
         self.mfa_enabled = data.get("mfa_enabled", False)
 
-    async def edit(self, *, name: str = None, avatar: typing.Optional[bytes] = UNDEFINED) -> None:
+    async def edit(self, *, name: str = UNDEFINED, avatar: typing.Optional[bytes] = UNDEFINED) -> None:
         """Edits the client user.
 
         Parameters
@@ -388,7 +397,7 @@ class ClientUser(User):
         """
         json = {}
 
-        if name is not None:
+        if name is not UNDEFINED:
             json["username"] = name
         if avatar is not UNDEFINED:
             if avatar is None:

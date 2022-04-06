@@ -22,11 +22,18 @@
 
 from __future__ import annotations
 
+from qord.internal.undefined import UNDEFINED
+
 import typing
 import os
 
 if typing.TYPE_CHECKING:
     from io import BufferedReader
+
+
+__all__ = (
+    "File",
+)
 
 
 class File:
@@ -35,19 +42,16 @@ class File:
     Example usage with :meth:`~BaseMessageChannel.send` method::
 
         file = qord.File("path/to/file.png")
-        await channel.send(files=[file])
+        await channel.send(file=file)
 
     Parameters
     ----------
     content: Union[:class:`builtins.str`, :class:`builtins.bytes`, :class:`io.BufferedReader`]
         The content of files. If a string is being passed, It would be considered
         the file path and would be opened and red in "read binary" mode.
-
-        When passing a :class:`builtins.bytes` object, The ``name`` parameter
-        must be included.
     name: :class:`builtins.str`
-        The name of file. This parameter is required when passing :class:`builtins.bytes`
-        in ``content`` parameter.
+        The name of file. The name would be retrieved from given file path or buffer
+        object if possible and would fallback to "untitled" if couldn't be resolved.
     spoiler: :class:`builtins.bool`
         Whether the file should be marked as spoiler when sent.
     description: :class:`builtins.str`
@@ -70,8 +74,8 @@ class File:
         content: typing.Union[str, bytes, BufferedReader],
         /,
         *,
-        name: str = None,
-        description: str = None,
+        name: typing.Optional[str] = None,
+        description: typing.Optional[str] = None,
         spoiler: bool = False,
     ) -> None:
 
@@ -83,9 +87,6 @@ class File:
                 name = os.path.basename(content)
 
         elif isinstance(content, bytes):
-            if name is None:
-                raise TypeError("name parameter must be passed when passing in bytes object.")
-
             self.content = content
 
         elif isinstance(content, BufferedReader):
@@ -98,7 +99,7 @@ class File:
                 name = content.name
 
         if name is None:
-            raise RuntimeError("Could not resolve the file name, probably invalid type.")
+            name = "untitled"
 
         self.name = name
         self.description = description

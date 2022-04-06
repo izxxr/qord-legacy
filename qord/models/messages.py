@@ -28,7 +28,10 @@ from qord.models.guild_members import GuildMember
 from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
-from qord._helpers import get_optional_snowflake, parse_iso_timestamp, UNDEFINED
+from qord.enums import MessageType
+from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
+from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
 
 import typing
 
@@ -41,6 +44,14 @@ if typing.TYPE_CHECKING:
     from datetime import datetime
 
     MessageableT = typing.Union[TextChannel, DMChannel]
+
+
+__all__ = (
+    "ChannelMention",
+    "Attachment",
+    "Message",
+)
+
 
 class ChannelMention(BaseModel):
     """Represents a mention to a specific channel in a message's content.
@@ -85,8 +96,10 @@ class ChannelMention(BaseModel):
         self.type = data["type"]
         self.name = data["name"]
 
-class Attachment(BaseModel):
+class Attachment(BaseModel, Comparable):
     """Represents an attachment that is attached to a message.
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -156,8 +169,10 @@ class Attachment(BaseModel):
         self.width = data.get("width")
         self.ephemeral = data.get("ephemeral", False)
 
-class Message(BaseModel):
+class Message(BaseModel, Comparable):
     """Represents a message generated in channels by users, bots and webhooks.
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -219,6 +234,13 @@ class Message(BaseModel):
     message_reference: Optional[:class:`MessageReference`]
         The referenced message if any, See the :class:`MessageReference` documentation
         for the list of scenarios when this attribute is not ``None``.
+    referenced_message: Optional[:class:`Message`]
+        The referenced message. This is only valid when :attr:`.type` is either
+        :attr:`~MessageType.REPLY` or :attr:`~MessageType.THREAD_STARTER_MESSAGE`.
+
+        For thread starter messages, This is always present. For replies however, If
+        this is None, It indicates that either the message was deleted or wasn't sent
+        loaded by Discord API.
     """
 
     if typing.TYPE_CHECKING:
@@ -232,6 +254,7 @@ class Message(BaseModel):
         pinned: bool
         flags: MessageFlags
         message_reference: typing.Optional[MessageReference]
+        referenced_message: typing.Optional[Message]
         author: typing.Union[User, GuildMember]
         mentions: typing.List[typing.Union[User, GuildMember]]
         mentioned_roles: typing.List[Role]
@@ -251,7 +274,7 @@ class Message(BaseModel):
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
                 "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
-                "embeds", "flags", "message_reference")
+                "embeds", "flags", "message_reference", "referenced_message")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -265,7 +288,6 @@ class Message(BaseModel):
         # - reactions
         # - activity
         # - application
-        # - referenced_message
         # - interaction
         # - thread
         # - components
@@ -297,6 +319,7 @@ class Message(BaseModel):
         self._handle_author(data)
         self._handle_mentions(data)
         self._handle_mention_roles(data)
+        self._handle_referenced_message(data)
 
     # Data handlers (to avoid making mess in the initialization code)
 
@@ -307,6 +330,11 @@ class Message(BaseModel):
         for user_data in data.get("mentions", []):
             user_id = int(user_data["id"])
             if "member" in user_data:
+                # Mention is in a guild
+
+                if guild is None:
+                    continue
+
                 try:
                     member = guild._cache.get_member(user_id)
                 except AttributeError:
@@ -364,6 +392,43 @@ class Message(BaseModel):
                 mentioned_roles.append(role)
 
         self.mentioned_roles = mentioned_roles
+
+    def _handle_referenced_message(self, data) -> None:
+        if not self.type in (MessageType.THREAD_STARTER_MESSAGE, MessageType.REPLY):
+            return
+
+        try:
+            referenced_message_data = data["referenced_message"]
+        except KeyError:
+            # If the key is absent on message reply, it indicates that the
+            # message was not attempted to be fetched by API.
+            self.referenced_message = None
+            return
+        else:
+            if referenced_message_data is None:
+                # Replied message deleted.
+                self.referenced_message = None
+                return
+
+        if self.type is MessageType.REPLY:
+            # For replies, the channel is always same as message channel
+            channel = self.channel
+        else:
+            # In case of threads, the channel is never other than a guild channel.
+            guild = self.guild
+
+            if guild is None:
+                channel = None
+            else:
+                channel_id = int(referenced_message_data["channel_id"]) # Always present
+                channel = guild._cache.get_channel(channel_id)
+
+        if channel is None:
+            self.referenced_message = None
+            return
+
+        self.referenced_message = self.__class__(referenced_message_data, channel=channel) # type: ignore
+
 
     async def delete(self) -> None:
         """Deletes this message.

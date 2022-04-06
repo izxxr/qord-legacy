@@ -23,13 +23,15 @@
 from __future__ import annotations
 
 from qord.models.base import BaseModel
+from qord.models.channels import GuildChannel
 from qord.flags.permissions import Permissions
-from qord._helpers import (
+from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable
+from qord.internal.helpers import (
     get_image_data,
     get_optional_snowflake,
     create_cdn_url,
     BASIC_STATIC_EXTS,
-    UNDEFINED,
 )
 
 import typing
@@ -38,8 +40,15 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
 
 
-class Role(BaseModel):
-    r"""Representation of a guild's role.
+__all__ = (
+    "Role",
+)
+
+
+class Role(BaseModel, Comparable):
+    """Representation of a guild's role.
+
+    |supports-comparison|
 
     Attributes
     ----------
@@ -144,7 +153,7 @@ class Role(BaseModel):
 
     @property
     def mention(self) -> str:
-        r"""Returns the string used for mentioning this role in Discord.
+        """Returns the string used for mentioning this role in Discord.
 
         Returns
         -------
@@ -152,8 +161,8 @@ class Role(BaseModel):
         """
         return f"<@&{self.id}>"
 
-    def icon_url(self, extension: str = None, size: int = None) -> typing.Optional[str]:
-        r"""Returns the icon URL for this user.
+    def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
+        """Returns the icon URL for this user.
 
         If role has no icon set, This method would return ``None``.
 
@@ -181,7 +190,7 @@ class Role(BaseModel):
         """
         if self.icon is None:
             return None
-        if extension is None:
+        if extension is UNDEFINED:
             extension = "png"
 
         return create_cdn_url(
@@ -192,7 +201,7 @@ class Role(BaseModel):
         )
 
     def is_bot_managed(self) -> bool:
-        r"""Checks whether the role is managed by a bot.
+        """Checks whether the role is managed by a bot.
 
         Bot managed roles don't have the :attr:`.bot_id`
         set to ``None``.
@@ -204,7 +213,7 @@ class Role(BaseModel):
         return self.bot_id is not None
 
     def is_integration_managed(self) -> bool:
-        r"""Checks whether the role is managed by an integration.
+        """Checks whether the role is managed by an integration.
 
         Integration managed roles don't have the :attr:`.bot_id`
         set to ``None``.
@@ -216,7 +225,7 @@ class Role(BaseModel):
         return self.integration_id is not None
 
     def is_default(self) -> bool:
-        r"""Checks whether this role is the guild's default
+        """Checks whether this role is the guild's default
         i.e the "@everyone" role.
 
         Guild default roles have the same ID as the parent
@@ -229,7 +238,7 @@ class Role(BaseModel):
         return (self.id == self.guild.id)
 
     def is_higher_than(self, other: Role) -> bool:
-        r"""Compares this role with another role of the same guild
+        """Compares this role with another role of the same guild
         and checks whether this role is higher than the other.
 
         Parameters
@@ -254,7 +263,7 @@ class Role(BaseModel):
         return self.position > other.position
 
     def is_lower_than(self, other: Role) -> bool:
-        r"""Compares this role with another role of the same guild
+        """Compares this role with another role of the same guild
         and checks whether this role is lower than the other.
 
         Parameters
@@ -270,8 +279,8 @@ class Role(BaseModel):
         """
         return (not self.is_higher_than(other))
 
-    async def delete(self, *, reason: str = None) -> None:
-        r"""Deletes this role.
+    async def delete(self, *, reason: typing.Optional[str] = None) -> None:
+        """Deletes this role.
 
         This operation requires the :attr:`~Permissions.manage_roles` permission
         for the client user in the guild.
@@ -291,17 +300,66 @@ class Role(BaseModel):
         """
         await self._rest.delete_role(guild_id=self.guild.id, role_id=self.id, reason=reason)
 
+    def permissions_in(self, channel: GuildChannel) -> Permissions:
+        """Computes the permissions of this role in a :class:`GuildChannel`.
+
+        This method computes the permissions by taking in account the
+        role's base permissions as well as the permission overrides
+        of that channel.
+
+        Parameters
+        ----------
+        channel: :class:`GuildChannel`
+            The target channel for which the role's permissions should be computed.
+
+        Returns
+        -------
+        :class:`Permissions`
+            The computed permissions.
+        """
+        if not isinstance(channel, GuildChannel):
+            raise TypeError("Parameter 'channel' must be an instance of GuildChannel.")
+
+        permissions = self.permissions
+
+        if permissions.administrator:
+            return Permissions.all()
+
+        value = permissions.value
+        get_permission_overwrite = channel._get_permission
+
+        # Apply @everyone's overwrite first.
+        default_role = self.guild.default_role
+        assert default_role is not None
+
+        default_role_overwrite = get_permission_overwrite(default_role)
+
+        if default_role_overwrite:
+            value &= ~default_role_overwrite._deny
+            value |= default_role_overwrite._allow
+
+        # Apply overwrite for this role
+        role_overwrite = get_permission_overwrite(self)
+
+        if role_overwrite:
+            value &= ~role_overwrite._deny
+            value |= role_overwrite._allow
+
+        # Roles don't need any more computation
+        permissions.value = value
+        return permissions
+
     async def edit(self, *,
-        name: str = None,
-        permissions: Permissions = None,
-        hoist: bool = None,
-        mentionable: bool = None,
+        name: str = UNDEFINED,
+        permissions: Permissions = UNDEFINED,
+        hoist: bool = UNDEFINED,
+        mentionable: bool = UNDEFINED,
         icon: typing.Optional[bytes] = UNDEFINED,
         unicode_emoji: typing.Optional[str] = UNDEFINED,
         color: typing.Optional[int] = UNDEFINED,
-        reason: str = None,
+        reason: typing.Optional[str] = None,
     ) -> None:
-        r"""Edits this role.
+        """Edits this role.
 
         This operation requires the :attr:`~Permissions.manage_roles` permission
         for the client user in the parent guild.
@@ -345,18 +403,24 @@ class Role(BaseModel):
         """
         json = {}
 
-        if name is not None:
+        if name is not UNDEFINED:
             json["name"] = name
-        if permissions is not None:
+
+        if permissions is not UNDEFINED:
             json["permissions"] = str(permissions.value)
-        if hoist is not None:
+
+        if hoist is not UNDEFINED:
             json["hoist"] = hoist
-        if mentionable is not None:
+
+        if mentionable is not UNDEFINED:
             json["mentionable"] = mentionable
+
         if color is not UNDEFINED:
             json["color"] = 0 if color is None else color # '0' is default.
+
         if icon is not UNDEFINED:
             json["icon"] = None if icon is None else get_image_data(icon)
+
         if unicode_emoji is not UNDEFINED:
             json["unicode_emoji"] = unicode_emoji
 

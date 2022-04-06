@@ -58,8 +58,12 @@ embed_restricted_field = "This field can only be returned by embeds from API res
                          "that are created by external sources. This field is not available " \
                          "to be set by bots or webhooks. As such you should never set this " \
                          "field manually, setting it will either have no effect on the embed " \
-                         "or you will run into unexpected issues."
+                         "or you will run into unexpected issues." # type: ignore
+
+supports_comparison = "This class supports equality comparison between instances of this class " \
+                      "by the :attr:`.id` attribute." # type: ignore
 
 rst_prolog = f"""
 .. |embed-restricted-field| replace:: {embed_restricted_field}
+.. |supports-comparison| replace:: {supports_comparison}
 """

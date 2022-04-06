@@ -31,42 +31,61 @@ from qord.exceptions import (
     HTTPServerError,
 )
 from qord.project_info import __version__, __github__
-from qord.core.routes import Route
+from qord.core.ratelimits import Route, RatelimitHandler
+from qord.internal.undefined import UNDEFINED
 
 import aiohttp
+import asyncio
+import logging
 import typing
 import json as _json
 
 if typing.TYPE_CHECKING:
     from qord.dataclasses.files import File
 
-class RestClient:
-    r"""REST handling implementation including ratelimits prevention and handling."""
+__all__ = (
+    "RestClient",
+)
 
-    if typing.TYPE_CHECKING:
-        session: typing.Optional[aiohttp.ClientSession]
-        session_owner: bool
-        token: typing.Optional[str]
-        max_retries: int
+_LOGGER = logging.getLogger(__name__)
+_RATELIMIT_HIT_WARNING = "A ratelimit has been hit! Retrying this request after the delay of {retry_after}s."
+_RATELIMIT_CLEAR_INFO  = "The ratelimit has been cleared, retrying the request now."
+_GLOBAL_RATELIMIT_HIT_WARNING = "The global ratelimit has been hit! Further HTTP requests would " \
+                                "be blocked for next {retry_after}s." # type: ignore
+_GLOBAL_RATELIMIT_CLEAR_INFO  = "The global ratelimit is cleared. HTTP requests will not be blocked anymore."
+_RATELIMIT_BUCKET_EXHAUSTED_DEBUG = "Requests limit has been reached for route {path!r}, " \
+                                    "delaying further requests for {retry_after}s" # type: ignore
+
+
+async def _release_lock(lock: asyncio.Lock, delay: float) -> None:
+    await asyncio.sleep(delay)
+    lock.release()
+
+
+class RestClient:
+    """REST handling implementation including ratelimits prevention and handling."""
 
     def __init__(self, *,
-        session: aiohttp.ClientSession = None,
+        session: typing.Optional[aiohttp.ClientSession] = None,
         session_owner: bool = True,
         max_retries: int = 5,
     ) -> None:
 
         if session and not isinstance(session, aiohttp.ClientSession):
             raise TypeError(f"Parameter 'session' must be an instance of aiohttp.ClientSession " \
-                            f"object, Not {session.__class__!r}")
+                            f"object, Not {session.__class__!r}") # type: ignore
+
         if max_retries is None or max_retries == 0:
             max_retries = 1
+
         if not isinstance(max_retries, int) or max_retries > 5:
             raise TypeError(f"Parameter 'max_retries' must be an integer less than 5. " \
-                            f"{max_retries!r} is not valid.")
+                            f"{max_retries!r} is not valid.") # type: ignore
 
         self.session = session
         self.session_owner: bool = session_owner
-        self.token = None
+        self.ratelimit_handler = RatelimitHandler()
+        self.token: typing.Optional[str] = None
         self.max_retries = max_retries or 5
 
     def _ensure_session(self) -> aiohttp.ClientSession:
@@ -79,22 +98,24 @@ class RestClient:
         return self.session
 
     async def _resolve_response(self, response):
-        if response.headers["content_type"] == "application/json":
+        if response.headers["Content-Type"] == "application/json":
             data = await response.json()
         else:
             data = await response.text()
 
         return data
 
-    async def request(self, route: Route, reason: str = None, **options: typing.Any) -> typing.Any:
+    async def request(self, route: Route, reason: typing.Optional[str] = None, **options: typing.Any) -> typing.Any:
         session = self._ensure_session()
 
         token = self.token
         requires_auth = route.requires_auth
+        path = route.path
+        rl_path = route.ratelimit_path
 
         if requires_auth and token is None:
             raise ClientSetupRequired("No bot token is set yet to perform this request. " \
-                                      "Client is not setup yet.")
+                                      "Client is not setup yet.") # type: ignore
 
         headers = options.pop("headers", dict())
 
@@ -105,39 +126,105 @@ class RestClient:
         if reason is not None:
             headers["X-Audit-Log-Reason"] = reason
 
-        for attempt in range(self.max_retries):
-            async with session.request(
-                route.method,
-                route.url,
-                headers=headers,
-                **options
-            ) as response:
+        handler = self.ratelimit_handler
+        unlock = True
+        lock = handler.get_lock(rl_path)
 
-                status = response.status
+        await handler.wait_until_global_reset()
+        await lock.acquire()
 
-                if status == 204:
-                    # 204 *No Content*
-                    return None
+        for _ in range(self.max_retries):
+            try:
+                async with session.request(
+                    route.method,
+                    route.url,
+                    headers=headers,
+                    **options
+                ) as response:
 
-                data = await response.json()
+                    status = response.status
+                    response_headers = response.headers
 
-                if status < 300:
-                    return data
-                elif status == 400:
-                    raise HTTPBadRequest(response, data)
-                elif status == 403:
-                    raise HTTPForbidden(response, data)
-                elif status == 404:
-                    raise HTTPNotFound(response, data)
-                elif status >= 500:
-                    raise HTTPServerError(response, data)
+                    remaining = response_headers.get("X-Ratelimit-Remaining")
+                    bucket = response_headers.get("X-Ratelimit-Bucket")
 
-                # unhandleable status code, raise it.
-                raise HTTPException(response, data)
+                    if bucket is not None:
+                        # Store the bucket hash for this route.
+                        handler.set_bucket(rl_path, bucket)
+
+                    if remaining == "0" and status != 429:
+                        # This header is always present in this case.
+                        retry_after = float(response_headers["X-Ratelimit-Reset-After"])
+                        msg = _RATELIMIT_BUCKET_EXHAUSTED_DEBUG.format(
+                            path=path,
+                            retry_after=retry_after
+                        )
+                        unlock = False # Prevent lock from releasing
+                        _LOGGER.debug(msg)
+
+                        coro = _release_lock(lock, retry_after)
+                        asyncio.create_task(coro)
+
+                    if status == 204:
+                        # 204 *No Content*
+                        return None
+
+                    data = await self._resolve_response(response)
+
+                    if status < 300:
+                        return data
+
+                    elif status == 429:
+                        if response_headers.get("Via") is None:
+                            # Missing the `Via` header usually indicates a CF ban.
+                            raise HTTPException(response, data)
+
+                        # data is always a valid JSON here.
+                        retry_after = float(data["retry_after"]) # type: ignore
+                        is_global = data.get("global", False) # type: ignore
+
+                        if is_global:
+                            msg = _GLOBAL_RATELIMIT_HIT_WARNING.format(retry_after=retry_after)
+                            handler.set_global()
+                        else:
+                            msg = _RATELIMIT_HIT_WARNING.format(retry_after=retry_after)
+
+                        _LOGGER.critical(msg)
+                        await asyncio.sleep(retry_after)
+
+                        if is_global:
+                            msg = _GLOBAL_RATELIMIT_CLEAR_INFO
+                            handler.reset_global()
+                        else:
+                            msg = _RATELIMIT_CLEAR_INFO
+
+                        _LOGGER.info(msg)
+                        continue
+
+                    elif status == 400:
+                        raise HTTPBadRequest(response, data)
+
+                    elif status == 403:
+                        raise HTTPForbidden(response, data)
+
+                    elif status == 404:
+                        raise HTTPNotFound(response, data)
+
+                    elif status >= 500:
+                        raise HTTPServerError(response, data)
+
+                    # unhandleable status code, raise it.
+                    raise HTTPException(response, data)
+            finally:
+                if unlock and lock is not None:
+                    if lock.locked():
+                        lock.release()
 
     async def close(self):
-        if not self.session_owner:
+        if not self.session_owner and self.session is not None:
             await self.session.close()
+
+        self.ratelimit_handler.clear()
 
     # ----- Gateway -----
 
@@ -193,17 +280,17 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def create_role(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+    async def create_role(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
         route = Route("POST", "/guilds/{guild_id}/roles", guild_id=guild_id)
         data = await self.request(route, json=json, reason=reason)
         return data
 
-    async def edit_role_positions(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+    async def edit_role_positions(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
         route = Route("PATCH", "/guilds/{guild_id}/roles", guild_id=guild_id)
         data = await self.request(route, json=json, reason=reason)
         return data
 
-    async def edit_role(self, guild_id: int, role_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+    async def edit_role(self, guild_id: int, role_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
         route = Route(
             "PATCH", "/guilds/{guild_id}/roles/{role_id}",
             guild_id=guild_id, role_id=role_id
@@ -211,7 +298,7 @@ class RestClient:
         data = await self.request(route, json=json, reason=reason)
         return data
 
-    async def delete_role(self, guild_id: int, role_id: int, reason: str = None):
+    async def delete_role(self, guild_id: int, role_id: int, reason: typing.Optional[str] = None):
         route =  Route(
             "DELETE", "/guilds/{guild_id}/roles/{role_id}",
             guild_id=guild_id, role_id=role_id
@@ -243,7 +330,7 @@ class RestClient:
         guild_id: int,
         user_id: int,
         json: typing.Dict[str, typing.Any],
-        reason: str = None
+        reason: typing.Optional[str] = None
     ):
         route = Route("PATCH", "/guilds/{guild_id}/members/{user_id}", guild_id=guild_id, user_id=user_id)
         data = await self.request(route, json=json, reason=reason)
@@ -253,7 +340,7 @@ class RestClient:
         self,
         guild_id: int,
         json: typing.Dict[str, typing.Any],
-        reason: str = None
+        reason: typing.Optional[str] = None
     ):
         route = Route("PATCH", "/guilds/{guild_id}/members/@me", guild_id=guild_id)
         data = await self.request(route, json=json, reason=reason)
@@ -264,7 +351,7 @@ class RestClient:
         guild_id: int,
         user_id: int,
         role_id: int,
-        reason: str = None
+        reason: typing.Optional[str] = None
     ):
         route = Route(
             "PUT", "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
@@ -278,7 +365,7 @@ class RestClient:
         guild_id: int,
         user_id: int,
         role_id: int,
-        reason: str = None
+        reason: typing.Optional[str] = None
     ):
         route = Route(
             "DELETE", "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
@@ -291,7 +378,7 @@ class RestClient:
         self,
         guild_id: int,
         user_id: int,
-        reason: str = None
+        reason: typing.Optional[str] = None
     ):
         route = Route(
             "DELETE", "/guilds/{guild_id}/members/{user_id}",
@@ -307,7 +394,7 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def create_guild_channel(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+    async def create_guild_channel(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
         route = Route("POST", "/guilds/{guild_id}/channels", guild_id=guild_id)
         data = await self.request(route, json=json, reason=reason)
         return data
@@ -317,15 +404,36 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def delete_channel(self, channel_id: int, reason: str = None):
+    async def delete_channel(self, channel_id: int, reason: typing.Optional[str] = None):
         route = Route("DELETE", "/channels/{channel_id}", channel_id=channel_id)
         data = await self.request(route, reason=reason)
         return data
 
-    async def edit_channel(self, channel_id: int, json: typing.Dict[str, typing.Any], reason: str = None):
+    async def edit_channel(self, channel_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
         route = Route("PATCH", "/channels/{channel_id}", channel_id=channel_id)
         data = await self.request(route, json=json, reason=reason)
         return data
+
+    async def set_permission_overwrite(
+        self,
+        channel_id: int,
+        overwrite_id: int,
+        json: typing.Dict[str, typing.Any],
+        reason: typing.Optional[str] = None,
+    ):
+        route = Route("PUT", "/channels/{channel_id}/permissions/{overwrite_id}",
+                      channel_id=channel_id, overwrite_id=overwrite_id)
+        await self.request(route, json=json, reason=reason)
+
+    async def remove_permission_overwrite(
+        self,
+        channel_id: int,
+        overwrite_id: int,
+        reason: typing.Optional[str] = None,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/permissions/{overwrite_id}",
+                      channel_id=channel_id, overwrite_id=overwrite_id)
+        await self.request(route, reason=reason)
 
     # --- Messages --- #
 
@@ -337,6 +445,11 @@ class RestClient:
         data = await self.request(route)
         return data
 
+    async def get_messages(self, channel_id: int, params: typing.Dict[str, typing.Any]):
+        route = Route("GET", "/channels/{channel_id}/messages", channel_id=channel_id)
+        data = await self.request(route, params=params)
+        return data
+
     async def get_pinned_messages(self, channel_id: int):
         route = Route("GET", "/channels/{channel_id}/pins", channel_id=channel_id)
         data = await self.request(route)
@@ -345,12 +458,12 @@ class RestClient:
     async def send_message(
         self,
         channel_id: int,
-        json: typing.Dict[str, typing.Any] = None,
-        files: typing.List[File] = None,
+        json: typing.Dict[str, typing.Any] = UNDEFINED,
+        files: typing.List[File] = UNDEFINED,
     ):
         route = Route("POST", "/channels/{channel_id}/messages", channel_id=channel_id)
 
-        if not files:
+        if files is UNDEFINED:
             data = await self.request(route, json=json)
         else:
             form = aiohttp.FormData(quote_fields=False)
@@ -370,7 +483,7 @@ class RestClient:
                 }
                 attachments.append(attachment)
 
-            if json is None:
+            if json is UNDEFINED:
                 json = {}
 
             json["attachments"] = attachments
@@ -384,15 +497,15 @@ class RestClient:
         self,
         channel_id: int,
         message_id: int,
-        json: typing.Dict[str, typing.Any] = None,
-        files: typing.List[File] = None,
+        json: typing.Dict[str, typing.Any] = UNDEFINED,
+        files: typing.List[File] = UNDEFINED,
     ):
         route = Route(
             "PATCH", "/channels/{channel_id}/messages/{message_id}",
             channel_id=channel_id, message_id=message_id
         )
 
-        if not files:
+        if files is UNDEFINED:
             data = await self.request(route, json=json)
         else:
             form = aiohttp.FormData(quote_fields=False)
@@ -412,7 +525,7 @@ class RestClient:
                 }
                 attachments.append(attachment)
 
-            if json is None:
+            if json is UNDEFINED:
                 json = {}
 
             json["attachments"] = attachments
@@ -423,5 +536,7 @@ class RestClient:
         return data
 
     async def delete_message(self, channel_id: int, message_id: int):
-        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}")
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}",
+                      channel_id=channel_id, message_id=message_id)
+
         await self.request(route)

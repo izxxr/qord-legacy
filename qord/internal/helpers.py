@@ -20,33 +20,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-r"""*Non-public* internal utilities."""
 
 from __future__ import annotations
 
-from base64 import b64encode
+from qord.internal.undefined import UNDEFINED
+
 from datetime import datetime
+from base64 import b64encode
 import typing
+
+
+__all__ = (
+    "BASE_CDN_URL",
+    "BASIC_STATIC_EXTS",
+    "BASIC_EXTS",
+    "create_cdn_url",
+    "get_optional_snowflake",
+    "compute_shard_id",
+    "get_image_data",
+    "parse_iso_timestamp",
+)
+
 
 BASE_CDN_URL = "https://cdn.discordapp.com"
 BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
 
-
-class _Undefined:
-    def __bool__(self) -> bool:
-        return False
-
-    def __eq__(self, o: object) -> bool:
-        return False
-
-    def __repr__(self) -> str:
-        return "..."
-
-UNDEFINED: typing.Any = _Undefined()
-
-
-def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typing.List[str] = None):
+def create_cdn_url(path: str, extension: str, size: int = UNDEFINED, valid_exts: typing.List[str] = UNDEFINED):
     r"""Create a CDN URL with provided path, file extension and size."""
 
     if valid_exts is None:
@@ -54,14 +54,14 @@ def create_cdn_url(path: str, extension: str, size: int = None, valid_exts: typi
         # are currently png, jpg, webp.
         # When using with endpoints that have special formats
         # consider passing the valid formats explicitly.
-        valid_exts = ["png", "jpeg", "jpg", "webp"]
+        valid_exts = BASIC_STATIC_EXTS
 
     if not extension.lower() in valid_exts:
         raise ValueError(f"Invalid image extension {extension!r}, Expected one of {', '.join(valid_exts)}")
 
     ret = f"{BASE_CDN_URL}{path}.{extension}"
 
-    if size is not None:
+    if size is not UNDEFINED:
         if size < 64 and size > 4096:
             raise ValueError("size must be between 64 and 4096. Got %s instead." % size)
         if not (size & (size-1) == 0) and (size != 0 and size-1 != 0):

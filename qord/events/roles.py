@@ -33,6 +33,14 @@ if typing.TYPE_CHECKING:
     from qord.models.roles import Role
     from qord.models.guilds import Guild
 
+
+__all__ = (
+    "RoleCreate",
+    "RoleUpdate",
+    "RoleDelete",
+)
+
+
 @dataclass(frozen=True)
 class RoleCreate(BaseEvent, event_name=GatewayEvent.ROLE_CREATE):
     """Structure for :attr:`~qord.GatewayEvent.ROLE_CREATE` event.
