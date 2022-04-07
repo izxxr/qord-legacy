@@ -387,6 +387,33 @@ class RestClient:
         data = await self.request(route, reason=reason)
         return data
 
+    # --- Guild Emojis --- #
+
+    async def get_guild_emojis(self, guild_id: int):
+        route = Route("GET", "/guilds/{guild_id}/emojis", guild_id=guild_id)
+        data = await self.request(route)
+        return data
+
+    async def get_guild_emoji(self, guild_id: int, emoji_id: int):
+        route = Route("GET", "/guilds/{guild_id}/emojis/{emoji_id}", guild_id=guild_id, emoji_id=emoji_id)
+        data = await self.request(route)
+        return data
+
+    async def create_guild_emoji(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("POST", "/guilds/{guild_id}/emojis", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def edit_guild_emoji(self, guild_id: int, emoji_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("PATCH", "/guilds/{guild_id}/emojis/{emoji_id}", guild_id=guild_id, emoji_id=emoji_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def delete_guild_emoji(self, guild_id: int, emoji_id: int, reason: typing.Optional[str] = None):
+        route = Route("DELETE", "/guilds/{guild_id}/emojis/{emoji_id}", guild_id=guild_id, emoji_id=emoji_id)
+        data = await self.request(route, reason=reason)
+        return data
+
     # --- Channels --- #
 
     async def get_guild_channels(self, guild_id: int):

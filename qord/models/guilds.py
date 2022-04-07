@@ -848,3 +848,94 @@ class Guild(BaseModel, Comparable):
         )
         cls = _guild_channel_factory(data["type"])
         return cls(data, guild=self)
+
+    async def fetch_emojis(self) -> typing.List[Emoji]:
+        """Fetches the emojis of this guild.
+
+        Returns
+        -------
+        List[:class:`Emoji`]
+            The list of emojis from this guild.
+
+        Raises
+        ------
+        HTTPException
+            The fetching failed.
+        """
+        data = await self._rest.get_guild_emojis(guild_id=self.id)
+        return [Emoji(e, guild=self) for e in data]
+
+    async def fetch_emoji(self, emoji_id: int) -> Emoji:
+        """Fetches the emoji from the given emoji ID.
+
+        Returns
+        -------
+        :class:`Emoji`
+            The requested emoji.
+
+        Raises
+        ------
+        HTTPNotFound
+            Emoji with that ID does not exist.
+        HTTPException
+            The fetching failed.
+        """
+        data = await self._rest.get_guild_emoji(guild_id=self.id, emoji_id=emoji_id)
+        return Emoji(data, guild=self)
+
+    async def create_emoji(
+        self,
+        image: bytes,
+        name: str,
+        *,
+        roles: typing.Optional[typing.List[Role]] = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> Emoji:
+        """Creates an emoji in the guild.
+
+        This operation requires :attr:`~Permissions.manage_emojis_and_stickers`
+        permission in the parent emoji guild. The guild must also have a remaining
+        slot available for emojis.
+
+        The size of given image data must be less than or equal to 256 KB or
+        the creation would fail.
+
+        Parameters
+        ----------
+        image: :class:`builtins.bytes`
+            The image data for the emoji in form of bytes object.
+        name: :class:`builtins.str`
+            The name of emoji.
+        roles: Optional[List[:class:`Role`]]
+            The list of roles that can use this emoji. ``None`` or empty
+            list denotes that emoji is unrestricted.
+
+        Returns
+        -------
+        :class:`Emoji`
+            The created emoji.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPException
+            The creation of emoji failed.
+        """
+        json: typing.Dict[str, typing.Any] = {
+            "image": get_image_data(image),
+            "name": name,
+        }
+
+        if roles is not UNDEFINED:
+            if roles is None:
+                roles = []
+
+            json["roles"] = [r.id for r in roles]
+
+        data = await self._rest.create_guild_emoji(
+            guild_id=self.id,
+            json=json,
+            reason=reason,
+        )
+        return Emoji(data, guild=self)

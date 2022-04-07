@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
+from qord.internal.undefined import UNDEFINED
 
 import typing
 
@@ -175,3 +176,79 @@ class Emoji(BaseModel):
 
         own_roles = me.roles
         return any(role in own_roles for role in required_roles)
+
+    async def edit(
+        self,
+        name: str = UNDEFINED,
+        roles: typing.Optional[typing.List[Role]] = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> None:
+        """Edits this emoji.
+
+        This operation requires :attr:`~Permissions.manage_emojis_and_stickers`
+        permission in the parent emoji guild.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of emoji.
+        roles: Optional[List[:class:`Role`]]
+            The list of roles that can use this emoji. ``None`` or empty
+            list denotes that emoji is unrestricted.
+        reason: :class:`builtins.str`
+            The reason for performing this action that appears on guild
+            audit log.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are missing permissions to do this.
+        HTTPException
+            The editing failed.
+        """
+        json = {}
+
+        if name is not UNDEFINED:
+            json["name"] = name
+
+        if roles is not UNDEFINED:
+            if roles is None:
+                roles = []
+
+            json["roles"] = [r.id for r in roles]
+
+        if json:
+            guild = self.guild
+            data = await guild._rest.edit_guild_emoji(
+                guild_id=guild.id,
+                emoji_id=self.id,
+                json=json,
+                reason=reason,
+            )
+            self._update_with_data(data)
+
+    async def delete(self, reason: typing.Optional[str] = None) -> None:
+        """Deletes this emoji.
+
+        This operation requires :attr:`~Permissions.manage_emojis_and_stickers`
+        permission in the parent emoji guild.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for performing this action that appears on guild
+            audit log.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are missing permissions to do this.
+        HTTPException
+            The deleting failed.
+        """
+        guild = self.guild
+        await guild._rest.delete_guild_emoji(
+            guild_id=guild.id,
+            emoji_id=self.id,
+            reason=reason,
+        )
