@@ -159,6 +159,12 @@ ChannelPermissionType
 .. autoclass:: ChannelPermissionType()
     :members:
 
+TimestampStyle
+~~~~~~~~~~~~~~
+
+.. autoclass:: TimestampStyle()
+    :members:
+
 Data classes
 ------------
 
