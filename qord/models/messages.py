@@ -139,14 +139,14 @@ class Reaction(BaseModel):
         self.me = data.get("me", False)
 
     async def users(self, *, limit: typing.Optional[int] = None, after: int = UNDEFINED) -> typing.AsyncIterator[typing.Union[GuildMember, User]]:
-        """Iterator for fetching the users for this reaction.
+        """Asynchronous Iterator for fetching the users who have reacted to this reaction.
 
         Parameters
         ----------
         limit: Optional[:class:`builtins.int`]
             The number of users to fetch. When not provided, all users are fetched.
         after: :class:`builtins.int`
-            Used for pagination, The user ID after which the users should be fetched.
+            When provided, fetches the users after the given user ID.
 
         Yields
         ------
@@ -166,9 +166,6 @@ class Reaction(BaseModel):
 
         while limit > 0:
             current_limit = min(limit, 100)
-
-            print("Limit:", limit, "|", "Current Limit:", current_limit)
-            print("After:", after)
 
             data = await getter(
                 channel_id=channel_id,
