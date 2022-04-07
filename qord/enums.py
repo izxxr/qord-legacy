@@ -105,6 +105,8 @@ class GatewayEvent:
     MESSAGE_BULK_DELETE = "message_bulk_delete"
     """Called whenever multiple messages are deleted. See :class:`events.MessageDelete` for more info."""
 
+    EMOJIS_UPDATE = "emojis_update"
+    """Called whenever emojis for a guild are updated. See :class:`events.EmojisUpdate` for more info."""
 
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.

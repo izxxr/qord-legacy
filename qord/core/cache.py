@@ -483,6 +483,19 @@ class GuildCache(ABC):
         """
 
     @abstractmethod
+    def set_emojis(self, emojis: typing.List[Emoji]) -> None:
+        """Replaces the emojis cache with the given list of emojis.
+
+        All previous emojis are removed from cache and new emojis
+        from the given list are added to cache.
+
+        Parameters
+        ----------
+        emojis: List[:class:`Emoji`]
+            The list of emojis to set.
+        """
+
+    @abstractmethod
     def get_emoji(self, emoji_id: int) -> typing.Optional[Emoji]:
         """Gets a :class:`Emoji` from the cache for provided emoji ID.
 

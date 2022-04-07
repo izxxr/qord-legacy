@@ -28,6 +28,7 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
+from qord.models.emojis import Emoji
 from qord.internal.helpers import parse_iso_timestamp
 from qord import events
 
@@ -594,4 +595,26 @@ class DispatchHandler:
             user=user,
             guild=guild,
         )
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_EMOJIS_UPDATE")
+    async def on_guild_emojis_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_EMOJIS_UPDATE: Unknown guild of ID %s", guild_id)
+            return
+
+        guild_cache = guild._cache
+        before = guild_cache.emojis().copy()
+        after = [Emoji(e, guild=guild) for e in data.get("emojis", [])]
+
+        event = events.EmojisUpdate(
+            shard=shard,
+            guild=guild,
+            before=before,
+            after=after,
+        )
+        guild_cache.set_emojis(after)
         self.invoke(event)

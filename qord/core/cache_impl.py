@@ -243,6 +243,16 @@ class DefaultGuildCache(GuildCache):
     def emojis(self) -> typing.List[Emoji]:
         return list(self._emojis.values())
 
+    def set_emojis(self, emojis: typing.List[Emoji]) -> None:
+        cache = self._emojis
+        cache.clear()
+
+        for emoji in emojis:
+            if not isinstance(emoji, Emoji):
+                raise TypeError("emojis must be a list of Emoji objects.")
+
+            cache[emoji.id] = emoji
+
     def get_emoji(self, emoji_id: int) -> typing.Optional[Emoji]:
         if not isinstance(emoji_id, int):
             raise TypeError("Parameter emoji_id must be an integer.")
