@@ -12,7 +12,6 @@ Python library for Discord API based around asyncio.
 **Features:**
 
 - Object oriented, user friendly interface with no dirty payloads.
-- Properly typed according to [PEP-484](https://www.python.org/dev/peps/pep-0484/)
 - Easy to customise and manage.
 - Robust handling of HTTP ratelimits.
 - Supports automatic gateway sharding.
