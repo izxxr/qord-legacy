@@ -20,7 +20,8 @@ Additions
 Bug fixes
 ~~~~~~~~~
 
-- Fixed recursive loop in :attr:`Embed.video` property.
+- Fixed  :attr:`Embed.video` property running into infinite loop.
+- Fixed disparity between ``embed`` and ``embeds`` parameters in :meth:`~BaseMessageChannel.send`
 
 
 v0.3.0a2 (Pre-release)

@@ -159,7 +159,7 @@ class BaseMessageChannel(ABC):
         HTTPException
             The sending failed for some reason.
         """
-        if embed is not UNDEFINED and embeds is UNDEFINED:
+        if embed is not UNDEFINED and embeds is not UNDEFINED:
             raise TypeError("embed and embeds parameters cannot be mixed.")
 
         if file is not UNDEFINED and files is not UNDEFINED:
