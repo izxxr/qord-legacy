@@ -256,7 +256,6 @@ class Guild(BaseModel, Comparable):
         # eventually implement these features.
         #
         # - permissions
-        # - emojis
         # - voice_states
         # - threads
         # - presences
@@ -394,6 +393,9 @@ class Guild(BaseModel, Comparable):
 
         If the bot is not part of guild or the guild is fetched
         using :meth:`Client.fetch_guild`, this returns ``None``.
+
+        Note that this property does not require :attr:`~Intents.members`
+        intents as bot member is sent by Discord regardless.
 
         Returns
         -------
