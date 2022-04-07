@@ -126,7 +126,7 @@ class Emoji(BaseModel):
         if self.animated:
             return f"<a:{self.name}:{self.id}>"
 
-        return f"<:{self.name}:{self.id}"
+        return f"<:{self.name}:{self.id}>"
 
     @property
     def roles(self) -> typing.List[Role]:
