@@ -567,3 +567,76 @@ class RestClient:
                       channel_id=channel_id, message_id=message_id)
 
         await self.request(route)
+
+    # ---- Message Reactions ---- #
+
+    async def get_reaction_users(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+        after: int = UNDEFINED,
+        limit: int = UNDEFINED,
+    ):
+        route = Route("GET", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+
+        query = {}
+
+        if after is not UNDEFINED:
+            query["after"] = after
+        if limit is not UNDEFINED:
+            query["limit"] = limit
+
+        data = await self.request(route, params=query)
+        return data
+
+    async def add_reaction(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+    ):
+        route = Route("PUT", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+        await self.request(route)
+
+    async def remove_own_reaction(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+        await self.request(route)
+
+    async def remove_user_reaction(
+        self,
+        channel_id: int,
+        message_id: int,
+        user_id: int,
+        emoji: str,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji, user_id=user_id)
+        await self.request(route)
+
+    async def clear_reactions(
+        self,
+        channel_id: int,
+        message_id: int,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions",
+                      channel_id=channel_id, message_id=message_id)
+        await self.request(route)
+
+    async def clear_reactions_for_emoji(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+        await self.request(route)

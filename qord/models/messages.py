@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
-from qord.models.emojis import PartialEmoji
+from qord.models.emojis import PartialEmoji, Emoji
 from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
@@ -138,6 +138,79 @@ class Reaction(BaseModel):
         self.count = data.get("count", 1)
         self.me = data.get("me", False)
 
+    async def users(self, *, limit: typing.Optional[int] = None, after: int = UNDEFINED) -> typing.AsyncIterator[typing.Union[GuildMember, User]]:
+        """Iterator for fetching the users for this reaction.
+
+        Parameters
+        ----------
+        limit: Optional[:class:`builtins.int`]
+            The number of users to fetch. When not provided, all users are fetched.
+        after: :class:`builtins.int`
+            Used for pagination, The user ID after which the users should be fetched.
+
+        Yields
+        ------
+        Union[:class:`GuildMember`, :class:`User`]
+            The users that reacted with this reaction. When member intents are present
+            and reaction is in a guild, :class:`GuildMember` is returned. In some cases,
+            such as when member has left the guild or member isn't cached, the :class:`User`
+            is yielded.
+        """
+
+        limit = limit or self.count
+        getter = self.message._rest.get_reaction_users
+        message_id = self.message.id
+        channel_id = self.message.channel_id
+        guild = self.message.guild
+        emoji = _get_reaction_emoji(self)
+
+        while limit > 0:
+            current_limit = min(limit, 100)
+
+            print("Limit:", limit, "|", "Current Limit:", current_limit)
+            print("After:", after)
+
+            data = await getter(
+                channel_id=channel_id,
+                message_id=message_id,
+                emoji=emoji,
+                after=after,
+                limit=current_limit,
+            )
+
+            limit -= len(data)
+
+            if data:
+                after = int(data[-1]["id"])
+
+            for user_payload in data:
+                user = None
+                user_id = int(user_payload["id"])
+
+                if guild:
+                    user = guild.cache.get_member(user_id)
+
+                if user is None:
+                    user = User(user_payload, client=self._client)
+
+                yield user
+
+
+def _get_reaction_emoji(emoji_or_reaction: typing.Union[Reaction, PartialEmoji, Emoji, str]) -> str:
+    if isinstance(emoji_or_reaction, str):
+        ret = emoji_or_reaction
+    elif isinstance(emoji_or_reaction, (PartialEmoji, Emoji)):
+        ret = emoji_or_reaction.mention
+    elif isinstance(emoji_or_reaction, Reaction):
+        ret = emoji_or_reaction.emoji.mention
+    else:
+        raise TypeError("Expected emoji to be an instance of Emoji, PartialEmoji, Reaction or str. Got %r"
+                        % emoji_or_reaction.__class__)
+
+    # <a:name:12345> -> name:12345
+    # <:name:12345> -> name:12345
+    # has no effect on unicode emoji
+    return ret.strip("<a:>")
 
 class Attachment(BaseModel, Comparable):
     """Represents an attachment that is attached to a message.
@@ -646,7 +719,7 @@ class Message(BaseModel, Comparable):
         HTTPException
             The editing failed for some reason.
         """
-        if embed is not UNDEFINED and embeds is UNDEFINED:
+        if embed is not UNDEFINED and embeds is not UNDEFINED:
             raise TypeError("embed and embeds parameters cannot be mixed.")
 
         if file is not UNDEFINED and files is not UNDEFINED:
@@ -685,3 +758,110 @@ class Message(BaseModel, Comparable):
                 files=files,
             )
         self._update_with_data(data)
+
+    async def add_reaction(self, emoji: typing.Union[Emoji, PartialEmoji, str]) -> None:
+        """Adds a reaction to the message.
+
+        This operation requires :attr:`~Permissions.read_message_history` permission
+        and additionally :attr:`~Permissions.add_reactions` permission if no one
+        has reacted to the message yet.
+
+        .. warning::
+            It is a common misconception of passing unicode emoji in Discord markdown
+            format such as ``:smile:``. The emoji must be passed as unicode emoji. For
+            custom emojis, The format ``<:name:id>`` is used.
+
+        Parameters
+        ----------
+        emoji: Union[:class:`builtins.str`, :class:`Emoji`, :class:`PartialEmoji`]
+            The emoji to react with.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            The operation failed.
+        """
+        await self._rest.add_reaction(
+            channel_id=self.channel_id,
+            message_id=self.id,
+            emoji=_get_reaction_emoji(emoji),
+        )
+
+    async def remove_reation(self, emoji: typing.Union[Emoji, PartialEmoji, Reaction, str], user: typing.Union[User, GuildMember] = UNDEFINED) -> None:
+        """Removes a reaction from the message.
+
+        When removing own reaction (not passing the ``user`` parameter), No permissions
+        are required however when removing other's reactions, The :attr:`~Permissions.manage_messages`
+        permissions are needed.
+
+        .. warning::
+            It is a common misconception of passing unicode emoji in Discord markdown
+            format such as ``:smile:``. The emoji must be passed as unicode emoji. For
+            custom emojis, The format ``<:name:id>`` is used.
+
+        Parameters
+        ----------
+        emoji: Union[:class:`builtins.str`, :class:`Emoji`, :class:`PartialEmoji`, :class:`Reaction`]
+            The emoji to remove reaction of.
+        user: Union[:class:`User`, :class:`GuildMember`]
+            The user to remove reaction of. If not provided, This defaults to own
+            (bot) user.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            The operation failed.
+        """
+        if user is UNDEFINED:
+            await self._rest.remove_own_reaction(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                emoji=_get_reaction_emoji(emoji),
+            )
+        else:
+            await self._rest.remove_user_reaction(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                user_id=user.id,
+                emoji=_get_reaction_emoji(emoji),
+            )
+
+    async def clear_reactions(self, emoji: typing.Union[Emoji, PartialEmoji, Reaction, str] = UNDEFINED) -> None:
+        """Clears all reactions or reactions for a specific emoji from the message.
+
+        The :attr:`~Permissions.manage_messages` permissions are needed to
+        perform this action.
+
+        .. warning::
+            It is a common misconception of passing unicode emoji in Discord markdown
+            format such as ``:smile:``. The emoji must be passed as unicode emoji. For
+            custom emojis, The format ``<:name:id>`` is used.
+
+        Parameters
+        ----------
+        emoji: Union[:class:`builtins.str`, :class:`Emoji`, :class:`PartialEmoji`, :class:`Reaction`]
+            The emoji to clear reactions of. If not provided, All reactions are
+            removed from the message.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            The operation failed.
+        """
+        if emoji is UNDEFINED:
+            await self._rest.clear_reactions(
+                channel_id=self.channel_id,
+                message_id=self.id,
+            )
+        else:
+            await self._rest.clear_reactions_for_emoji(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                emoji=_get_reaction_emoji(emoji),
+            )
