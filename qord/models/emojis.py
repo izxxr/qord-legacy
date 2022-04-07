@@ -25,17 +25,133 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.internal.undefined import UNDEFINED
+from qord.internal.helpers import get_optional_snowflake
 
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.core.client import Client
     from qord.models.guilds import Guild
     from qord.models.roles import Role
 
 
 __all__ = (
+    "PartialEmoji",
     "Emoji",
 )
+
+
+class PartialEmoji(BaseModel):
+    """Represents a partial emoji.
+
+    A partial emoji is returned by in API responses in following cases:
+
+    - For representing standard unicode emojis.
+    - For representing emojis in reactions.
+    - A full :class:`Emoji` object cannot be resolved from cache.
+
+    .. tip::
+        If you have the custom emoji's parent guild, You can resolve the
+        complete :class:`Emoji` object using the :meth:`.resolve` method.
+
+    Attributes
+    ----------
+    id: Optional[:class:`builtins.int`]
+        The ID of emoji. This can be ``None`` when the class is representing
+        a standard unicode emoji rather than a custom emoji.
+    name: Optional[:class:`builtins.str`]
+        The name of emoji. For standard unicode emojis, This is the actual emoji
+        representation and for the custom emojis, It's the emoji's name.
+
+        For custom emojis obtained from message reactions events, This may be ``None``
+        when the custom emoji data isn't available to the API. This generally happens
+        when the emoji was deleted.
+    animated: :class:`builtins.bool`
+        Whether the emoji is animated. For unicode emojis, This is always ``False``.
+    """
+
+    if typing.TYPE_CHECKING:
+        id: typing.Optional[int]
+        name: typing.Optional[str]
+        animated: bool
+
+    def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
+        self._client = client
+        self._update_with_data(data)
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        self.id = get_optional_snowflake(data, "id")
+        self.name = data.get("name")
+        self.animated = data.get("animated", False)
+
+    @property
+    def mention(self) -> str:
+        """The string used for mentioning/rendering the emoji in Discord client.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        if self.is_unicode_emoji():
+            # Name is always present here.
+            return self.name  # type: ignore
+
+        if self.animated:
+            return f"<a:{self.name}:{self.id}>"
+
+        return f"<:{self.name}:{self.id}>"
+
+    def is_unicode_emoji(self) -> bool:
+        """Indicates whether the emoji is a unicode emoji.
+
+        Unicode emojis don't have an ID associated to them.
+
+        Returns
+        -------
+        :class:`builtins.bool`
+        """
+        return self.id is None
+
+    async def resolve(self, guild: Guild) -> Emoji:
+        """Resolves the full :class:`Emoji` object.
+
+        Note that this operation is not possible for unicode
+        emojis (i.e :meth:`.is_unicode_emoji` returns ``True``)
+
+        This method attempts to resolve the emoji from given
+        guild's cache and if not found, would make an HTTP request
+        to fetch the emoji. If the emoji is not found, the
+        :class:`HTTPNotFound` error is raised.
+
+        Parameters
+        ----------
+        guild: :class:`Guild`
+            The guild to fetch the emoji from.
+
+        Returns
+        -------
+        :class:`Emoji`
+            The resolved emoji.
+
+        Raises
+        ------
+        RuntimeError
+            The emoji is a unicode emoji.
+        HTTPNotFound
+            The emoji could not be resolved.
+        """
+        if self.is_unicode_emoji():
+            raise RuntimeError("Cannot resolve a unicode emoji.")
+
+        # id is always an int here.
+        emoji_id: int = self.id  # type: ignore
+        ret = guild.cache.get_emoji(emoji_id)
+
+        if ret:
+            return ret
+
+        ret = await guild.fetch_emoji(emoji_id)
+        return ret
 
 
 class Emoji(BaseModel):

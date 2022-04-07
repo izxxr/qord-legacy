@@ -201,6 +201,12 @@ TypingStart
 .. autoclass:: qord.events.TypingStart()
     :members:
 
+EmojisUpdate
+~~~~~~~~~~~~
+
+.. autoclass:: qord.events.EmojisUpdate()
+    :members:
+
 MessageCreate
 ~~~~~~~~~~~~~
 
@@ -226,4 +232,28 @@ MessageBulkDelete
 ~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: qord.events.MessageBulkDelete()
+    :members:
+
+ReactionAdd
+~~~~~~~~~~~
+
+.. autoclass:: qord.events.ReactionAdd()
+    :members:
+
+ReactionRemove
+~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ReactionRemove()
+    :members:
+
+ReactionClear
+~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ReactionClear()
+    :members:
+
+ReactionClearEmoji
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ReactionClearEmoji()
     :members:

@@ -14,3 +14,4 @@ from qord.events.roles import *
 from qord.events.messages import *
 from qord.events.users import *
 from qord.events.emojis import *
+from qord.events.reactions import *

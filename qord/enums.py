@@ -108,6 +108,19 @@ class GatewayEvent:
     EMOJIS_UPDATE = "emojis_update"
     """Called whenever emojis for a guild are updated. See :class:`events.EmojisUpdate` for more info."""
 
+    REACTION_ADD = "reaction_add"
+    """Called whenever a reaction is added on a message. See :class:`events.ReactionAdd` for more info."""
+
+    REACTION_REMOVE = "reaction_remove"
+    """Called whenever a reaction is removed from a message. See :class:`events.ReactionRemove` for more info."""
+
+    REACTION_CLEAR = "reaction_clear"
+    """Called whenever all reactions are cleared from a message. See :class:`events.ReactionClear` for more info."""
+
+    REACTION_CLEAR_EMOJI = "reaction_clear_emoji"
+    """Called whenever all reactions for a specific emoji are cleared from a message. See :class:`events.ReactionClearEmoji` for more info."""
+
+
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.
 

@@ -41,6 +41,13 @@ __all__ = (
 
 @dataclass
 class EmojisUpdate(BaseEvent, event_name=GatewayEvent.EMOJIS_UPDATE):
+    """Structure for :attr:`~qord.GatewayEvent.EMOJIS_UPDATE` event.
+
+    This event is called whenever emojis are updated in a guild i.e
+    a new emoji is created, an emoji is deleted or updated.
+
+    This requires :attr:`Intents.emojis_and_stickers` to be enabled.
+    """
     shard: Shard
 
     guild: Guild

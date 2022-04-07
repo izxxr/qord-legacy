@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
+from qord.models.emojis import PartialEmoji
 from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
@@ -48,6 +49,7 @@ if typing.TYPE_CHECKING:
 
 __all__ = (
     "ChannelMention",
+    "Reaction",
     "Attachment",
     "Message",
 )
@@ -95,6 +97,47 @@ class ChannelMention(BaseModel):
         self.guild_id = int(data["guild_id"])
         self.type = data["type"]
         self.name = data["name"]
+
+
+class Reaction(BaseModel):
+    """Represents a reaction on a :class:`Message`.
+
+    Attributes
+    ----------
+    message: :class:`Message`
+        The message that this reaction belongs to.
+    count: :class:`builtins.int`
+        The count of this reaction.
+    emoji: :class:`PartialEmoji`
+        The emoji for this reaction.
+    me: :class:`builtins.bool`
+        Whether the reaction is added by the bot user.
+    """
+
+    if typing.TYPE_CHECKING:
+        message: Message
+        emoji: PartialEmoji
+        count: int
+        me: bool
+
+    __slots__ = (
+        "_client",
+        "message",
+        "emoji",
+        "count",
+        "me",
+    )
+
+    def __init__(self, data: typing.Dict[str, typing.Any], message: Message) -> None:
+        self.message = message
+        self._client = message._client
+        self._update_with_data(data)
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        self.emoji = PartialEmoji(data["emoji"], client=self._client)
+        self.count = data.get("count", 1)
+        self.me = data.get("me", False)
+
 
 class Attachment(BaseModel, Comparable):
     """Represents an attachment that is attached to a message.
@@ -169,6 +212,7 @@ class Attachment(BaseModel, Comparable):
         self.width = data.get("width")
         self.ephemeral = data.get("ephemeral", False)
 
+
 class Message(BaseModel, Comparable):
     """Represents a message generated in channels by users, bots and webhooks.
 
@@ -229,6 +273,8 @@ class Message(BaseModel, Comparable):
         The list of attachments attached to the message.
     embeds: List[:class:`Embed`]
         The list of embeds attached to the message.
+    reactions: List[:class:`Reaction`]
+        The list of reactions on this message.
     flags: :class:`MessageFlags`
         The flags of this message.
     message_reference: Optional[:class:`MessageReference`]
@@ -262,6 +308,7 @@ class Message(BaseModel, Comparable):
         mentioned_channels: typing.List[ChannelMention]
         attachments: typing.List[Attachment]
         embeds: typing.List[Embed]
+        reactions: typing.List[Reaction]
         guild: typing.Optional[Guild]
         content: typing.Optional[str]
         nonce: typing.Optional[typing.Union[str, int]]
@@ -274,7 +321,7 @@ class Message(BaseModel, Comparable):
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
                 "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
-                "embeds", "flags", "message_reference", "referenced_message")
+                "embeds", "flags", "message_reference", "referenced_message", "reactions")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -285,7 +332,6 @@ class Message(BaseModel, Comparable):
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # TODO: Following fields are not supported yet:
-        # - reactions
         # - activity
         # - application
         # - interaction
@@ -311,6 +357,7 @@ class Message(BaseModel, Comparable):
         self.pinned = data.get("pinned", False)
         self.attachments = [Attachment(a, message=self) for a in data.get("attachments", [])]
         self.embeds = [Embed.from_dict(e) for e in data.get("embeds", [])]
+        self.reactions = [Reaction(r, message=self) for r in data.get("reactions", [])]
         edited_at = data.get("edited_timestamp")
         message_reference = data.get("message_reference")
         self.edited_at = parse_iso_timestamp(edited_at) if edited_at is not None else None
@@ -429,6 +476,76 @@ class Message(BaseModel, Comparable):
 
         self.referenced_message = self.__class__(referenced_message_data, channel=channel) # type: ignore
 
+    def _handle_reaction_add(self, emoji: typing.Dict[str, typing.Any], user: typing.Union[User, GuildMember]) -> Reaction:
+        emoji_id = get_optional_snowflake(emoji, "id")
+        emoji_name = emoji.get("name")
+        existing_reaction = None
+
+        for reaction in self.reactions:
+            reaction_emoji = reaction.emoji
+
+            if reaction_emoji.id == emoji_id and reaction_emoji.name == emoji_name:
+                existing_reaction = reaction
+                break
+
+        if existing_reaction is None:
+            data = {
+                "count": 1,
+                "me": user.id == self._client.user.id,  # type: ignore
+                "emoji": emoji,
+            }
+            reaction = Reaction(data, message=self)
+            self.reactions.append(reaction)
+            return reaction
+        else:
+            existing_reaction.count += 1
+            existing_reaction.me = user.id == self._client.user.id  # type: ignore
+            return existing_reaction
+
+    def _handle_reaction_remove(self, emoji: typing.Dict[str, typing.Any], user: typing.Union[User, GuildMember]) -> typing.Optional[Reaction]:
+        emoji_id = get_optional_snowflake(emoji, "id")
+        emoji_name = emoji.get("name")
+        existing_reaction = None
+
+        for reaction in self.reactions:
+            reaction_emoji = reaction.emoji
+
+            if reaction_emoji.id == emoji_id and reaction_emoji.name == emoji_name:
+                existing_reaction = reaction
+                break
+
+        if existing_reaction is None:
+            return None
+
+        existing_reaction.count -= 1
+
+        if existing_reaction.count == 0:
+            # Reaction count = 0 means there are no reactions
+            self.reactions.remove(existing_reaction)
+
+        if user.id == self._client.user.id:  # type: ignore
+            # Our user removed the reaction
+            existing_reaction.me = False
+
+        return existing_reaction
+
+    def _handle_reaction_clear_emoji(self, emoji: typing.Dict[str, typing.Any]) -> typing.Optional[Reaction]:
+        found_reaction = None
+        emoji_id = get_optional_snowflake(emoji, "id")
+        emoji_name = emoji.get("name")
+
+        for reaction in self.reactions:
+            reaction_emoji = reaction.emoji
+
+            if reaction_emoji.id == emoji_id and reaction_emoji.name == emoji_name:
+                found_reaction = reaction
+                break
+
+        if found_reaction is None:
+            return None
+
+        self.reactions.remove(found_reaction)
+        return found_reaction
 
     async def delete(self) -> None:
         """Deletes this message.
