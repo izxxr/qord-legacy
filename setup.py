@@ -3,7 +3,7 @@ from setuptools import setup
 with open("README.MD", "r", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
-VERSION = "0.3.0a2"
+VERSION = "0.3.0a3"
 GITHUB = "https://github.com/nerdguyahmad/qord"
 DOCUMENTATION = "https://qord.readthedocs.io"
 LICENSE = "MIT"

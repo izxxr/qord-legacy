@@ -27,6 +27,7 @@ from qord.models.base import BaseModel
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel
+from qord.models.emojis import Emoji
 from qord.flags.system_channel import SystemChannelFlags
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable
@@ -313,6 +314,10 @@ class Guild(BaseModel, Comparable):
             role = Role(raw_role, guild=self)
             cache.add_role(role)
 
+        for raw_emoji in data.get("emojis", []):
+            emoji = Emoji(raw_emoji, guild=self)
+            cache.add_emoji(emoji)
+
     @property
     def cache(self) -> GuildCache:
         """Returns the cache handler associated to this guild.
@@ -382,6 +387,20 @@ class Guild(BaseModel, Comparable):
         """
         role_id = self.id
         return self._cache.get_role(role_id)
+
+    @property
+    def me(self) -> typing.Optional[GuildMember]:
+        """Returns the :class:`GuildMember` for the bot's user.
+
+        If the bot is not part of guild or the guild is fetched
+        using :meth:`Client.fetch_guild`, this returns ``None``.
+
+        Returns
+        -------
+        Optional[:class:`GuildMember`]
+        """
+        user_id = self._client.user.id # type: ignore # This is never None here
+        return self._cache.get_member(user_id)
 
     def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the icon URL for this guild.

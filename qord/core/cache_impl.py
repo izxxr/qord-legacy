@@ -29,6 +29,7 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import GuildChannel, PrivateChannel
 from qord.models.messages import Message
+from qord.models.emojis import Emoji
 
 import weakref
 import typing
@@ -166,6 +167,7 @@ class DefaultGuildCache(GuildCache):
         self._roles: typing.Dict[int, Role] = {}
         self._members: typing.Dict[int, GuildMember] = {}
         self._channels: typing.Dict[int, GuildChannel] = {}
+        self._emojis = dict()
 
     def roles(self) -> typing.List[Role]:
         roles = list(self._roles.values())
@@ -237,3 +239,24 @@ class DefaultGuildCache(GuildCache):
             raise TypeError("Parameter channel_id must be an integer.")
 
         return self._channels.pop(channel_id, None)
+
+    def emojis(self) -> typing.List[Emoji]:
+        return list(self._emojis.values())
+
+    def get_emoji(self, emoji_id: int) -> typing.Optional[Emoji]:
+        if not isinstance(emoji_id, int):
+            raise TypeError("Parameter emoji_id must be an integer.")
+
+        return self._emojis.get(emoji_id)
+
+    def add_emoji(self, emoji: Emoji) -> None:
+        if not isinstance(emoji, Emoji):
+            raise TypeError("Parameter emoji must be an instance of Emoji.")
+
+        self._emojis[emoji.id] = emoji
+
+    def delete_emoji(self, emoji_id: int) -> typing.Optional[GuildChannel]:
+        if not isinstance(emoji_id, int):
+            raise TypeError("Parameter emoji_id must be an integer.")
+
+        return self._emojis.pop(emoji_id, None)

@@ -8,6 +8,21 @@ This page details the changelog containing every notable change of every release
 - The release with "Unreleased" in title indicates that the release is not yet released and is under development.
 - The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release.
 
+v0.3.0a3 (Unreleased)
+---------------------
+
+Additions
+~~~~~~~~~
+
+- Added support for custom guild emojis.
+- Added :attr:`Guild.me` property for retreiving bot member.
+
+Bug fixes
+~~~~~~~~~
+
+- Fixed recursive loop in :attr:`Embed.video` property.
+
+
 v0.3.0a2 (Pre-release)
 ----------------------
 
