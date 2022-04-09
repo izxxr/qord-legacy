@@ -72,3 +72,5 @@ autodoc_type_aliases = {
     "MessageableT": "Union[TextChannel, DMChannel]",
     "_OverwriteValue": "Optional[bool]",
 }
+
+autodoc_member_order = 'bysource'
