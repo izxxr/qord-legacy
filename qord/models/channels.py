@@ -59,6 +59,9 @@ __all__ = (
 class ChannelPermission(BaseModel):
     """Represents the detail of a channel permission override for a specific target.
 
+    This class supports comparison between other :class:`ChannelPermission` objects
+    considering both having same target and same permission overrides.
+
     Attributes
     ----------
     target_id: :class:`builtins.int`
@@ -105,6 +108,15 @@ class ChannelPermission(BaseModel):
         self.target_id = int(data["id"])
         self.target_type = data["type"]
         self.permission_overwrite = PermissionOverwrite.from_permissions(allow, deny)
+
+    def __eq__(self, other: typing.Any) -> bool:
+        if isinstance(other, self.__class__):
+            return (
+                self.permission_overwrite == other.permission_overwrite and
+                self.target_id == other.target_id
+            )
+
+        return False
 
     @property
     def target(self) -> typing.Optional[typing.Union[Role, GuildMember]]:

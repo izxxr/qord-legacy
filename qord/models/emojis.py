@@ -26,6 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.internal.undefined import UNDEFINED
 from qord.internal.helpers import get_optional_snowflake
+from qord.internal.mixins import Comparable
 
 import typing
 
@@ -49,6 +50,8 @@ class PartialEmoji(BaseModel):
     - For representing standard unicode emojis.
     - For representing emojis in reactions.
     - A full :class:`Emoji` object cannot be resolved from cache.
+
+    This class supports comparison between :class:`Emoji` and :class:`PartialEmoji`.
 
     .. tip::
         If you have the custom emoji's parent guild, You can resolve the
@@ -83,6 +86,14 @@ class PartialEmoji(BaseModel):
         self.id = get_optional_snowflake(data, "id")
         self.name = data.get("name")
         self.animated = data.get("animated", False)
+
+    def __eq__(self, other: typing.Any) -> bool:
+        if isinstance(other, Emoji):
+            return other.id == self.id
+        elif isinstance(other, self.__class__):
+            return other.id == self.id and other.name == self.name
+
+        return False
 
     @property
     def mention(self) -> str:
@@ -154,8 +165,10 @@ class PartialEmoji(BaseModel):
         return ret
 
 
-class Emoji(BaseModel):
+class Emoji(BaseModel, Comparable):
     """Represents a custom guild emoji.
+
+    |supports-comparison|
 
     Attributes
     ----------
