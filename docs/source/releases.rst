@@ -17,6 +17,7 @@ Additions
 - Added support for custom guild emojis.
 - Added support for message reactions.
 - Added :attr:`Guild.me` property for retreiving bot member.
+- Added :attr:`created_at` property on appropriate Discord models.
 
 Changes
 ~~~~~~~~

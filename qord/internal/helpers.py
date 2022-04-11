@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from qord.internal.undefined import UNDEFINED
 
-from datetime import datetime
+from datetime import datetime, timezone
 from base64 import b64encode
 import typing
 
@@ -47,7 +47,7 @@ BASIC_STATIC_EXTS = ["png", "jpg", "jpeg", "webp"]
 BASIC_EXTS = ["png", "jpg", "jpeg", "webp", "gif"]
 
 def create_cdn_url(path: str, extension: str, size: int = UNDEFINED, valid_exts: typing.List[str] = UNDEFINED):
-    r"""Create a CDN URL with provided path, file extension and size."""
+    """Create a CDN URL with provided path, file extension and size."""
 
     if valid_exts is None:
         # Defaulting to general formats used on most endpoints which
@@ -72,18 +72,18 @@ def create_cdn_url(path: str, extension: str, size: int = UNDEFINED, valid_exts:
     return ret
 
 def get_optional_snowflake(data: typing.Dict[str, typing.Any], key: str) -> typing.Optional[int]:
-    r"""Helper to obtain optional or nullable snowflakes from a raw payload."""
+    """Helper to obtain optional or nullable snowflakes from a raw payload."""
     try:
         return int(data[key])
     except (KeyError, ValueError, TypeError):
         return None
 
 def compute_shard_id(guild_id: int, shards_count: int) -> int:
-    r"""Computes shard ID for the provided guild ID with respect to given shards count."""
+    """Computes shard ID for the provided guild ID with respect to given shards count."""
     return (guild_id >> 22) % shards_count
 
 def get_image_data(img_bytes: bytes) -> str:
-    r"""Gets Data URI format for provided image bytes."""
+    """Gets Data URI format for provided image bytes."""
 
     if img_bytes.startswith(b"\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"):
         content_type = "image/png"
@@ -99,5 +99,10 @@ def get_image_data(img_bytes: bytes) -> str:
     return f"data:{content_type};base64,{b64encode(img_bytes).decode('ascii')}"
 
 def parse_iso_timestamp(timestamp: str) -> datetime:
-    r"""Parse ISO timestamp string to a datetime.datetime instance."""
+    """Parse ISO timestamp string to a datetime.datetime instance."""
     return datetime.fromisoformat(timestamp)
+
+def compute_creation_time(snowflake: int) -> datetime:
+    """Computes the creation time of the given snowflake as UTC timezone aware datetime."""
+    timestamp = ((snowflake >> 22) + 1420070400000) / 1000
+    return datetime.fromtimestamp(timestamp, tz=timezone.utc)

@@ -22,7 +22,12 @@
 
 from __future__ import annotations
 
+from qord.internal.helpers import compute_creation_time
+
 import typing
+
+if typing.TYPE_CHECKING:
+    from datetime import datetime
 
 
 __all__ = (
@@ -37,3 +42,20 @@ class Comparable:
 
     def __eq__(self, other: typing.Any) -> bool:
         return isinstance(other, self.__class__) and other.id == self.id
+
+
+class CreationTime:
+    __slots__ = ()
+
+    id: int
+
+    @property
+    def created_at(self) -> datetime:
+        """The time when this entity was created.
+
+        Returns
+        -------
+        :class:`datetime.datetime`
+            UTC aware datetime object representing the creation time.
+        """
+        return compute_creation_time(self.id)

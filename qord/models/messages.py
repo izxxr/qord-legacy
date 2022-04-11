@@ -32,7 +32,7 @@ from qord.dataclasses.message_reference import MessageReference
 from qord.enums import MessageType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 
 import typing
 
@@ -212,7 +212,7 @@ def _get_reaction_emoji(emoji_or_reaction: typing.Union[Reaction, PartialEmoji, 
     # has no effect on unicode emoji
     return ret.strip("<a:>")
 
-class Attachment(BaseModel, Comparable):
+class Attachment(BaseModel, Comparable, CreationTime):
     """Represents an attachment that is attached to a message.
 
     |supports-comparison|

@@ -26,7 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.channels import GuildChannel
 from qord.flags.permissions import Permissions
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
     get_image_data,
     get_optional_snowflake,
@@ -45,7 +45,7 @@ __all__ = (
 )
 
 
-class Role(BaseModel, Comparable):
+class Role(BaseModel, Comparable, CreationTime):
     """Representation of a guild's role.
 
     |supports-comparison|

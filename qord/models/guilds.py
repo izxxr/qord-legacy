@@ -30,7 +30,7 @@ from qord.models.channels import _guild_channel_factory, GuildChannel
 from qord.models.emojis import Emoji
 from qord.flags.system_channel import SystemChannelFlags
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
     get_optional_snowflake,
     create_cdn_url,
@@ -56,7 +56,7 @@ __all__ = (
 )
 
 
-class Guild(BaseModel, Comparable):
+class Guild(BaseModel, Comparable, CreationTime):
     """Representation of a Discord guild entity often referred as "Server" in the UI.
 
     |supports-comparison|

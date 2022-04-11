@@ -26,7 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.internal.undefined import UNDEFINED
 from qord.internal.helpers import get_optional_snowflake
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 
 import typing
 
@@ -168,7 +168,7 @@ class PartialEmoji(BaseModel):
         return ret
 
 
-class Emoji(BaseModel, Comparable):
+class Emoji(BaseModel, Comparable, CreationTime):
     """Represents a custom guild emoji.
 
     |supports-comparison|
