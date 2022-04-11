@@ -119,6 +119,9 @@ class User(BaseModel, Comparable):
         self.avatar = data.get("avatar")
         self.banner = data.get("banner")
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r}, discriminator={self.discriminator!r}, bot={self.bot})"
+
     @property
     def default_avatar(self) -> int:
         """Returns the default avatar index for this user.

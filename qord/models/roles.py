@@ -125,6 +125,9 @@ class Role(BaseModel, Comparable):
     def __lt__(self, other: Role) -> bool:
         return self.is_lower_than(other)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r})"
+
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.id = int(data["id"])
         self.name = data["name"]

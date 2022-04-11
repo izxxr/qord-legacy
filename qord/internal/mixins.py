@@ -37,4 +37,3 @@ class Comparable:
 
     def __eq__(self, other: typing.Any) -> bool:
         return isinstance(other, self.__class__) and other.id == self.id
-

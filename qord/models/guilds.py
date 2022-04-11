@@ -317,6 +317,9 @@ class Guild(BaseModel, Comparable):
             emoji = Emoji(raw_emoji, guild=self)
             cache.add_emoji(emoji)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r})"
+
     @property
     def cache(self) -> GuildCache:
         """Returns the cache handler associated to this guild.

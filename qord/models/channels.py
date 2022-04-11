@@ -215,6 +215,9 @@ class GuildChannel(BaseModel, Comparable):
             for po in data.get("permission_overwrites", [])
         }
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r}, position={self.position}, type={self.type})"
+
     @property
     def mention(self) -> str:
         """The string used for mentioning the channel in Discord client.
@@ -838,6 +841,9 @@ class PrivateChannel(BaseModel, Comparable):
         self.id = int(data["id"])
         self.type = int(data["type"])
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, type={self.type})"
+
     async def close(self) -> None:
         """Closes the private channel.
 
@@ -885,6 +891,9 @@ class DMChannel(PrivateChannel, BaseMessageChannel):
         self.last_pin_timestamp = parse_iso_timestamp(pin_ts) if pin_ts is not None else None
         self.recipient = recipient
         self.last_message_id = get_optional_snowflake(data, "last_message_id")
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, recipient={self.recipient})"
 
     async def _get_message_channel(self) -> typing.Any:
         return self

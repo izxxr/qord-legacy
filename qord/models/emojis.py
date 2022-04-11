@@ -87,6 +87,9 @@ class PartialEmoji(BaseModel):
         self.name = data.get("name")
         self.animated = data.get("animated", False)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r}, animated={self.animated})"
+
     def __eq__(self, other: typing.Any) -> bool:
         if isinstance(other, Emoji):
             return other.id == self.id
@@ -244,6 +247,9 @@ class Emoji(BaseModel, Comparable):
             self.user = None
         else:
             self.user = User(user_payload, client=self._client)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r}, animated={self.animated})"
 
     @property
     def mention(self) -> str:

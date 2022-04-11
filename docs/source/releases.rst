@@ -18,6 +18,12 @@ Additions
 - Added support for message reactions.
 - Added :attr:`Guild.me` property for retreiving bot member.
 
+Changes
+~~~~~~~~
+
+- :class:`ChannelPermission` now supports equality comparisons.
+- All models now shows useful information in :func:`repr()`
+
 Bug fixes
 ~~~~~~~~~
 

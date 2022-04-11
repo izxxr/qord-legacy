@@ -138,6 +138,9 @@ class Reaction(BaseModel):
         self.count = data.get("count", 1)
         self.me = data.get("me", False)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(count={self.count}, me={self.me}, emoji={self.emoji!r})"
+
     async def users(self, *, limit: typing.Optional[int] = None, after: int = UNDEFINED) -> typing.AsyncIterator[typing.Union[GuildMember, User]]:
         """Asynchronous Iterator for fetching the users who have reacted to this reaction.
 
@@ -281,6 +284,9 @@ class Attachment(BaseModel, Comparable):
         self.height = data.get("height")
         self.width = data.get("width")
         self.ephemeral = data.get("ephemeral", False)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, filename={self.filename!r}, url={self.url!r})"
 
 
 class Message(BaseModel, Comparable):
@@ -437,6 +443,9 @@ class Message(BaseModel, Comparable):
         self._handle_mentions(data)
         self._handle_mention_roles(data)
         self._handle_referenced_message(data)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, content={self.content!r}, author={self.author!r})"
 
     # Data handlers (to avoid making mess in the initialization code)
 
