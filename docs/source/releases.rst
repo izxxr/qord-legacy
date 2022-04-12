@@ -18,6 +18,7 @@ Additions
 - Added support for message reactions.
 - Added :attr:`Guild.me` property for retreiving bot member.
 - Added :attr:`created_at` property on appropriate Discord models.
+- Added :meth:`~BaseMessageChannel.messages` method to iterate through channels history.
 
 Changes
 ~~~~~~~~
@@ -30,7 +31,7 @@ Bug fixes
 
 - Fixed  :attr:`Embed.video` property running into infinite loop.
 - Fixed disparity between ``embed`` and ``embeds`` parameters in :meth:`~BaseMessageChannel.send`
-
+- Fixed typing of :attr:`Message.channel` not including DM channels.
 
 v0.3.0a2 (Pre-release)
 ----------------------

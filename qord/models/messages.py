@@ -296,7 +296,7 @@ class Message(BaseModel, Comparable):
 
     Attributes
     ----------
-    channel: Union[:class:`TextChannel`]
+    channel: Union[:class:`TextChannel`, :class:`DMChannel`]
         The channel in which message was sent.
     id: :class:`builtins.int`
         The ID of this message.

@@ -472,7 +472,28 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def get_messages(self, channel_id: int, params: typing.Dict[str, typing.Any]):
+    async def get_messages(
+        self,
+        channel_id: int,
+        limit: int = UNDEFINED,
+        after: int = UNDEFINED,
+        before: int = UNDEFINED,
+        around: int = UNDEFINED
+    ):
+        params = {}
+
+        if limit is not UNDEFINED:
+            params["limit"] = limit
+
+        if after is not UNDEFINED:
+            params["after"] = after
+
+        if before is not UNDEFINED:
+            params["before"] = before
+
+        if around is not UNDEFINED:
+            params["around"] = around
+
         route = Route("GET", "/channels/{channel_id}/messages", channel_id=channel_id)
         data = await self.request(route, params=params)
         return data

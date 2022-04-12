@@ -99,6 +99,86 @@ class BaseMessageChannel(ABC):
         data = await self._rest.get_pinned_messages(channel_id=channel.id)
         return [Message(item, channel=channel) for item in data]
 
+    async def messages(
+        self,
+        limit: typing.Optional[int] = 100,
+        after: int = UNDEFINED,
+        before: int = UNDEFINED,
+        around: int = UNDEFINED,
+        oldest_first: bool = False,
+    ) -> typing.AsyncIterator[Message]:
+        """An async iterator for iterating through the channel's messages.
+
+        Requires the :attr:`~Permissions.read_message_history` permission as
+        well as :attr:`~Permissions.view_channels` permission in the given channel.
+
+        ``after``, ``before``, ``around`` and ``oldest_first`` are all mutually
+        exclusive parameters.
+
+        Parameters
+        ----------
+        limit: Optional[:class:`builtins.int`]
+            The number of messages to fetch. If ``None`` is given, All
+            messages are fetched from the channel. Defaults to ``100``.
+        after: :class:`builtins.int`
+            For pagination, To fetch messages after this message ID.
+        before: :class:`builtins.int`
+            For pagination, To fetch messages before this message ID.
+        around: :class:`builtins.int`
+            For pagination, To fetch messages around this message ID.
+            Requires the limit to be greater than ``100``.
+        oldest_first: :class:`builtins.bool`
+            Whether to fetch the messages in reversed order i.e
+            oldest message to newer messages.
+
+        Yields
+        ------
+        :class:`Message`
+            The message from the channel.
+        """
+        channel = await self._get_message_channel()
+
+        if any((
+            before and after,
+            before and around,
+            after and around,
+        )):
+            raise TypeError("around, before and after are mutually exclusive.")
+
+        if oldest_first:
+            after = 0
+            before = UNDEFINED
+            around = UNDEFINED
+
+        while limit is None or limit > 0:
+            if limit is None:
+                current_limit = 100
+            else:
+                current_limit = min(limit, 100)
+
+            data = await self._rest.get_messages(
+                channel.id,
+                limit=current_limit,
+                after=after,
+                before=before,
+                around=around,
+            )
+
+            if limit is not None:
+                limit -= current_limit
+
+            if not data:
+                break
+
+            if oldest_first:
+                data.reverse()
+                after = int(data[-1]["id"])
+            else:
+                before = int(data[-1]["id"])
+
+            for m in data:
+                yield Message(m, channel=channel)
+
     # TODO: Add the remaining fields support here.
     async def send(
         self,
