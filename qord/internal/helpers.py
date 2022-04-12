@@ -106,3 +106,7 @@ def compute_creation_time(snowflake: int) -> datetime:
     """Computes the creation time of the given snowflake as UTC timezone aware datetime."""
     timestamp = ((snowflake >> 22) + 1420070400000) / 1000
     return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+
+def compute_snowflake(time: datetime) -> int:
+    """Computes the snowflake from given timestamp or datetime object."""
+    return int(time.timestamp() * 1000 - 1420070400000) << 22

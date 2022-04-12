@@ -30,10 +30,11 @@ from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
 from qord.enums import MessageType
-from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
+from qord.internal.helpers import compute_snowflake, get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
@@ -42,7 +43,6 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.files import File
-    from datetime import datetime
 
     MessageableT = typing.Union[TextChannel, DMChannel]
 
@@ -148,8 +148,9 @@ class Reaction(BaseModel):
         ----------
         limit: Optional[:class:`builtins.int`]
             The number of users to fetch. When not provided, all users are fetched.
-        after: :class:`builtins.int`
-            When provided, fetches the users after the given user ID.
+        after: Union[:class:`builtins.int`, :class:`datetime.datetime`]
+            For pagination, If an ID is given, Fetch the user after that user ID.
+            If a datetime object is given, Fetch the user created after that time.
 
         Yields
         ------
@@ -166,6 +167,9 @@ class Reaction(BaseModel):
         channel_id = self.message.channel_id
         guild = self.message.guild
         emoji = _get_reaction_emoji(self)
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
 
         while limit > 0:
             current_limit = min(limit, 100)

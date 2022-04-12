@@ -24,8 +24,10 @@ from __future__ import annotations
 
 from qord.models.messages import Message
 from qord.internal.undefined import UNDEFINED
+from qord.internal.helpers import compute_snowflake
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
@@ -102,9 +104,9 @@ class BaseMessageChannel(ABC):
     async def messages(
         self,
         limit: typing.Optional[int] = 100,
-        after: int = UNDEFINED,
-        before: int = UNDEFINED,
-        around: int = UNDEFINED,
+        after: typing.Union[datetime, int] = UNDEFINED,
+        before: typing.Union[datetime, int] = UNDEFINED,
+        around: typing.Union[datetime, int] = UNDEFINED,
         oldest_first: bool = False,
     ) -> typing.AsyncIterator[Message]:
         """An async iterator for iterating through the channel's messages.
@@ -120,12 +122,12 @@ class BaseMessageChannel(ABC):
         limit: Optional[:class:`builtins.int`]
             The number of messages to fetch. If ``None`` is given, All
             messages are fetched from the channel. Defaults to ``100``.
-        after: :class:`builtins.int`
-            For pagination, To fetch messages after this message ID.
-        before: :class:`builtins.int`
-            For pagination, To fetch messages before this message ID.
-        around: :class:`builtins.int`
-            For pagination, To fetch messages around this message ID.
+        after: Union[:class:`datetime.datetime`, :class:`builtins.int`]
+            For pagination, To fetch messages after this message ID or time.
+        before: Union[:class:`datetime.datetime`, :class:`builtins.int`]
+            For pagination, To fetch messages before this message ID or time.
+        around: Union[:class:`datetime.datetime`, :class:`builtins.int`]
+            For pagination, To fetch messages around this message ID or time.
             Requires the limit to be greater than ``100``.
         oldest_first: :class:`builtins.bool`
             Whether to fetch the messages in reversed order i.e
@@ -149,6 +151,13 @@ class BaseMessageChannel(ABC):
             after = 0
             before = UNDEFINED
             around = UNDEFINED
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
+        if isinstance(before, datetime):
+            before = compute_snowflake(before)
+        if isinstance(around, datetime):
+            around = compute_snowflake(around)
 
         while limit is None or limit > 0:
             if limit is None:
