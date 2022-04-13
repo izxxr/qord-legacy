@@ -28,7 +28,8 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
-from qord.internal.helpers import parse_iso_timestamp
+from qord.models.emojis import Emoji, PartialEmoji
+from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord import events
 
 from datetime import datetime
@@ -593,5 +594,164 @@ class DispatchHandler:
             started_at=timestamp,
             user=user,
             guild=guild,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_EMOJIS_UPDATE")
+    async def on_guild_emojis_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_EMOJIS_UPDATE: Unknown guild of ID %s", guild_id)
+            return
+
+        guild_cache = guild._cache
+        before = guild_cache.emojis().copy()
+        after = [Emoji(e, guild=guild) for e in data.get("emojis", [])]
+
+        event = events.EmojisUpdate(
+            shard=shard,
+            guild=guild,
+            before=before,
+            after=after,
+        )
+        guild_cache.set_emojis(after)
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_REACTION_ADD")
+    async def on_message_reaction_add(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["message_id"])
+        message = self.cache.get_message(message_id)
+
+        if message is None:
+            shard._log(logging.DEBUG, "MESSAGE_REACTION_ADD: Unknown message of ID %s", message_id)
+            return
+
+        user_id = int(data["user_id"])
+
+        try:
+            user_data = data["member"]
+        except KeyError:
+            user = self.cache.get_user(user_id)
+        else:
+            guild_id = int(data["guild_id"]) # Always present in this clause
+            guild = self.cache.get_guild(guild_id)
+
+            if guild is None:
+                user = self.cache.get_user(user_id)
+            else:
+                user = guild._cache.get_member(user_id)
+
+                if user is None:
+                    user = GuildMember(user_data, guild=guild)
+
+        if user is None:
+            shard._log(logging.DEBUG, "MESSAGE_REACTION_ADD: Unknown user of ID %s", user_id)
+            return
+
+        reaction = message._handle_reaction_add(data["emoji"], user)
+        event = events.ReactionAdd(
+            shard=shard,
+            message=message,
+            reaction=reaction,
+            user=user,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_REACTION_REMOVE")
+    async def on_message_reaction_remove(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["message_id"])
+        message = self.cache.get_message(message_id)
+
+        if message is None:
+            shard._log(logging.DEBUG, "MESSAGE_REACTION_REMOVE: Unknown message of ID %s", message_id)
+            return
+
+        user_id = int(data["user_id"])
+
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            user = self.cache.get_user(user_id)
+        else:
+            guild = self.cache.get_guild(guild_id)
+
+            if guild is None:
+                user = self.cache.get_user(user_id)
+            else:
+                user = guild._cache.get_member(user_id)
+
+                if user is None:
+                    user = self.cache.get_user(user_id)
+
+        if user is None:
+            shard._log(logging.DEBUG, "MESSAGE_REACTION_REMOVE: Unknown user of ID %s", user_id)
+            return
+
+        emoji = data["emoji"]
+        reaction = message._handle_reaction_remove(emoji, user)
+
+        if reaction is None:
+            shard._log(
+                logging.DEBUG,
+                "MESSAGE_REACTION_REMOVE: Unknown reaction with emoji %s for message with ID %s",
+                emoji["name"],
+                message_id
+            )
+            return
+
+        event = events.ReactionRemove(
+            shard=shard,
+            message=message,
+            reaction=reaction,
+            user=user,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_REACTION_REMOVE_ALL")
+    async def on_message_reaction_remove_all(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["message_id"])
+        message = self.cache.get_message(message_id)
+
+        if message is None:
+            shard._log(logging.DEBUG, "MESSAGE_REACTION_REMOVE_ALL: Unknown message of ID %s", message_id)
+            return
+
+        reactions = message.reactions.copy()
+        event = events.ReactionClear(
+            shard=shard,
+            message=message,
+            reactions=reactions,
+        )
+        message.reactions.clear()
+        self.invoke(event)
+
+    @event_dispatch_handler("MESSAGE_REACTION_REMOVE_EMOJI")
+    async def on_message_reaction_remove_emoji(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        message_id = int(data["message_id"])
+        message = self.cache.get_message(message_id)
+
+        if message is None:
+            shard._log(logging.DEBUG, "MESSAGE_REACTION_REMOVE_EMOJI: Unknown message of ID %s", message_id)
+            return
+
+        emoji = data["emoji"]
+        reaction = message._handle_reaction_clear_emoji(emoji)
+
+        if reaction is None:
+            shard._log(
+                logging.DEBUG,
+                "MESSAGE_REACTION_REMOVE_EMOJI: Unknown reaction with emoji %s for message with ID %s",
+                emoji["name"],
+                message_id
+            )
+            return
+
+        event = events.ReactionClearEmoji(
+            shard=shard,
+            message=message,
+            reaction=reaction,
+            emoji=reaction.emoji,
         )
         self.invoke(event)

@@ -27,7 +27,7 @@ from qord.models.base import BaseModel
 from qord.enums import DefaultAvatar
 from qord.internal.helpers import create_cdn_url, get_image_data, BASIC_EXTS
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 
 import typing
 
@@ -44,7 +44,7 @@ __all__ = (
 )
 
 
-class User(BaseModel, Comparable):
+class User(BaseModel, Comparable, CreationTime):
     """Representation of a Discord user entity.
 
     Attributes
@@ -118,6 +118,9 @@ class User(BaseModel, Comparable):
         self.locale = data.get("locale", "en-US")
         self.avatar = data.get("avatar")
         self.banner = data.get("banner")
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r}, discriminator={self.discriminator!r}, bot={self.bot})"
 
     @property
     def default_avatar(self) -> int:

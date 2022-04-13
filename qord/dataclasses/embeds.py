@@ -143,7 +143,7 @@ class Embed:
         -------
         Optional[:class:`EmbedVideo`]
         """
-        return self.video
+        return self._video
 
     @property
     def thumbnail(self) -> typing.Optional[EmbedThumbnail]:

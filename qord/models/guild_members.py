@@ -209,6 +209,9 @@ class GuildMember(BaseModel, Comparable):
         self.role_ids = role_ids
         self.roles = roles
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, nickname={self.nickname})"
+
     @property
     def name(self) -> str:
         """Returns the name of this member as displayed in the guild.

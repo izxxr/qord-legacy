@@ -28,7 +28,7 @@ from qord.bases import BaseMessageChannel
 from qord.enums import ChannelPermissionType, ChannelType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 from qord.flags.permissions import Permissions
 from qord.dataclasses.permission_overwrite import PermissionOverwrite
 
@@ -58,6 +58,9 @@ __all__ = (
 
 class ChannelPermission(BaseModel):
     """Represents the detail of a channel permission override for a specific target.
+
+    This class supports comparison between other :class:`ChannelPermission` objects
+    considering both having same target and same permission overrides.
 
     Attributes
     ----------
@@ -106,6 +109,15 @@ class ChannelPermission(BaseModel):
         self.target_type = data["type"]
         self.permission_overwrite = PermissionOverwrite.from_permissions(allow, deny)
 
+    def __eq__(self, other: typing.Any) -> bool:
+        if isinstance(other, self.__class__):
+            return (
+                self.permission_overwrite == other.permission_overwrite and
+                self.target_id == other.target_id
+            )
+
+        return False
+
     @property
     def target(self) -> typing.Optional[typing.Union[Role, GuildMember]]:
         """The target that the permission is for.
@@ -132,7 +144,7 @@ class ChannelPermission(BaseModel):
             return cache.get_member(self.target_id)
 
 
-class GuildChannel(BaseModel, Comparable):
+class GuildChannel(BaseModel, Comparable, CreationTime):
     """The base class for channel types that are associated to a specific guild.
 
     For each channel types, Library provides separate subclasses that implement
@@ -203,6 +215,9 @@ class GuildChannel(BaseModel, Comparable):
             for po in data.get("permission_overwrites", [])
         }
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r}, position={self.position}, type={self.type})"
+
     @property
     def mention(self) -> str:
         """The string used for mentioning the channel in Discord client.
@@ -222,6 +237,16 @@ class GuildChannel(BaseModel, Comparable):
         List[:class:`ChannelPermission`]
         """
         return list(self._permissions.values())
+
+    @property
+    def url(self) -> str:
+        """The URL for this channel.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return f"https://discord.com/channels/{self.guild.id}/{self.id}"
 
     def permission_overwrite_for(self, target: typing.Union[GuildMember, User, Role]) -> typing.Optional[PermissionOverwrite]:
         """Gets the permission overwrite for the given target.
@@ -795,7 +820,7 @@ class StageChannel(VoiceChannel):
 
     __slots__ = ()
 
-class PrivateChannel(BaseModel, Comparable):
+class PrivateChannel(BaseModel, Comparable, CreationTime):
     """Base class for channel types that are private and not associated to a guild.
 
     Currently only one channel type is available for private channels that is
@@ -825,6 +850,19 @@ class PrivateChannel(BaseModel, Comparable):
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.id = int(data["id"])
         self.type = int(data["type"])
+
+    @property
+    def url(self) -> str:
+        """The URL for this channel.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return f"https://discord.com/channels/@me/{self.id}"
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, type={self.type})"
 
     async def close(self) -> None:
         """Closes the private channel.
@@ -873,6 +911,9 @@ class DMChannel(PrivateChannel, BaseMessageChannel):
         self.last_pin_timestamp = parse_iso_timestamp(pin_ts) if pin_ts is not None else None
         self.recipient = recipient
         self.last_message_id = get_optional_snowflake(data, "last_message_id")
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, recipient={self.recipient})"
 
     async def _get_message_channel(self) -> typing.Any:
         return self

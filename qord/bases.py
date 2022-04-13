@@ -24,8 +24,11 @@ from __future__ import annotations
 
 from qord.models.messages import Message
 from qord.internal.undefined import UNDEFINED
+from qord.internal.helpers import compute_snowflake
+from qord.internal.context_managers import TypingContextManager
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
@@ -99,6 +102,93 @@ class BaseMessageChannel(ABC):
         data = await self._rest.get_pinned_messages(channel_id=channel.id)
         return [Message(item, channel=channel) for item in data]
 
+    async def messages(
+        self,
+        limit: typing.Optional[int] = 100,
+        after: typing.Union[datetime, int] = UNDEFINED,
+        before: typing.Union[datetime, int] = UNDEFINED,
+        around: typing.Union[datetime, int] = UNDEFINED,
+        oldest_first: bool = False,
+    ) -> typing.AsyncIterator[Message]:
+        """An async iterator for iterating through the channel's messages.
+
+        Requires the :attr:`~Permissions.read_message_history` permission as
+        well as :attr:`~Permissions.view_channels` permission in the given channel.
+
+        ``after``, ``before``, ``around`` and ``oldest_first`` are all mutually
+        exclusive parameters.
+
+        Parameters
+        ----------
+        limit: Optional[:class:`builtins.int`]
+            The number of messages to fetch. If ``None`` is given, All
+            messages are fetched from the channel. Defaults to ``100``.
+        after: Union[:class:`datetime.datetime`, :class:`builtins.int`]
+            For pagination, To fetch messages after this message ID or time.
+        before: Union[:class:`datetime.datetime`, :class:`builtins.int`]
+            For pagination, To fetch messages before this message ID or time.
+        around: Union[:class:`datetime.datetime`, :class:`builtins.int`]
+            For pagination, To fetch messages around this message ID or time.
+            Requires the limit to be greater than ``100``.
+        oldest_first: :class:`builtins.bool`
+            Whether to fetch the messages in reversed order i.e
+            oldest message to newer messages.
+
+        Yields
+        ------
+        :class:`Message`
+            The message from the channel.
+        """
+        channel = await self._get_message_channel()
+
+        if any((
+            before and after,
+            before and around,
+            after and around,
+        )):
+            raise TypeError("around, before and after are mutually exclusive.")
+
+        if oldest_first:
+            after = 0
+            before = UNDEFINED
+            around = UNDEFINED
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
+        if isinstance(before, datetime):
+            before = compute_snowflake(before)
+        if isinstance(around, datetime):
+            around = compute_snowflake(around)
+
+        while limit is None or limit > 0:
+            if limit is None:
+                current_limit = 100
+            else:
+                current_limit = min(limit, 100)
+
+            data = await self._rest.get_messages(
+                channel.id,
+                limit=current_limit,
+                after=after,
+                before=before,
+                around=around,
+            )
+
+            if limit is not None:
+                limit -= current_limit
+
+            if not data:
+                break
+
+            if oldest_first:
+                data.reverse()
+                after = int(data[-1]["id"])
+            else:
+                before = int(data[-1]["id"])
+
+            for m in data:
+                yield Message(m, channel=channel)
+
     # TODO: Add the remaining fields support here.
     async def send(
         self,
@@ -159,7 +249,7 @@ class BaseMessageChannel(ABC):
         HTTPException
             The sending failed for some reason.
         """
-        if embed is not UNDEFINED and embeds is UNDEFINED:
+        if embed is not UNDEFINED and embeds is not UNDEFINED:
             raise TypeError("embed and embeds parameters cannot be mixed.")
 
         if file is not UNDEFINED and files is not UNDEFINED:
@@ -204,3 +294,33 @@ class BaseMessageChannel(ABC):
             files=files,
         )
         return Message(data, channel=channel)
+
+    async def trigger_typing(self) -> None:
+        """Triggers the typing indicator in the channel.
+
+        The typing indicator would automatically disappear after few seconds
+        or once a message is sent in the channel.
+
+        .. tip::
+            Consider using :meth:`.typing` for a convenient context manager interface
+            for triggering typing indicators.
+
+        Raises
+        ------
+        HTTPException
+            Triggering typing failed.
+        """
+        channel = await self._get_message_channel()
+        await self._rest.trigger_typing(channel_id=channel.id)
+
+    def typing(self) -> TypingContextManager:
+        """Returns a context manager interface for triggering typing indicator in a channel.
+
+        Example::
+
+            async with channel.typing():
+                # Typing indicator will appear until the context manager
+                # is entered. Perform something heavy in this clause
+                ...
+        """
+        return TypingContextManager(channel=self)

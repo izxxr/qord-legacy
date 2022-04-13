@@ -27,10 +27,12 @@ from qord.models.base import BaseModel
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel
+from qord.models.emojis import Emoji
 from qord.flags.system_channel import SystemChannelFlags
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
+    compute_snowflake,
     get_optional_snowflake,
     create_cdn_url,
     get_image_data,
@@ -40,10 +42,10 @@ from qord.internal.helpers import (
     BASIC_EXTS,
 )
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
@@ -55,7 +57,7 @@ __all__ = (
 )
 
 
-class Guild(BaseModel, Comparable):
+class Guild(BaseModel, Comparable, CreationTime):
     """Representation of a Discord guild entity often referred as "Server" in the UI.
 
     |supports-comparison|
@@ -255,7 +257,6 @@ class Guild(BaseModel, Comparable):
         # eventually implement these features.
         #
         # - permissions
-        # - emojis
         # - voice_states
         # - threads
         # - presences
@@ -312,6 +313,13 @@ class Guild(BaseModel, Comparable):
         for raw_role in data.get("roles", []):
             role = Role(raw_role, guild=self)
             cache.add_role(role)
+
+        for raw_emoji in data.get("emojis", []):
+            emoji = Emoji(raw_emoji, guild=self)
+            cache.add_emoji(emoji)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r})"
 
     @property
     def cache(self) -> GuildCache:
@@ -382,6 +390,23 @@ class Guild(BaseModel, Comparable):
         """
         role_id = self.id
         return self._cache.get_role(role_id)
+
+    @property
+    def me(self) -> typing.Optional[GuildMember]:
+        """Returns the :class:`GuildMember` for the bot's user.
+
+        If the bot is not part of guild or the guild is fetched
+        using :meth:`Client.fetch_guild`, this returns ``None``.
+
+        Note that this property does not require :attr:`~Intents.members`
+        intents as bot member is sent by Discord regardless.
+
+        Returns
+        -------
+        Optional[:class:`GuildMember`]
+        """
+        user_id = self._client.user.id # type: ignore # This is never None here
+        return self._cache.get_member(user_id)
 
     def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the icon URL for this guild.
@@ -685,6 +710,61 @@ class Guild(BaseModel, Comparable):
         data = await self._rest.get_guild_member(guild_id=self.id, user_id=user_id)
         return GuildMember(data, guild=self)
 
+    async def members(
+        self,
+        limit: typing.Optional[int] = None,
+        after: typing.Union[int, datetime] = UNDEFINED,
+    ) -> typing.AsyncIterator[GuildMember]:
+        """Fetches and iterates through the members of this guild.
+
+        This operation requires :attr:`~Intents.members` privileged intent
+        to be enabled for the bot otherwise a :exc:`RuntimeError` is raised.
+
+        Parameters
+        ----------
+        limit: Optional[:class:`builtins.int`]
+            The number of members to fetch, ``None`` (default) indicates
+            that all members should be fetched.
+        after: Union[:class:`builtins.int`, :class:`datetime.datetime`]
+            For paginating, To fetch members after the given user ID or
+            members created after the given time. By default, the oldest
+            created member is yielded first.
+
+        Yields
+        ------
+        :class:`GuildMember`
+            The fetched member.
+
+        Raises
+        ------
+        RuntimeError
+            Missing the members intents.
+        """
+        if not self._client.intents.members:
+            raise RuntimeError("Intents.members flag is required to perform this operation.")
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
+
+        while limit is None or limit > 0:
+            if limit is None:
+                current_limit = 1000
+            else:
+                current_limit = min(limit, 1000)
+
+            data = await self._rest.get_guild_members(self.id, after=after, limit=current_limit)
+
+            if limit is not None:
+                limit -= current_limit
+
+            if not data:
+                break
+
+            after = int(data[-1]["user"]["id"])
+
+            for m in data:
+                yield GuildMember(m, guild=self)
+
     async def search_members(self, query: str, *, limit: int = 1) -> typing.List[GuildMember]:
         """Fetches the members whose username or nickname start with the provided query.
 
@@ -827,3 +907,94 @@ class Guild(BaseModel, Comparable):
         )
         cls = _guild_channel_factory(data["type"])
         return cls(data, guild=self)
+
+    async def fetch_emojis(self) -> typing.List[Emoji]:
+        """Fetches the emojis of this guild.
+
+        Returns
+        -------
+        List[:class:`Emoji`]
+            The list of emojis from this guild.
+
+        Raises
+        ------
+        HTTPException
+            The fetching failed.
+        """
+        data = await self._rest.get_guild_emojis(guild_id=self.id)
+        return [Emoji(e, guild=self) for e in data]
+
+    async def fetch_emoji(self, emoji_id: int) -> Emoji:
+        """Fetches the emoji from the given emoji ID.
+
+        Returns
+        -------
+        :class:`Emoji`
+            The requested emoji.
+
+        Raises
+        ------
+        HTTPNotFound
+            Emoji with that ID does not exist.
+        HTTPException
+            The fetching failed.
+        """
+        data = await self._rest.get_guild_emoji(guild_id=self.id, emoji_id=emoji_id)
+        return Emoji(data, guild=self)
+
+    async def create_emoji(
+        self,
+        image: bytes,
+        name: str,
+        *,
+        roles: typing.Optional[typing.List[Role]] = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> Emoji:
+        """Creates an emoji in the guild.
+
+        This operation requires :attr:`~Permissions.manage_emojis_and_stickers`
+        permission in the parent emoji guild. The guild must also have a remaining
+        slot available for emojis.
+
+        The size of given image data must be less than or equal to 256 KB or
+        the creation would fail.
+
+        Parameters
+        ----------
+        image: :class:`builtins.bytes`
+            The image data for the emoji in form of bytes object.
+        name: :class:`builtins.str`
+            The name of emoji.
+        roles: Optional[List[:class:`Role`]]
+            The list of roles that can use this emoji. ``None`` or empty
+            list denotes that emoji is unrestricted.
+
+        Returns
+        -------
+        :class:`Emoji`
+            The created emoji.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPException
+            The creation of emoji failed.
+        """
+        json: typing.Dict[str, typing.Any] = {
+            "image": get_image_data(image),
+            "name": name,
+        }
+
+        if roles is not UNDEFINED:
+            if roles is None:
+                roles = []
+
+            json["roles"] = [r.id for r in roles]
+
+        data = await self._rest.create_guild_emoji(
+            guild_id=self.id,
+            json=json,
+            reason=reason,
+        )
+        return Emoji(data, guild=self)

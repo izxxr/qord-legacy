@@ -26,7 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.channels import GuildChannel
 from qord.flags.permissions import Permissions
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
     get_image_data,
     get_optional_snowflake,
@@ -45,7 +45,7 @@ __all__ = (
 )
 
 
-class Role(BaseModel, Comparable):
+class Role(BaseModel, Comparable, CreationTime):
     """Representation of a guild's role.
 
     |supports-comparison|
@@ -124,6 +124,9 @@ class Role(BaseModel, Comparable):
 
     def __lt__(self, other: Role) -> bool:
         return self.is_lower_than(other)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name!r})"
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.id = int(data["id"])

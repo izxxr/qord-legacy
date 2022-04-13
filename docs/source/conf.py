@@ -67,3 +67,10 @@ rst_prolog = f"""
 .. |embed-restricted-field| replace:: {embed_restricted_field}
 .. |supports-comparison| replace:: {supports_comparison}
 """
+
+autodoc_type_aliases = {
+    "MessageableT": "Union[TextChannel, DMChannel]",
+    "_OverwriteValue": "Optional[bool]",
+}
+
+autodoc_member_order = 'bysource'

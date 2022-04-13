@@ -22,40 +22,39 @@
 
 from __future__ import annotations
 
-from qord.internal.helpers import compute_creation_time
+from qord.events.base import BaseEvent
+from qord.enums import GatewayEvent
 
 import typing
+from dataclasses import dataclass
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
+    from qord.core.shard import Shard
+    from qord.models.emojis import Emoji
+    from qord.models.guilds import Guild
 
 
 __all__ = (
-    "Comparable",
+    "EmojisUpdate",
 )
 
 
-class Comparable:
-    __slots__ = ()
+@dataclass
+class EmojisUpdate(BaseEvent, event_name=GatewayEvent.EMOJIS_UPDATE):
+    """Structure for :attr:`~qord.GatewayEvent.EMOJIS_UPDATE` event.
 
-    id: int
+    This event is called whenever emojis are updated in a guild i.e
+    a new emoji is created, an emoji is deleted or updated.
 
-    def __eq__(self, other: typing.Any) -> bool:
-        return isinstance(other, self.__class__) and other.id == self.id
+    This requires :attr:`Intents.emojis_and_stickers` to be enabled.
+    """
+    shard: Shard
 
+    guild: Guild
+    """The guild whose emojis were updated."""
 
-class CreationTime:
-    __slots__ = ()
+    before: typing.List[Emoji]
+    """The list of emojis before the update."""
 
-    id: int
-
-    @property
-    def created_at(self) -> datetime:
-        """The time when this entity was created.
-
-        Returns
-        -------
-        :class:`datetime.datetime`
-            UTC aware datetime object representing the creation time.
-        """
-        return compute_creation_time(self.id)
+    after: typing.List[Emoji]
+    """The list of emojis after the update."""

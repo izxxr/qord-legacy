@@ -159,6 +159,12 @@ ChannelPermissionType
 .. autoclass:: ChannelPermissionType()
     :members:
 
+TimestampStyle
+~~~~~~~~~~~~~~
+
+.. autoclass:: TimestampStyle()
+    :members:
+
 Data classes
 ------------
 
@@ -465,9 +471,27 @@ Attachment
     :inherited-members:
     :members:
 
+Reaction
+~~~~~~~~
+
+.. autoclass:: Reaction()
+    :members:
+
 ChannelMention
 ~~~~~~~~~~~~~~
 
 .. autoclass:: ChannelMention()
     :inherited-members:
+    :members:
+
+Emoji
+~~~~~
+
+.. autoclass:: Emoji()
+    :members:
+
+PartialEmoji
+~~~~~~~~~~~~
+
+.. autoclass:: PartialEmoji()
     :members:

@@ -20,42 +20,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
 from __future__ import annotations
 
-from qord.internal.helpers import compute_creation_time
-
+import asyncio
 import typing
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
+    from qord.bases import BaseMessageChannel
 
 
-__all__ = (
-    "Comparable",
-)
+class TypingContextManager:
+    def __init__(self, channel: BaseMessageChannel) -> None:
+        self.channel = channel
+        self._typing = False
+        self._task = None
 
+    async def _typing_task(self) -> None:
+        while self._typing:
+            await self.channel.trigger_typing()
+            # The typing indicator disappears after 9-10 seconds
+            await asyncio.sleep(8)
 
-class Comparable:
-    __slots__ = ()
+    async def __aenter__(self) -> None:
+        coro = self._typing_task()
+        self._typing = True
+        self._task = asyncio.create_task(coro)
 
-    id: int
+    async def __aexit__(self, *args) -> None:
+        self._typing = False
+        task = self._task
 
-    def __eq__(self, other: typing.Any) -> bool:
-        return isinstance(other, self.__class__) and other.id == self.id
-
-
-class CreationTime:
-    __slots__ = ()
-
-    id: int
-
-    @property
-    def created_at(self) -> datetime:
-        """The time when this entity was created.
-
-        Returns
-        -------
-        :class:`datetime.datetime`
-            UTC aware datetime object representing the creation time.
-        """
-        return compute_creation_time(self.id)
+        if task and not task.cancelled():
+            task.cancel()

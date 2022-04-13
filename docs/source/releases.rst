@@ -8,6 +8,35 @@ This page details the changelog containing every notable change of every release
 - The release with "Unreleased" in title indicates that the release is not yet released and is under development.
 - The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release.
 
+v0.3.0
+------
+
+Additions
+~~~~~~~~~
+
+- Added support for custom guild emojis.
+- Added support for message reactions.
+- Added :attr:`Guild.me` property for retreiving bot member.
+- Added :attr:`created_at` property on appropriate Discord models.
+- Added :meth:`~BaseMessageChannel.messages` method to iterate through channels history.
+- Added :meth:`Guild.members` method to iterate through guild members.
+- Added :attr:`PrivateChannel.url`, :attr:`GuildChannel.url` and :attr:`Message.url` properties
+- Added :meth:`BaseMessageChannel.trigger_typing` and :meth:`BaseMessageChannel.typing` for working with typing indicators.
+- Added :meth:`Message.crosspost` for crossposting messages in news channels.
+
+Changes
+~~~~~~~~
+
+- :class:`ChannelPermission` now supports equality comparisons.
+- All models now shows useful information in :func:`repr()`
+
+Bug fixes
+~~~~~~~~~
+
+- Fixed  :attr:`Embed.video` property running into infinite loop.
+- Fixed disparity between ``embed`` and ``embeds`` parameters in :meth:`~BaseMessageChannel.send`
+- Fixed typing of :attr:`Message.channel` not including DM channels.
+
 v0.3.0a2 (Pre-release)
 ----------------------
 

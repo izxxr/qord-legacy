@@ -25,14 +25,16 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
+from qord.models.emojis import PartialEmoji, Emoji
 from qord.flags.messages import MessageFlags
 from qord.dataclasses.embeds import Embed
 from qord.dataclasses.message_reference import MessageReference
 from qord.enums import MessageType
-from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
+from qord.internal.helpers import compute_snowflake, get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
-from qord.internal.mixins import Comparable
+from qord.internal.mixins import Comparable, CreationTime
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
@@ -41,13 +43,13 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.files import File
-    from datetime import datetime
 
     MessageableT = typing.Union[TextChannel, DMChannel]
 
 
 __all__ = (
     "ChannelMention",
+    "Reaction",
     "Attachment",
     "Message",
 )
@@ -96,7 +98,125 @@ class ChannelMention(BaseModel):
         self.type = data["type"]
         self.name = data["name"]
 
-class Attachment(BaseModel, Comparable):
+
+class Reaction(BaseModel):
+    """Represents a reaction on a :class:`Message`.
+
+    Attributes
+    ----------
+    message: :class:`Message`
+        The message that this reaction belongs to.
+    count: :class:`builtins.int`
+        The count of this reaction.
+    emoji: :class:`PartialEmoji`
+        The emoji for this reaction.
+    me: :class:`builtins.bool`
+        Whether the reaction is added by the bot user.
+    """
+
+    if typing.TYPE_CHECKING:
+        message: Message
+        emoji: PartialEmoji
+        count: int
+        me: bool
+
+    __slots__ = (
+        "_client",
+        "message",
+        "emoji",
+        "count",
+        "me",
+    )
+
+    def __init__(self, data: typing.Dict[str, typing.Any], message: Message) -> None:
+        self.message = message
+        self._client = message._client
+        self._update_with_data(data)
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        self.emoji = PartialEmoji(data["emoji"], client=self._client)
+        self.count = data.get("count", 1)
+        self.me = data.get("me", False)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(count={self.count}, me={self.me}, emoji={self.emoji!r})"
+
+    async def users(self, *, limit: typing.Optional[int] = None, after: int = UNDEFINED) -> typing.AsyncIterator[typing.Union[GuildMember, User]]:
+        """Asynchronous Iterator for fetching the users who have reacted to this reaction.
+
+        Parameters
+        ----------
+        limit: Optional[:class:`builtins.int`]
+            The number of users to fetch. When not provided, all users are fetched.
+        after: Union[:class:`builtins.int`, :class:`datetime.datetime`]
+            For pagination, If an ID is given, Fetch the user after that user ID.
+            If a datetime object is given, Fetch the user created after that time.
+
+        Yields
+        ------
+        Union[:class:`GuildMember`, :class:`User`]
+            The users that reacted with this reaction. When member intents are present
+            and reaction is in a guild, :class:`GuildMember` is returned. In some cases,
+            such as when member has left the guild or member isn't cached, the :class:`User`
+            is yielded.
+        """
+
+        limit = limit or self.count
+        getter = self.message._rest.get_reaction_users
+        message_id = self.message.id
+        channel_id = self.message.channel_id
+        guild = self.message.guild
+        emoji = _get_reaction_emoji(self)
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
+
+        while limit > 0:
+            current_limit = min(limit, 100)
+
+            data = await getter(
+                channel_id=channel_id,
+                message_id=message_id,
+                emoji=emoji,
+                after=after,
+                limit=current_limit,
+            )
+
+            limit -= len(data)
+
+            if data:
+                after = int(data[-1]["id"])
+
+            for user_payload in data:
+                user = None
+                user_id = int(user_payload["id"])
+
+                if guild:
+                    user = guild.cache.get_member(user_id)
+
+                if user is None:
+                    user = User(user_payload, client=self._client)
+
+                yield user
+
+
+def _get_reaction_emoji(emoji_or_reaction: typing.Union[Reaction, PartialEmoji, Emoji, str]) -> str:
+    if isinstance(emoji_or_reaction, str):
+        ret = emoji_or_reaction
+    elif isinstance(emoji_or_reaction, (PartialEmoji, Emoji)):
+        ret = emoji_or_reaction.mention
+    elif isinstance(emoji_or_reaction, Reaction):
+        ret = emoji_or_reaction.emoji.mention
+    else:
+        raise TypeError("Expected emoji to be an instance of Emoji, PartialEmoji, Reaction or str. Got %r"
+                        % emoji_or_reaction.__class__)
+
+    # <a:name:12345> -> name:12345
+    # <:name:12345> -> name:12345
+    # has no effect on unicode emoji
+    return ret.strip("<a:>")
+
+class Attachment(BaseModel, Comparable, CreationTime):
     """Represents an attachment that is attached to a message.
 
     |supports-comparison|
@@ -169,6 +289,10 @@ class Attachment(BaseModel, Comparable):
         self.width = data.get("width")
         self.ephemeral = data.get("ephemeral", False)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, filename={self.filename!r}, url={self.url!r})"
+
+
 class Message(BaseModel, Comparable):
     """Represents a message generated in channels by users, bots and webhooks.
 
@@ -176,7 +300,7 @@ class Message(BaseModel, Comparable):
 
     Attributes
     ----------
-    channel: Union[:class:`TextChannel`]
+    channel: Union[:class:`TextChannel`, :class:`DMChannel`]
         The channel in which message was sent.
     id: :class:`builtins.int`
         The ID of this message.
@@ -229,6 +353,8 @@ class Message(BaseModel, Comparable):
         The list of attachments attached to the message.
     embeds: List[:class:`Embed`]
         The list of embeds attached to the message.
+    reactions: List[:class:`Reaction`]
+        The list of reactions on this message.
     flags: :class:`MessageFlags`
         The flags of this message.
     message_reference: Optional[:class:`MessageReference`]
@@ -262,6 +388,7 @@ class Message(BaseModel, Comparable):
         mentioned_channels: typing.List[ChannelMention]
         attachments: typing.List[Attachment]
         embeds: typing.List[Embed]
+        reactions: typing.List[Reaction]
         guild: typing.Optional[Guild]
         content: typing.Optional[str]
         nonce: typing.Optional[typing.Union[str, int]]
@@ -274,7 +401,7 @@ class Message(BaseModel, Comparable):
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
                 "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
-                "embeds", "flags", "message_reference", "referenced_message")
+                "embeds", "flags", "message_reference", "referenced_message", "reactions")
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -285,7 +412,6 @@ class Message(BaseModel, Comparable):
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # TODO: Following fields are not supported yet:
-        # - reactions
         # - activity
         # - application
         # - interaction
@@ -311,6 +437,7 @@ class Message(BaseModel, Comparable):
         self.pinned = data.get("pinned", False)
         self.attachments = [Attachment(a, message=self) for a in data.get("attachments", [])]
         self.embeds = [Embed.from_dict(e) for e in data.get("embeds", [])]
+        self.reactions = [Reaction(r, message=self) for r in data.get("reactions", [])]
         edited_at = data.get("edited_timestamp")
         message_reference = data.get("message_reference")
         self.edited_at = parse_iso_timestamp(edited_at) if edited_at is not None else None
@@ -320,6 +447,9 @@ class Message(BaseModel, Comparable):
         self._handle_mentions(data)
         self._handle_mention_roles(data)
         self._handle_referenced_message(data)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(id={self.id}, content={self.content!r}, author={self.author!r})"
 
     # Data handlers (to avoid making mess in the initialization code)
 
@@ -429,6 +559,108 @@ class Message(BaseModel, Comparable):
 
         self.referenced_message = self.__class__(referenced_message_data, channel=channel) # type: ignore
 
+    def _handle_reaction_add(self, emoji: typing.Dict[str, typing.Any], user: typing.Union[User, GuildMember]) -> Reaction:
+        emoji_id = get_optional_snowflake(emoji, "id")
+        emoji_name = emoji.get("name")
+        existing_reaction = None
+
+        for reaction in self.reactions:
+            reaction_emoji = reaction.emoji
+
+            if reaction_emoji.id == emoji_id and reaction_emoji.name == emoji_name:
+                existing_reaction = reaction
+                break
+
+        if existing_reaction is None:
+            data = {
+                "count": 1,
+                "me": user.id == self._client.user.id,  # type: ignore
+                "emoji": emoji,
+            }
+            reaction = Reaction(data, message=self)
+            self.reactions.append(reaction)
+            return reaction
+        else:
+            existing_reaction.count += 1
+            existing_reaction.me = user.id == self._client.user.id  # type: ignore
+            return existing_reaction
+
+    def _handle_reaction_remove(self, emoji: typing.Dict[str, typing.Any], user: typing.Union[User, GuildMember]) -> typing.Optional[Reaction]:
+        emoji_id = get_optional_snowflake(emoji, "id")
+        emoji_name = emoji.get("name")
+        existing_reaction = None
+
+        for reaction in self.reactions:
+            reaction_emoji = reaction.emoji
+
+            if reaction_emoji.id == emoji_id and reaction_emoji.name == emoji_name:
+                existing_reaction = reaction
+                break
+
+        if existing_reaction is None:
+            return None
+
+        existing_reaction.count -= 1
+
+        if existing_reaction.count == 0:
+            # Reaction count = 0 means there are no reactions
+            self.reactions.remove(existing_reaction)
+
+        if user.id == self._client.user.id:  # type: ignore
+            # Our user removed the reaction
+            existing_reaction.me = False
+
+        return existing_reaction
+
+    def _handle_reaction_clear_emoji(self, emoji: typing.Dict[str, typing.Any]) -> typing.Optional[Reaction]:
+        found_reaction = None
+        emoji_id = get_optional_snowflake(emoji, "id")
+        emoji_name = emoji.get("name")
+
+        for reaction in self.reactions:
+            reaction_emoji = reaction.emoji
+
+            if reaction_emoji.id == emoji_id and reaction_emoji.name == emoji_name:
+                found_reaction = reaction
+                break
+
+        if found_reaction is None:
+            return None
+
+        self.reactions.remove(found_reaction)
+        return found_reaction
+
+    @property
+    def url(self) -> str:
+        """The URL for this message.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        guild_id = self.guild_id
+
+        if guild_id is not None:
+            return f"https://discord.com/channels/{guild_id}/{self.channel_id}/{self.id}"
+
+        return f"https://discord.com/channels/@me/{self.channel_id}/{self.id}"
+
+    async def crosspost(self) -> None:
+        """Crossposts the message across the channels following the message's channel.
+
+        This operation is only possible with messages sent in a :class:`NewsChannel`.
+        In order to crosspost message sent by the bot, the :attr:`~Permissions.send_messages`
+        permission is required otherwise :attr:`~Permissions.manage_messages` permission
+        is required.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPException
+            Crossposting failed.
+        """
+        await self._rest.crosspost_message(channel_id=self.channel_id, message_id=self.id)
 
     async def delete(self) -> None:
         """Deletes this message.
@@ -529,7 +761,7 @@ class Message(BaseModel, Comparable):
         HTTPException
             The editing failed for some reason.
         """
-        if embed is not UNDEFINED and embeds is UNDEFINED:
+        if embed is not UNDEFINED and embeds is not UNDEFINED:
             raise TypeError("embed and embeds parameters cannot be mixed.")
 
         if file is not UNDEFINED and files is not UNDEFINED:
@@ -568,3 +800,110 @@ class Message(BaseModel, Comparable):
                 files=files,
             )
         self._update_with_data(data)
+
+    async def add_reaction(self, emoji: typing.Union[Emoji, PartialEmoji, str]) -> None:
+        """Adds a reaction to the message.
+
+        This operation requires :attr:`~Permissions.read_message_history` permission
+        and additionally :attr:`~Permissions.add_reactions` permission if no one
+        has reacted to the message yet.
+
+        .. warning::
+            It is a common misconception of passing unicode emoji in Discord markdown
+            format such as ``:smile:``. The emoji must be passed as unicode emoji. For
+            custom emojis, The format ``<:name:id>`` is used.
+
+        Parameters
+        ----------
+        emoji: Union[:class:`builtins.str`, :class:`Emoji`, :class:`PartialEmoji`]
+            The emoji to react with.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            The operation failed.
+        """
+        await self._rest.add_reaction(
+            channel_id=self.channel_id,
+            message_id=self.id,
+            emoji=_get_reaction_emoji(emoji),
+        )
+
+    async def remove_reation(self, emoji: typing.Union[Emoji, PartialEmoji, Reaction, str], user: typing.Union[User, GuildMember] = UNDEFINED) -> None:
+        """Removes a reaction from the message.
+
+        When removing own reaction (not passing the ``user`` parameter), No permissions
+        are required however when removing other's reactions, The :attr:`~Permissions.manage_messages`
+        permissions are needed.
+
+        .. warning::
+            It is a common misconception of passing unicode emoji in Discord markdown
+            format such as ``:smile:``. The emoji must be passed as unicode emoji. For
+            custom emojis, The format ``<:name:id>`` is used.
+
+        Parameters
+        ----------
+        emoji: Union[:class:`builtins.str`, :class:`Emoji`, :class:`PartialEmoji`, :class:`Reaction`]
+            The emoji to remove reaction of.
+        user: Union[:class:`User`, :class:`GuildMember`]
+            The user to remove reaction of. If not provided, This defaults to own
+            (bot) user.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            The operation failed.
+        """
+        if user is UNDEFINED:
+            await self._rest.remove_own_reaction(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                emoji=_get_reaction_emoji(emoji),
+            )
+        else:
+            await self._rest.remove_user_reaction(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                user_id=user.id,
+                emoji=_get_reaction_emoji(emoji),
+            )
+
+    async def clear_reactions(self, emoji: typing.Union[Emoji, PartialEmoji, Reaction, str] = UNDEFINED) -> None:
+        """Clears all reactions or reactions for a specific emoji from the message.
+
+        The :attr:`~Permissions.manage_messages` permissions are needed to
+        perform this action.
+
+        .. warning::
+            It is a common misconception of passing unicode emoji in Discord markdown
+            format such as ``:smile:``. The emoji must be passed as unicode emoji. For
+            custom emojis, The format ``<:name:id>`` is used.
+
+        Parameters
+        ----------
+        emoji: Union[:class:`builtins.str`, :class:`Emoji`, :class:`PartialEmoji`, :class:`Reaction`]
+            The emoji to clear reactions of. If not provided, All reactions are
+            removed from the message.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            The operation failed.
+        """
+        if emoji is UNDEFINED:
+            await self._rest.clear_reactions(
+                channel_id=self.channel_id,
+                message_id=self.id,
+            )
+        else:
+            await self._rest.clear_reactions_for_emoji(
+                channel_id=self.channel_id,
+                message_id=self.id,
+                emoji=_get_reaction_emoji(emoji),
+            )

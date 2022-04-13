@@ -315,8 +315,17 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def list_guild_members(self, guild_id: int, params: typing.Dict[str, typing.Any]):
+    async def get_guild_members(self, guild_id: int, limit: int = UNDEFINED, after: int = UNDEFINED):
         route = Route("GET", "/guilds/{guild_id}/members", guild_id=guild_id)
+
+        params = {}
+
+        if limit is not UNDEFINED:
+            params["limit"] = limit
+
+        if after is not UNDEFINED:
+            params["after"] = after
+
         data = await self.request(route, params=params)
         return data
 
@@ -387,6 +396,33 @@ class RestClient:
         data = await self.request(route, reason=reason)
         return data
 
+    # --- Guild Emojis --- #
+
+    async def get_guild_emojis(self, guild_id: int):
+        route = Route("GET", "/guilds/{guild_id}/emojis", guild_id=guild_id)
+        data = await self.request(route)
+        return data
+
+    async def get_guild_emoji(self, guild_id: int, emoji_id: int):
+        route = Route("GET", "/guilds/{guild_id}/emojis/{emoji_id}", guild_id=guild_id, emoji_id=emoji_id)
+        data = await self.request(route)
+        return data
+
+    async def create_guild_emoji(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("POST", "/guilds/{guild_id}/emojis", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def edit_guild_emoji(self, guild_id: int, emoji_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("PATCH", "/guilds/{guild_id}/emojis/{emoji_id}", guild_id=guild_id, emoji_id=emoji_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def delete_guild_emoji(self, guild_id: int, emoji_id: int, reason: typing.Optional[str] = None):
+        route = Route("DELETE", "/guilds/{guild_id}/emojis/{emoji_id}", guild_id=guild_id, emoji_id=emoji_id)
+        data = await self.request(route, reason=reason)
+        return data
+
     # --- Channels --- #
 
     async def get_guild_channels(self, guild_id: int):
@@ -445,7 +481,28 @@ class RestClient:
         data = await self.request(route)
         return data
 
-    async def get_messages(self, channel_id: int, params: typing.Dict[str, typing.Any]):
+    async def get_messages(
+        self,
+        channel_id: int,
+        limit: int = UNDEFINED,
+        after: int = UNDEFINED,
+        before: int = UNDEFINED,
+        around: int = UNDEFINED
+    ):
+        params = {}
+
+        if limit is not UNDEFINED:
+            params["limit"] = limit
+
+        if after is not UNDEFINED:
+            params["after"] = after
+
+        if before is not UNDEFINED:
+            params["before"] = before
+
+        if around is not UNDEFINED:
+            params["around"] = around
+
         route = Route("GET", "/channels/{channel_id}/messages", channel_id=channel_id)
         data = await self.request(route, params=params)
         return data
@@ -539,4 +596,87 @@ class RestClient:
         route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}",
                       channel_id=channel_id, message_id=message_id)
 
+        await self.request(route)
+
+    async def trigger_typing(self, channel_id: int):
+        route = Route("POST", "/channels/{channel_id}/typing", channel_id=channel_id)
+        await self.request(route)
+
+    async def crosspost_message(self, channel_id: int, message_id: int):
+        route = Route("POST", "/channels/{channel_id}/messages/{message_id}/crosspost",
+                      channel_id=channel_id, message_id=message_id)
+
+        await self.request(route)
+
+    # ---- Message Reactions ---- #
+
+    async def get_reaction_users(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+        after: int = UNDEFINED,
+        limit: int = UNDEFINED,
+    ):
+        route = Route("GET", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+
+        query = {}
+
+        if after is not UNDEFINED:
+            query["after"] = after
+        if limit is not UNDEFINED:
+            query["limit"] = limit
+
+        data = await self.request(route, params=query)
+        return data
+
+    async def add_reaction(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+    ):
+        route = Route("PUT", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+        await self.request(route)
+
+    async def remove_own_reaction(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/@me",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
+        await self.request(route)
+
+    async def remove_user_reaction(
+        self,
+        channel_id: int,
+        message_id: int,
+        user_id: int,
+        emoji: str,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}/{user_id}",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji, user_id=user_id)
+        await self.request(route)
+
+    async def clear_reactions(
+        self,
+        channel_id: int,
+        message_id: int,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions",
+                      channel_id=channel_id, message_id=message_id)
+        await self.request(route)
+
+    async def clear_reactions_for_emoji(
+        self,
+        channel_id: int,
+        message_id: int,
+        emoji: str,
+    ):
+        route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
+                      channel_id=channel_id, message_id=message_id, emoji=emoji)
         await self.request(route)
