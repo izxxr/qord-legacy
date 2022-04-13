@@ -26,7 +26,7 @@
 - [ ] Create Channel Invite
 - [x] Delete Channel Permission
 - [ ] Follow News Channel
-- [ ] Trigger Typing Indicator
+- [x] Trigger Typing Indicator
 - [x] Get Pinned Messages
 - [x] Pin Message
 - [x] Unpin Message

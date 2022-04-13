@@ -598,6 +598,10 @@ class RestClient:
 
         await self.request(route)
 
+    async def trigger_typing(self, channel_id: int):
+        route = Route("POST", "/channels/{channel_id}/typing", channel_id=channel_id)
+        await self.request(route)
+
     # ---- Message Reactions ---- #
 
     async def get_reaction_users(

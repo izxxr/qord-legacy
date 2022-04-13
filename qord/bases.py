@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.messages import Message
 from qord.internal.undefined import UNDEFINED
 from qord.internal.helpers import compute_snowflake
+from qord.internal.context_managers import TypingContextManager
 
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -293,3 +294,33 @@ class BaseMessageChannel(ABC):
             files=files,
         )
         return Message(data, channel=channel)
+
+    async def trigger_typing(self) -> None:
+        """Triggers the typing indicator in the channel.
+
+        The typing indicator would automatically disappear after few seconds
+        or once a message is sent in the channel.
+
+        .. tip::
+            Consider using :meth:`.typing` for a convenient context manager interface
+            for triggering typing indicators.
+
+        Raises
+        ------
+        HTTPException
+            Triggering typing failed.
+        """
+        channel = await self._get_message_channel()
+        await self._rest.trigger_typing(channel_id=channel.id)
+
+    def typing(self) -> TypingContextManager:
+        """Returns a context manager interface for triggering typing indicator in a channel.
+
+        Example::
+
+            async with channel.typing():
+                # Typing indicator will appear until the context manager
+                # is entered. Perform something heavy in this clause
+                ...
+        """
+        return TypingContextManager(channel=self)
