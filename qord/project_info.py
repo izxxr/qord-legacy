@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 
-__version__ = "0.3.0a3"
+__version__ = "0.3.0"
 __license__ = "MIT"
 __notice__  = "Copyright (c) nerdguyahmad 2022-present. Under the MIT license."
 __author__  = "nerdguyahmad <nerdguyahmad.contact@gmail.com> <nerdguyahmad#3195>"
