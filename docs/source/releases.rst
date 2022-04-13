@@ -20,6 +20,7 @@ Additions
 - Added :attr:`created_at` property on appropriate Discord models.
 - Added :meth:`~BaseMessageChannel.messages` method to iterate through channels history.
 - Added :meth:`Guild.members` method to iterate through guild members.
+- Added :attr:`PrivateChannel.url`, :attr:`GuildChannel.url` and :attr:`Message.url` properties
 
 Changes
 ~~~~~~~~

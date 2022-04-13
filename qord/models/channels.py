@@ -238,6 +238,16 @@ class GuildChannel(BaseModel, Comparable, CreationTime):
         """
         return list(self._permissions.values())
 
+    @property
+    def url(self) -> str:
+        """The URL for this channel.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return f"https://discord.com/channels/{self.guild.id}/{self.id}"
+
     def permission_overwrite_for(self, target: typing.Union[GuildMember, User, Role]) -> typing.Optional[PermissionOverwrite]:
         """Gets the permission overwrite for the given target.
 
@@ -840,6 +850,16 @@ class PrivateChannel(BaseModel, Comparable, CreationTime):
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         self.id = int(data["id"])
         self.type = int(data["type"])
+
+    @property
+    def url(self) -> str:
+        """The URL for this channel.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        return f"https://discord.com/channels/@me/{self.id}"
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(id={self.id}, type={self.type})"

@@ -630,6 +630,21 @@ class Message(BaseModel, Comparable):
         self.reactions.remove(found_reaction)
         return found_reaction
 
+    @property
+    def url(self) -> str:
+        """The URL for this message.
+
+        Returns
+        -------
+        :class:`builtins.str`
+        """
+        guild_id = self.guild_id
+
+        if guild_id is not None:
+            return f"https://discord.com/channels/{guild_id}/{self.channel_id}/{self.id}"
+
+        return f"https://discord.com/channels/@me/{self.channel_id}/{self.id}"
+
     async def delete(self) -> None:
         """Deletes this message.
 

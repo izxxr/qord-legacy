@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.internal.undefined import UNDEFINED
-from qord.internal.helpers import get_optional_snowflake
+from qord.internal.helpers import BASIC_EXTS, get_optional_snowflake, create_cdn_url
 from qord.internal.mixins import Comparable, CreationTime
 
 import typing
@@ -291,6 +291,43 @@ class Emoji(BaseModel, Comparable, CreationTime):
 
         self._cached_roles = cached
         return cached
+
+    def url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> str:
+        """Returns the URL for this emoji.
+
+        The ``extension`` parameter only supports following extensions
+        in the case of custom emojis:
+
+        - :attr:`ImageExtension.GIF`
+        - :attr:`ImageExtension.PNG`
+        - :attr:`ImageExtension.JPG`
+        - :attr:`ImageExtension.JPEG`
+        - :attr:`ImageExtension.WEBP`
+
+        Parameters
+        ----------
+        extension: :class:`builtins.str`
+            The extension to use in the URL. If not supplied, An ideal
+            extension will be picked depending on whether emoji is static
+            or animated.
+        size: :class:`builtins.int`
+            The size to append to URL. Can be any power of 2 between
+            64 and 4096.
+
+        Raises
+        ------
+        ValueError
+            Invalid extension or size was passed.
+        """
+        if extension is UNDEFINED:
+            extension = "gif" if self.animated else "png"
+
+        return create_cdn_url(
+            f"/emojis/{self.id}",
+            extension=extension,
+            size=size,
+            valid_exts=BASIC_EXTS,
+        )
 
     def is_useable(self) -> bool:
         """Checks whether the emoji can be used by the bot.
