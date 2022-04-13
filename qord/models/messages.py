@@ -645,6 +645,23 @@ class Message(BaseModel, Comparable):
 
         return f"https://discord.com/channels/@me/{self.channel_id}/{self.id}"
 
+    async def crosspost(self) -> None:
+        """Crossposts the message across the channels following the message's channel.
+
+        This operation is only possible with messages sent in a :class:`NewsChannel`.
+        In order to crosspost message sent by the bot, the :attr:`~Permissions.send_messages`
+        permission is required otherwise :attr:`~Permissions.manage_messages` permission
+        is required.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPException
+            Crossposting failed.
+        """
+        await self._rest.crosspost_message(channel_id=self.channel_id, message_id=self.id)
+
     async def delete(self) -> None:
         """Deletes this message.
 

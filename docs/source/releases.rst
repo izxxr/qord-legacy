@@ -22,6 +22,7 @@ Additions
 - Added :meth:`Guild.members` method to iterate through guild members.
 - Added :attr:`PrivateChannel.url`, :attr:`GuildChannel.url` and :attr:`Message.url` properties
 - Added :meth:`BaseMessageChannel.trigger_typing` and :meth:`BaseMessageChannel.typing` for working with typing indicators.
+- Added :meth:`Message.crosspost` for crossposting messages in news channels.
 
 Changes
 ~~~~~~~~

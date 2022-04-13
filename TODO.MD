@@ -12,7 +12,7 @@
 - [x] Get Channel Messages
 - [x] Get Channel Message
 - [x] Create Message
-- [ ] Crosspost Message
+- [x] Crosspost Message
 - [x] Create Reaction
 - [x] Delete Own Reaction
 - [x] Get Reactions

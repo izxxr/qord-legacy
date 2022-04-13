@@ -602,6 +602,12 @@ class RestClient:
         route = Route("POST", "/channels/{channel_id}/typing", channel_id=channel_id)
         await self.request(route)
 
+    async def crosspost_message(self, channel_id: int, message_id: int):
+        route = Route("POST", "/channels/{channel_id}/messages/{message_id}/crosspost",
+                      channel_id=channel_id, message_id=message_id)
+
+        await self.request(route)
+
     # ---- Message Reactions ---- #
 
     async def get_reaction_users(
