@@ -32,6 +32,7 @@ from qord.flags.system_channel import SystemChannelFlags
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
+    compute_snowflake,
     get_optional_snowflake,
     create_cdn_url,
     get_image_data,
@@ -41,10 +42,10 @@ from qord.internal.helpers import (
     BASIC_EXTS,
 )
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
@@ -708,6 +709,61 @@ class Guild(BaseModel, Comparable, CreationTime):
         """
         data = await self._rest.get_guild_member(guild_id=self.id, user_id=user_id)
         return GuildMember(data, guild=self)
+
+    async def members(
+        self,
+        limit: typing.Optional[int] = None,
+        after: typing.Union[int, datetime] = UNDEFINED,
+    ) -> typing.AsyncIterator[GuildMember]:
+        """Fetches and iterates through the members of this guild.
+
+        This operation requires :attr:`~Intents.members` privileged intent
+        to be enabled for the bot otherwise a :exc:`RuntimeError` is raised.
+
+        Parameters
+        ----------
+        limit: Optional[:class:`builtins.int`]
+            The number of members to fetch, ``None`` (default) indicates
+            that all members should be fetched.
+        after: Union[:class:`builtins.int`, :class:`datetime.datetime`]
+            For paginating, To fetch members after the given user ID or
+            members created after the given time. By default, the oldest
+            created member is yielded first.
+
+        Yields
+        ------
+        :class:`GuildMember`
+            The fetched member.
+
+        Raises
+        ------
+        RuntimeError
+            Missing the members intents.
+        """
+        if not self._client.intents.members:
+            raise RuntimeError("Intents.members flag is required to perform this operation.")
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
+
+        while limit is None or limit > 0:
+            if limit is None:
+                current_limit = 1000
+            else:
+                current_limit = min(limit, 1000)
+
+            data = await self._rest.get_guild_members(self.id, after=after, limit=current_limit)
+
+            if limit is not None:
+                limit -= current_limit
+
+            if not data:
+                break
+
+            after = int(data[-1]["user"]["id"])
+
+            for m in data:
+                yield GuildMember(m, guild=self)
 
     async def search_members(self, query: str, *, limit: int = 1) -> typing.List[GuildMember]:
         """Fetches the members whose username or nickname start with the provided query.

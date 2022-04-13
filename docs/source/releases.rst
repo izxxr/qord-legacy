@@ -19,6 +19,7 @@ Additions
 - Added :attr:`Guild.me` property for retreiving bot member.
 - Added :attr:`created_at` property on appropriate Discord models.
 - Added :meth:`~BaseMessageChannel.messages` method to iterate through channels history.
+- Added :meth:`Guild.members` method to iterate through guild members.
 
 Changes
 ~~~~~~~~
