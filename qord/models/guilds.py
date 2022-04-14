@@ -28,6 +28,7 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel
 from qord.models.emojis import Emoji
+from qord.models.scheduled_events import ScheduledEvent
 from qord.flags.system_channel import SystemChannelFlags
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
@@ -251,6 +252,10 @@ class Guild(BaseModel, Comparable, CreationTime):
             cls = _guild_channel_factory(raw_channel["type"])
             channel = cls(raw_channel, guild=self)
             cache.add_channel(channel)
+
+        for raw_scheduled_event in data.get("guild_scheduled_events", []):
+            scheduled_event = ScheduledEvent(raw_scheduled_event, guild=self)
+            cache.add_scheduled_event(scheduled_event)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # I'm documenting these attributes here for future reference when we
