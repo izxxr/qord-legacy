@@ -64,7 +64,7 @@ class ScheduledEvent(BaseModel):
         The current status of this event. All possible values are detailed in :class:`EventStatus`.
     entity_type: :class:`builtins.int`
         The type of entity that belongs to this event. All possible values are detailed in :class:`EventEntityType`.
-    subscribers_count: Optional[:class:`builtins.int`]
+    user_count: Optional[:class:`builtins.int`]
         The number of users subscribed to this event.
     description: Optional[:class:`builtins.str`]
         The description of event, if any.
@@ -94,8 +94,8 @@ class ScheduledEvent(BaseModel):
         privacy_level: int
         status: int
         entity_type: int
+        user_count: int
         starts_at: datetime
-        subscribers_count: typing.Optional[int]
         channel_id: typing.Optional[int]
         creator_id: typing.Optional[int]
         entity_id: typing.Optional[int]
@@ -119,7 +119,7 @@ class ScheduledEvent(BaseModel):
         "status",
         "entity_type",
         "starts_at",
-        "subscribers_count",
+        "user_count",
         "creator",
         "cover_image",
         "location",
@@ -143,7 +143,7 @@ class ScheduledEvent(BaseModel):
         self.status = data.get("status", 1)
         self.entity_type = data.get("entity_type", 1)
         self.cover_image = data.get("image")
-        self.subscribers_count = data.get("user_count")
+        self.user_count = data.get("user_count", 0)
         self.starts_at = parse_iso_timestamp(data["scheduled_start_time"])
         ends_at = data.get("ends_at")
         self.ends_at = parse_iso_timestamp(ends_at) if ends_at else None

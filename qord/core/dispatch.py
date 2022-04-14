@@ -825,3 +825,64 @@ class DispatchHandler:
             scheduled_event=scheduled_event,
         )
         self.invoke(event)
+
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_USER_ADD")
+    async def on_guild_scheduled_event_user_add(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_ADD: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event_id = int(data["guild_scheduled_event_id"])
+        scheduled_event = guild._cache.get_scheduled_event(scheduled_event_id)
+
+        if scheduled_event is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_ADD: Unknown event with ID %s", scheduled_event_id)
+            return
+
+        scheduled_event.user_count += 1
+        user_id = int(data["user_id"])
+        user = guild._cache.get_member(user_id)
+
+        event = events.ScheduledEventUserAdd(
+            shard=shard,
+            guild=guild,
+            scheduled_event=scheduled_event,
+            user=user,
+            user_id=user_id,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_USER_REMOVE")
+    async def on_guild_scheduled_event_user_remove(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_REMOVE: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event_id = int(data["guild_scheduled_event_id"])
+        scheduled_event = guild._cache.get_scheduled_event(scheduled_event_id)
+
+        if scheduled_event is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_REMOVE: Unknown event with ID %s", scheduled_event_id)
+            return
+
+        if scheduled_event.user_count:
+            scheduled_event.user_count -= 1
+
+        user_id = int(data["user_id"])
+        user = guild._cache.get_member(user_id)
+
+        event = events.ScheduledEventUserRemove(
+            shard=shard,
+            guild=guild,
+            scheduled_event=scheduled_event,
+            user=user,
+            user_id=user_id,
+        )
+        self.invoke(event)

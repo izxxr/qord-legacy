@@ -32,12 +32,15 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.models.scheduled_events import ScheduledEvent
     from qord.models.guilds import Guild
+    from qord.models.guild_members import GuildMember
 
 
 __all__ = (
     "ScheduledEventCreate",
     "ScheduledEventUpdate",
     "ScheduledEventDelete",
+    "ScheduledEventUserAdd",
+    "ScheduledEventUserRemove",
 )
 
 
@@ -96,3 +99,61 @@ class ScheduledEventDelete(BaseEvent, event_name=GatewayEvent.SCHEDULED_EVENT_DE
 
     scheduled_event: ScheduledEvent
     """The deleted scheduled event."""
+
+
+@dataclass
+class ScheduledEventUserAdd(BaseEvent, event_name=GatewayEvent.SCHEDULED_EVENT_USER_ADD):
+    """Structure for :attr:`~qord.GatewayEvent.SCHEDULED_EVENT_USER_ADD` event.
+
+    This event is called whenever a user subscribes to a scheduled event.
+
+    Requires the :attr:`~qord.Intents.scheduled_events` intents to be enabled.
+    This intent is enabled by default.
+    """
+    shard: Shard
+
+    guild: Guild
+    """The guild that the event belongs to."""
+
+    scheduled_event: ScheduledEvent
+    """The scheduled event on which user subscribed."""
+
+    user_id: int
+    """The ID of user who subscribed."""
+
+    user: typing.Optional[GuildMember]
+    """The user who subscribed.
+
+    **This can be ``None``!** When :attr:`~qord.Intents.members` are not enabled or member
+    isn't cached by any chance, This attribute can be ``None``. You should consider fetching
+    the member via :meth:`Guild.fetch_member` with the given :attr:`.user_id`.
+    """
+
+
+@dataclass
+class ScheduledEventUserRemove(BaseEvent, event_name=GatewayEvent.SCHEDULED_EVENT_USER_REMOVE):
+    """Structure for :attr:`~qord.GatewayEvent.SCHEDULED_EVENT_USER_REMOVE` event.
+
+    This event is called whenever a user unsubscribes to a scheduled event.
+
+    Requires the :attr:`~qord.Intents.scheduled_events` intents to be enabled.
+    This intent is enabled by default.
+    """
+    shard: Shard
+
+    guild: Guild
+    """The guild that the event belongs to."""
+
+    scheduled_event: ScheduledEvent
+    """The scheduled event on which user unsubscribed."""
+
+    user_id: int
+    """The ID of user who unsubscribed."""
+
+    user: typing.Optional[GuildMember]
+    """The user who unsubscribed.
+
+    **This can be ``None``!** When :attr:`~qord.Intents.members` are not enabled or member
+    isn't cached by any chance, This attribute can be ``None``. You should consider fetching
+    the member via :meth:`Guild.fetch_member` with the given :attr:`.user_id`.
+    """

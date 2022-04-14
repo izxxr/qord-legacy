@@ -129,6 +129,11 @@ class GatewayEvent:
     SCHEDULED_EVENT_DELETE = "scheduled_event_delete"
     """Called whenever a scheduled event is deleted. See :class:`events.ScheduledEventDelete` for more info."""
 
+    SCHEDULED_EVENT_USER_ADD = "scheduled_event_user_add"
+    """Called whenever a user subscribe to a scheduled event. See :class:`events.ScheduledEventUserAdd` for more info."""
+
+    SCHEDULED_EVENT_USER_REMOVE = "scheduled_event_user_remove"
+    """Called whenever a user unsubscribes to a scheduled event. See :class:`events.ScheduledEventUserRemove` for more info."""
 
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.
