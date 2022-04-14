@@ -843,7 +843,6 @@ class DispatchHandler:
             shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_ADD: Unknown event with ID %s", scheduled_event_id)
             return
 
-        scheduled_event.user_count += 1
         user_id = int(data["user_id"])
         user = guild._cache.get_member(user_id)
 
@@ -871,9 +870,6 @@ class DispatchHandler:
         if scheduled_event is None:
             shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_REMOVE: Unknown event with ID %s", scheduled_event_id)
             return
-
-        if scheduled_event.user_count:
-            scheduled_event.user_count -= 1
 
         user_id = int(data["user_id"])
         user = guild._cache.get_member(user_id)

@@ -67,7 +67,9 @@ class ScheduledEvent(BaseModel):
     entity_type: :class:`builtins.int`
         The type of entity that belongs to this event. All possible values are detailed in :class:`EventEntityType`.
     user_count: Optional[:class:`builtins.int`]
-        The number of users subscribed to this event.
+        The number of users subscribed to this event. This is only present when fetching the
+        event via :meth:`Guild.fetch_scheduled_event` or :meth:`~Guild.fetch_scheduled_events`
+        with ``with_user_count`` set to ``True``.
     description: Optional[:class:`builtins.str`]
         The description of event, if any.
     starts_at: :class:`datetime.datetime`
@@ -96,8 +98,8 @@ class ScheduledEvent(BaseModel):
         privacy_level: int
         status: int
         entity_type: int
-        user_count: int
         starts_at: datetime
+        user_count: typing.Optional[int]
         channel_id: typing.Optional[int]
         creator_id: typing.Optional[int]
         entity_id: typing.Optional[int]
@@ -145,7 +147,7 @@ class ScheduledEvent(BaseModel):
         self.status = data.get("status", 1)
         self.entity_type = data.get("entity_type", 1)
         self.cover_image = data.get("image")
-        self.user_count = data.get("user_count", 0)
+        self.user_count = data.get("user_count")
         self.starts_at = parse_iso_timestamp(data["scheduled_start_time"])
         ends_at = data.get("ends_at")
         self.ends_at = parse_iso_timestamp(ends_at) if ends_at else None
