@@ -24,18 +24,20 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
+from qord.models.guild_members import GuildMember
 from qord.internal.undefined import UNDEFINED
 from qord.internal.helpers import (
+    compute_snowflake,
     create_cdn_url,
     get_optional_snowflake,
     parse_iso_timestamp,
     BASIC_STATIC_EXTS,
 )
 
+from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
-    from datetime import datetime
     from qord.models.channels import VoiceChannel, StageChannel
     from qord.models.guilds import Guild
 
@@ -216,3 +218,99 @@ class ScheduledEvent(BaseModel):
             size=size,
             valid_exts=BASIC_STATIC_EXTS,
         )
+
+    async def delete(self, reason: typing.Optional[str] = None) -> None:
+        """Deletes the scheduled event.
+
+        This operation requires :attr:`~Permissions.manage_events` permission in the
+        parent event's guild.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for this operation.
+
+        Raises
+        ------
+        HTTPForbidden
+            You don't have permissions to do that.
+        HTTPException
+            The deletion failed.
+        """
+        await self._client._rest.delete_scheduled_event(
+            guild_id=self.guild_id,
+            scheduled_event_id=self.id,
+            reason=reason
+        )
+
+    async def users(
+        self,
+        with_member: bool = True,
+        limit: typing.Optional[int] = None,
+        before: typing.Union[datetime, int] = UNDEFINED,
+        after: typing.Union[datetime, int] = UNDEFINED,
+    ) -> typing.AsyncIterator[typing.Union[GuildMember, User]]:
+        """Iterates through the users that are subscribed to this event.
+
+        Parameters
+        ----------
+        with_member: :class:`builtins.bool`
+            Whether to yield :class:`GuildMember` when available. If this is
+            set to ``False``, :class:`User` will always be yielded.
+        limit: Optional[:class:`builtins.int`]
+            The number of users to fetch, ``None`` (default) indicates to
+            fetch all subscribed users.
+        before: Union[:class:`builtins.int`, :class:`datetime.datetime`]
+            For pagination, fetch the users created before the given time
+            or fetch users before the given ID.
+        after: Union[:class:`builtins.int`, :class:`datetime.datetime`]
+            For pagination, fetch the users created after the given time
+            or fetch users after the given ID.
+
+        Yields
+        ------
+        Union[:class:`GuildMember`, :class:`User`]
+            The subscribed user.
+            When ``with_member`` is ``True``, :class:`GuildMember` object will
+            be yielded when available. In some cases such as when member has left
+            the guild, :class:`User` may still be yielded. When ``with_member``
+            is ``False``, :class:`User` is always yielded.
+        """
+
+        getter = self._client._rest.get_scheduled_event_users
+        guild_id = self.guild_id
+        event_id = self.id
+
+        if isinstance(after, datetime):
+            after = compute_snowflake(after)
+        if isinstance(before, datetime):
+            before = compute_snowflake(before)
+
+        while limit is None or limit > 0:
+            if limit is None:
+                current_limit = 100
+            else:
+                current_limit = min(limit, 100)
+
+            data = await getter(
+                guild_id=guild_id,
+                scheduled_event_id=event_id,
+                after=after,
+                before=before,
+                limit=current_limit,
+                with_member=with_member,
+            )
+
+            if limit is not None:
+                limit -= current_limit
+
+            if not data:
+                break
+
+            after = int(data[-1]["user"]["id"])
+
+            for item in data:
+                try:
+                    yield GuildMember(item["member"], guild=self.guild)
+                except KeyError:
+                    yield User(item["user"], client=self._client)
