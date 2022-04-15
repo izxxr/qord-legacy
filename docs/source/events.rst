@@ -257,3 +257,38 @@ ReactionClearEmoji
 
 .. autoclass:: qord.events.ReactionClearEmoji()
     :members:
+
+
+ScheduledEventCreate
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ScheduledEventCreate()
+    :members:
+
+
+ScheduledEventUpdate
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ScheduledEventUpdate()
+    :members:
+
+
+ScheduledEventDelete
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ScheduledEventDelete()
+    :members:
+
+
+ScheduledEventUserAdd
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ScheduledEventUserAdd()
+    :members:
+
+ScheduledEventUserRemove
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: qord.events.ScheduledEventUserRemove()
+    :members:
+

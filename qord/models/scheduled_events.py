@@ -26,6 +26,7 @@ from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
 from qord.internal.undefined import UNDEFINED
+from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
     compute_snowflake,
     create_cdn_url,
@@ -47,8 +48,10 @@ __all__ = (
 )
 
 
-class ScheduledEvent(BaseModel):
+class ScheduledEvent(BaseModel, Comparable, CreationTime):
     """Represents a guild scheduled event.
+
+    |supports-comparison|
 
     Attributes
     ----------
