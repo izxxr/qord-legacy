@@ -317,6 +317,15 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
             The channel of event. This parameter has specific considerations described above.
         reason: Optional[:class:`builtins.str`]
             The audit log reason for this operation.
+        
+        Raises
+        ------
+        HTTPForbidden
+            You are missing permissions to perform this action.
+        HTTPBadRequest
+            Invalid data was sent.
+        HTTPException
+            Failed to perform this action.
         """
 
         json = {}
