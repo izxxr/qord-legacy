@@ -25,6 +25,7 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.guild_members import GuildMember
+from qord.enums import EventStatus
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
@@ -248,6 +249,84 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
             scheduled_event_id=self.id,
             reason=reason
         )
+
+    async def start(self, *, reason: typing.Optional[str] = None) -> None:
+        """Starts the event.
+
+        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        parent event guild.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for this action.
+
+        Raises
+        ------
+        RuntimeError
+            Status transition is not supported.
+        HTTPForbidden
+            You are missing permissions to perform this action.
+        HTTPException
+            Failed to perform this action.
+        """
+
+        if self.status != EventStatus.SCHEDULED:
+            raise RuntimeError("Status transition is not supported, can only start a scheduled event.")
+
+        await self.edit(status=EventStatus.ACTIVE, reason=reason)
+
+    async def end(self, *, reason: typing.Optional[str] = None) -> None:
+        """Ends the event.
+
+        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        parent event guild.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for this action.
+
+        Raises
+        ------
+        RuntimeError
+            Status transition is not supported.
+        HTTPForbidden
+            You are missing permissions to perform this action.
+        HTTPException
+            Failed to perform this action.
+        """
+
+        if self.status != EventStatus.ACTIVE:
+            raise RuntimeError("Status transition is not supported, can only end an active event.")
+
+        await self.edit(status=EventStatus.COMPLETED, reason=reason)
+
+    async def cancel(self, *, reason: typing.Optional[str] = None) -> None:
+        """Cancels the event.
+
+        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        parent event guild.
+
+        Parameters
+        ----------
+        reason: :class:`builtins.str`
+            The reason for this action.
+
+        Raises
+        ------
+        RuntimeError
+            Status transition is not supported.
+        HTTPForbidden
+            You are missing permissions to perform this action.
+        HTTPException
+            Failed to perform this action.
+        """
+
+        if self.status != EventStatus.SCHEDULED:
+            raise RuntimeError("Status transition is not supported, can only cancel a scheduled event.")
+
+        await self.edit(status=EventStatus.CANCELED, reason=reason)
 
     async def edit(
         self,
