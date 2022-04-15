@@ -471,6 +471,69 @@ class RestClient:
                       channel_id=channel_id, overwrite_id=overwrite_id)
         await self.request(route, reason=reason)
 
+    # --- Scheduled events --- #
+
+    async def get_scheduled_events(self, guild_id: int, with_user_counts: bool = False):
+        route = Route("GET", "/guilds/{guild_id}/scheduled-events", guild_id=guild_id)
+        params = {"with_user_counts": int(with_user_counts)}
+        data = await self.request(route, params=params)
+        return data
+
+    async def get_scheduled_event(self, guild_id: int, scheduled_event_id: int, with_user_counts: bool = False):
+        route = Route("GET", "/guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                      guild_id=guild_id, scheduled_event_id=scheduled_event_id)
+
+        params = {"with_user_counts": int(with_user_counts)}
+        data = await self.request(route, params=params)
+        return data
+
+    async def create_scheduled_event(self, guild_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("POST", "/guilds/{guild_id}/scheduled-events", guild_id=guild_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def edit_scheduled_event(self, guild_id: int, scheduled_event_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("PATCH", "/guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                      guild_id=guild_id, scheduled_event_id=scheduled_event_id)
+
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def delete_scheduled_event(self, guild_id: int, scheduled_event_id: int, reason: typing.Optional[str] = None):
+        route = Route("DELETE", "/guilds/{guild_id}/scheduled-events/{scheduled_event_id}",
+                      guild_id=guild_id, scheduled_event_id=scheduled_event_id)
+
+        await self.request(route, reason=reason)
+
+    async def get_scheduled_event_users(
+        self,
+        guild_id: int,
+        scheduled_event_id: int,
+        after: int = UNDEFINED,
+        before: int = UNDEFINED,
+        with_member: bool = UNDEFINED,
+        limit: int = UNDEFINED,
+    ):
+        route = Route("GET", "/guilds/{guild_id}/scheduled-events/{scheduled_event_id}/users",
+                      guild_id=guild_id, scheduled_event_id=scheduled_event_id)
+
+        params = {}
+
+        if after is not UNDEFINED:
+            params["after"] = after
+
+        if before is not UNDEFINED:
+            params["before"] = before
+
+        if with_member is not UNDEFINED:
+            params["with_member"] = int(with_member)
+
+        if limit is not UNDEFINED:
+            params["limit"] = limit
+
+        data = await self.request(route, params=params)
+        return data
+
     # --- Messages --- #
 
     async def get_message(self, channel_id: int, message_id: int):

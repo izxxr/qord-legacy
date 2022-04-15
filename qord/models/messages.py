@@ -419,8 +419,12 @@ class Message(BaseModel, Comparable):
         # - components
         # - sticker_items
 
+        if "type" in data:
+            # This is always present during MESSAGE_CREATE but can be
+            # absent for some reason in MESSAGE_UPDATE event.
+            self.type = data["type"]
+
         self.id = int(data["id"])
-        self.type = data["type"]
         self.channel_id = int(data["channel_id"])
         self.guild_id = guild_id = get_optional_snowflake(data, "guild_id")
         self.webhook_id = get_optional_snowflake(data, "webhook_id")

@@ -488,10 +488,18 @@ Emoji
 ~~~~~
 
 .. autoclass:: Emoji()
+    :inherited-members:
     :members:
 
 PartialEmoji
 ~~~~~~~~~~~~
 
 .. autoclass:: PartialEmoji()
+    :members:
+
+ScheduledEvent
+~~~~~~~~~~~~~~
+
+.. autoclass:: ScheduledEvent()
+    :inherited-members:
     :members:

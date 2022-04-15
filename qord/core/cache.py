@@ -33,6 +33,7 @@ if typing.TYPE_CHECKING:
     from qord.models.channels import GuildChannel, PrivateChannel
     from qord.models.messages import Message
     from qord.models.emojis import Emoji
+    from qord.models.scheduled_events import ScheduledEvent
 
 
 __all__ = (
@@ -534,5 +535,56 @@ class GuildCache(ABC):
         -------
         Optional[:class:`Emoji`]
             The deleted emoji if found. If no emoji existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def scheduled_events(self) -> typing.List[ScheduledEvent]:
+        """Returns all scheduled events that are currently cached.
+
+        Returns
+        -------
+        List[:class:`ScheduledEvent`]
+        """
+
+    @abstractmethod
+    def get_scheduled_event(self, scheduled_event_id: int) -> typing.Optional[ScheduledEvent]:
+        """Gets a :class:`ScheduledEvent` from the cache for provided event ID.
+
+        Parameters
+        ----------
+        scheduled_event_id: :class:`builtins.int`
+            The ID of scheduled event to get.
+
+        Returns
+        -------
+        Optional[:class:`ScheduledEvent`]
+            The gotten event if found. If no event existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def add_scheduled_event(self, scheduled_event: ScheduledEvent) -> None:
+        """Adds a :class:`ScheduledEvent` to the cache.
+
+        Parameters
+        ----------
+        scheduled_event: :class:`ScheduledEvent`
+            The event to add in the cache.
+        """
+
+    @abstractmethod
+    def delete_scheduled_event(self, scheduled_event_id: int) -> typing.Optional[ScheduledEvent]:
+        """Removes a :class:`ScheduledEvent` from the cache for provided event ID.
+
+        Parameters
+        ----------
+        scheduled_event_id: :class:`builtins.int`
+            The ID of scheduled event to remove.
+
+        Returns
+        -------
+        Optional[:class:`ScheduledEvent`]
+            The removed event if any. If no event existed with provided ID,
             ``None`` is returned.
         """
