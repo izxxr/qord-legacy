@@ -30,6 +30,7 @@ from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
     compute_snowflake,
     create_cdn_url,
+    get_image_data,
     get_optional_snowflake,
     parse_iso_timestamp,
     BASIC_STATIC_EXTS,
@@ -247,6 +248,120 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
             scheduled_event_id=self.id,
             reason=reason
         )
+
+    async def edit(
+        self,
+        *,
+        name: str = UNDEFINED,
+        privacy_level: int = UNDEFINED,
+        starts_at: datetime = UNDEFINED,
+        entity_type: int = UNDEFINED,
+        status: int = UNDEFINED,
+        channel: typing.Optional[typing.Union[VoiceChannel, StageChannel]] = UNDEFINED,
+        location: typing.Optional[str] = UNDEFINED,
+        description: typing.Optional[str] = UNDEFINED,
+        cover_image: typing.Optional[bytes] = UNDEFINED,
+        ends_at: typing.Optional[datetime] = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ):
+        """Edits the event.
+
+        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        parent event guild.
+        
+        Unlike :meth:`Guild.create_scheduled_event` method, this method does not automatically infers
+        the values for various arguments and their values must be explicitly given.
+        
+        - When specifying ``location`` to a non-external event to convert it to an external event, 
+          the ``entity_type`` must be set to :attr:`EventEntityType.EXTERNAL` and ``channel`` parameter 
+          must be set to ``None`` explicitly. Furthermore ``ends_at`` must also be given.
+        - When specifying ``channel`` to an external event to convert it to a channel-hosted event, 
+          the ``entity_type`` must be set to :attr:`EventEntityType.VOICE` or :attr:`EventEntityType.STAGE_INSTANCE`
+          depending on what type of channel is being passed and ``location`` must be expliclty set to ``None``.
+
+        For editing the event's status, Following are the limitations:
+
+        - Events that have the status of :attr:`EventStatus.SCHEDULED` can get their status be edited to 
+          either to :attr:`EventStatus.ACTIVE` or :attr:`EventStatus.CANCELED`.
+        - Events that have the status of :attr:`EventStatus.ACTIVE` can only be edited to :attr:`EventStatus.COMPLETED`.
+        - No other transitions are possible.
+
+        These limitations are described by Discord and are not validated by the library. 
+
+        .. tip::
+            For easier transitions of events, consider using other methods provided by the class
+            such as :meth:`.start`, :meth:`.end` or :meth:`.cancel`.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of event.
+        description: Optional[:class:`builtins.str`]
+            The description of event. Set to ``None`` to remove description.
+        cover_image: Optional[:class:`builtins.bytes`]
+            The bytes representing cover image of event. Set to ``None`` to remove the image.
+        privacy_level: :class:`builtins.int`
+            The :attr:`EventPrivacyLevel` of the event.
+        starts_at: :class:`datetime.datetime`
+            The time when the event starts.
+        ends_at: Optional[:class:`datetime.datetime`]
+            The time when the event ends. This is required when converting events to 
+            :attr:`~EventEntityType.EXTERNAL`.
+        entity_type: :class:`builtins.int`
+            The entity type of event. This parameter has specific considerations described above.
+        status: :class:`builtins.int`
+            The status of event. The valid transitions of status are described above.
+        location: Optional[:class:`builtins.str`]
+            The location of event. This parameter has specific considerations described above.
+        channel: Optional[Union[:class:`VoiceChannel`, :class:`StageChannel`]]
+            The channel of event. This parameter has specific considerations described above.
+        reason: Optional[:class:`builtins.str`]
+            The audit log reason for this operation.
+        """
+
+        json = {}
+
+        if name is not UNDEFINED:
+            json["name"] = name
+
+        if description is not UNDEFINED:
+            json["description"] = description
+
+        if cover_image is not UNDEFINED:
+            json["image"] = get_image_data(cover_image) if cover_image else None
+
+        if privacy_level is not UNDEFINED:
+            json["privacy_level"] = privacy_level
+
+        if starts_at is not UNDEFINED:
+            json["scheduled_start_time"] = starts_at.isoformat()
+
+        if ends_at is not UNDEFINED:
+            json["scheduled_end_time"] = ends_at.isoformat() if ends_at else None
+
+        if entity_type is not UNDEFINED:
+            json["entity_type"] = entity_type
+
+        if status is not UNDEFINED:
+            json["status"] = status
+
+        if location is not UNDEFINED:
+            if location is None:
+                json["entity_metadata"] = None
+            else:
+                json["entity_metadata"] = {"location": location}
+
+        if channel is not UNDEFINED:
+            json["channel_id"] = channel.id if channel else None
+
+        if json:
+            data = await self._client._rest.edit_scheduled_event(
+                guild_id=self.guild_id,
+                scheduled_event_id=self.id, 
+                json=json, 
+                reason=reason,
+            )
+            self._update_with_data(data)
 
     async def users(
         self,
