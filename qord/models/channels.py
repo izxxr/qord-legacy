@@ -24,8 +24,9 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
+from qord.models.stage_instances import StageInstance
 from qord.bases import BaseMessageChannel
-from qord.enums import ChannelPermissionType, ChannelType
+from qord.enums import ChannelPermissionType, ChannelType, StagePrivacyLevel
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
@@ -812,13 +813,94 @@ class StageChannel(VoiceChannel):
 
     This class is a subclass of :class:`VoiceChannel` as such all attributes
     of :class:`VoiceChannel` and :class:`GuildChannel` are valid in this class too.
-
-    Currently this class has no extra functionality compared to :class:`VoiceChannel`,
-    More functionality will be included when stage instances are supported
-    by the library.
     """
 
     __slots__ = ()
+
+    @property
+    def stage_instance(self) -> typing.Optional[StageInstance]:
+        """The stage instance belonging to this channel. If any.
+
+        Returns
+        -------
+        Optional[:class:`StageInstance`]
+        """
+        for stage_instance in self.guild._cache.stage_instances():
+            if stage_instance.channel_id == self.id:
+                return stage_instance
+
+    async def fetch_stage_instance(self) -> StageInstance:
+        """Fetches the stage instance for this channel.
+
+        Returns
+        -------
+        :class:`StageInstance`
+            The stage instance for this channel.
+
+        Raises
+        ------
+        HTTPNotFound
+            No instance belongs to the channel.
+        """
+        data = await self._rest.get_stage_instance(channel_id=self.id)
+        return StageInstance(data, guild=self.guild)
+
+    async def create_stage_instance(
+        self,
+        *,
+        topic: str,
+        privacy_level: int = StagePrivacyLevel.GUILD_ONLY,
+        send_start_notification: bool = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> StageInstance:
+        """Creates a stage instance in this channel.
+
+        This operation requires the bot to be stage moderator, i.e has following
+        permissions in the stage channel:
+
+        - :attr:`~Permissions.manage_channels`
+        - :attr:`~Permissions.move_members`
+        - :attr:`~Permissions.mute_members`
+
+        Additionally, when setting ``send_start_notification`` to ``True``, The
+        :attr:`~Permissions.mention_everyone` permission is required.
+
+        Parameters
+        ----------
+        topic: :class:`builtins.str`
+            The topic of stage instance.
+        privacy_level: :class:`builtins.int`
+            The privacy level of stage instance. See :class:`StagePrivacyLevel` for
+            all possible values. Defaults to :attr:`~StagePrivacyLevel.GUILD_ONLY`.
+        send_start_notification: :class:`builtins.bool`
+            Whether to send start notification to guild members. Defaults to ``False``.
+        reason: :class:`builtins.str`
+            The reason for doing this action.
+
+        Returns
+        -------
+        :class:`StageInstance`
+            The created stage instance.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPException
+            The operation failed.
+        """
+        json: typing.Dict[str, typing.Any] = {
+            "channel_id": self.id,
+            "topic": topic,
+            "privacy_level": privacy_level,
+        }
+
+        if send_start_notification is not UNDEFINED:
+            json["send_start_notification"] = send_start_notification
+
+        data = await self._rest.create_stage_instance(json=json, reason=reason)
+        return StageInstance(data, guild=self.guild)
+
 
 class PrivateChannel(BaseModel, Comparable, CreationTime):
     """Base class for channel types that are private and not associated to a guild.

@@ -165,6 +165,31 @@ TimestampStyle
 .. autoclass:: TimestampStyle()
     :members:
 
+EventEntityType
+~~~~~~~~~~~~~~~
+
+.. autoclass:: EventEntityType()
+    :members:
+
+EventPrivacyLevel
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: EventPrivacyLevel()
+    :members:
+
+EventStatus
+~~~~~~~~~~~
+
+.. autoclass:: EventStatus()
+    :members:
+
+StagePrivacyLevel
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: StagePrivacyLevel()
+    :members:
+
+
 Data classes
 ------------
 
@@ -501,5 +526,12 @@ ScheduledEvent
 ~~~~~~~~~~~~~~
 
 .. autoclass:: ScheduledEvent()
+    :inherited-members:
+    :members:
+
+StageInstance
+~~~~~~~~~~~~~
+
+.. autoclass:: StageInstance()
     :inherited-members:
     :members:

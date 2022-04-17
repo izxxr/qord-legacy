@@ -87,7 +87,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
     creator_id: Optional[:class:`builtins.int`]
         The ID of user who created the event. For events created before 25 October 2021, This is ``None``.
     entity_id: Optional[:class:`builtins.int`]
-        The ID of entity (stage instance) that is hosting the event.
+        The ID of entity (currently stage instance) that is hosting the event.
     creator: Optional[:class:`User`]
         The user who created the event. For events created before 25 October 2021, This is ``None``.
     location: Optional[:class:`builtins.str`]
@@ -253,7 +253,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
     async def start(self, *, reason: typing.Optional[str] = None) -> None:
         """Starts the event.
 
-        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        This operation requires :attr:`~Permissions.manage_events` permission in the
         parent event guild.
 
         Parameters
@@ -279,7 +279,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
     async def end(self, *, reason: typing.Optional[str] = None) -> None:
         """Ends the event.
 
-        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        This operation requires :attr:`~Permissions.manage_events` permission in the
         parent event guild.
 
         Parameters
@@ -305,7 +305,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
     async def cancel(self, *, reason: typing.Optional[str] = None) -> None:
         """Cancels the event.
 
-        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        This operation requires :attr:`~Permissions.manage_events` permission in the
         parent event guild.
 
         Parameters
@@ -345,27 +345,27 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
     ):
         """Edits the event.
 
-        This operation requires :attr:`~Permissions.manage_events` permission in the 
+        This operation requires :attr:`~Permissions.manage_events` permission in the
         parent event guild.
-        
+
         Unlike :meth:`Guild.create_scheduled_event` method, this method does not automatically infers
         the values for various arguments and their values must be explicitly given.
-        
-        - When specifying ``location`` to a non-external event to convert it to an external event, 
-          the ``entity_type`` must be set to :attr:`EventEntityType.EXTERNAL` and ``channel`` parameter 
+
+        - When specifying ``location`` to a non-external event to convert it to an external event,
+          the ``entity_type`` must be set to :attr:`EventEntityType.EXTERNAL` and ``channel`` parameter
           must be set to ``None`` explicitly. Furthermore ``ends_at`` must also be given.
-        - When specifying ``channel`` to an external event to convert it to a channel-hosted event, 
+        - When specifying ``channel`` to an external event to convert it to a channel-hosted event,
           the ``entity_type`` must be set to :attr:`EventEntityType.VOICE` or :attr:`EventEntityType.STAGE_INSTANCE`
           depending on what type of channel is being passed and ``location`` must be expliclty set to ``None``.
 
         For editing the event's status, Following are the limitations:
 
-        - Events that have the status of :attr:`EventStatus.SCHEDULED` can get their status be edited to 
+        - Events that have the status of :attr:`EventStatus.SCHEDULED` can get their status be edited to
           either to :attr:`EventStatus.ACTIVE` or :attr:`EventStatus.CANCELED`.
         - Events that have the status of :attr:`EventStatus.ACTIVE` can only be edited to :attr:`EventStatus.COMPLETED`.
         - No other transitions are possible.
 
-        These limitations are described by Discord and are not validated by the library. 
+        These limitations are described by Discord and are not validated by the library.
 
         .. tip::
             For easier transitions of events, consider using other methods provided by the class
@@ -384,7 +384,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
         starts_at: :class:`datetime.datetime`
             The time when the event starts.
         ends_at: Optional[:class:`datetime.datetime`]
-            The time when the event ends. This is required when converting events to 
+            The time when the event ends. This is required when converting events to
             :attr:`~EventEntityType.EXTERNAL`.
         entity_type: :class:`builtins.int`
             The entity type of event. This parameter has specific considerations described above.
@@ -396,7 +396,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
             The channel of event. This parameter has specific considerations described above.
         reason: Optional[:class:`builtins.str`]
             The audit log reason for this operation.
-        
+
         Raises
         ------
         HTTPForbidden
@@ -445,8 +445,8 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
         if json:
             data = await self._client._rest.edit_scheduled_event(
                 guild_id=self.guild_id,
-                scheduled_event_id=self.id, 
-                json=json, 
+                scheduled_event_id=self.id,
+                json=json,
                 reason=reason,
             )
             self._update_with_data(data)

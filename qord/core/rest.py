@@ -534,6 +534,27 @@ class RestClient:
         data = await self.request(route, params=params)
         return data
 
+    # --- Stage instance -- #
+
+    async def create_stage_instance(self, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("POST", "/stage-instances")
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def get_stage_instance(self, channel_id: int):
+        route = Route("GET", "/stage-instances/{channel_id}", channel_id=channel_id)
+        data = await self.request(route)
+        return data
+
+    async def edit_stage_instance(self, channel_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("PATCH", "/stage-instances/{channel_id}", channel_id=channel_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
+    async def delete_stage_instance(self, channel_id: int, reason: typing.Optional[str] = None):
+        route = Route("DELETE", "/stage-instances/{channel_id}", channel_id=channel_id)
+        await self.request(route, reason=reason)
+
     # --- Messages --- #
 
     async def get_message(self, channel_id: int, message_id: int):

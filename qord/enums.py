@@ -135,6 +135,15 @@ class GatewayEvent:
     SCHEDULED_EVENT_USER_REMOVE = "scheduled_event_user_remove"
     """Called whenever a user unsubscribes to a scheduled event. See :class:`events.ScheduledEventUserRemove` for more info."""
 
+    STAGE_INSTANCE_CREATE = "stage_instance_create"
+    """Called whenever a stage instance is created. See :class:`events.StageInstanceCreate` for more info."""
+
+    STAGE_INSTANCE_UPDATE = "stage_instance_update"
+    """Called whenever a stage instance is updated. See :class:`events.StageInstanceUpdate` for more info."""
+
+    STAGE_INSTANCE_DELETE = "stage_instance_delete"
+    """Called whenever a stage instance is deleted. See :class:`events.StageInstanceDelete` for more info."""
+
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.
 
@@ -495,3 +504,9 @@ class EventStatus:
 
     CANCELED = 3
     """The event was cancelled."""
+
+class StagePrivacyLevel:
+    """An enumeration that details privacy level of a :class:`StageInstance`."""
+
+    GUILD_ONLY = 2
+    """The stage instance is available guild members only."""

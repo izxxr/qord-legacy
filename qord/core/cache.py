@@ -34,6 +34,7 @@ if typing.TYPE_CHECKING:
     from qord.models.messages import Message
     from qord.models.emojis import Emoji
     from qord.models.scheduled_events import ScheduledEvent
+    from qord.models.stage_instances import StageInstance
 
 
 __all__ = (
@@ -586,5 +587,56 @@ class GuildCache(ABC):
         -------
         Optional[:class:`ScheduledEvent`]
             The removed event if any. If no event existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def stage_instances(self) -> typing.List[StageInstance]:
+        """Returns all stage instances that are currently cached.
+
+        Returns
+        -------
+        List[:class:`StageInstance`]
+        """
+
+    @abstractmethod
+    def get_stage_instance(self, stage_instance_id: int) -> typing.Optional[StageInstance]:
+        """Gets a :class:`StageInstance` from the cache for provided instance ID.
+
+        Parameters
+        ----------
+        stage_instance_id: :class:`builtins.int`
+            The ID of stage instance to get.
+
+        Returns
+        -------
+        Optional[:class:`StageInstance`]
+            The gotten stage instance if found. If no instance existed with provided ID,
+            ``None`` is returned.
+        """
+
+    @abstractmethod
+    def add_stage_instance(self, stage_instance: StageInstance) -> None:
+        """Adds a :class:`StageInstance` to the cache.
+
+        Parameters
+        ----------
+        stage_instance: :class:`StageInstance`
+            The stage instance to add in the cache.
+        """
+
+    @abstractmethod
+    def delete_stage_instance(self, stage_instance_id: int) -> typing.Optional[StageInstance]:
+        """Removes a :class:`StageInstance` from the cache for provided ID.
+
+        Parameters
+        ----------
+        stage_instance_id: :class:`builtins.int`
+            The ID of stage instance to remove.
+
+        Returns
+        -------
+        Optional[:class:`StageInstance`]
+            The removed stage instance if any. If none existed with provided ID,
             ``None`` is returned.
         """

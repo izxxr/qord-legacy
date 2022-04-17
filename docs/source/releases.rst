@@ -15,6 +15,7 @@ Additions
 ~~~~~~~~~
 
 - Added support for guild scheduled events.
+- Added support for stage instances.
 - Added following shortcut properties to :class:`Guild`:
   - :attr:`~Guild.afk_channel`
   - :attr:`~Guild.system_channel`

@@ -29,6 +29,7 @@ from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory, GuildChannel, VoiceChannel, StageChannel
 from qord.models.emojis import Emoji
 from qord.models.scheduled_events import ScheduledEvent
+from qord.models.stage_instances import StageInstance
 from qord.flags.system_channel import SystemChannelFlags
 from qord.enums import EventPrivacyLevel, EventEntityType
 from qord.internal.undefined import UNDEFINED
@@ -46,6 +47,7 @@ from qord.internal.helpers import (
 
 from datetime import datetime
 import typing
+
 
 if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
@@ -257,6 +259,10 @@ class Guild(BaseModel, Comparable, CreationTime):
         for raw_scheduled_event in data.get("guild_scheduled_events", []):
             scheduled_event = ScheduledEvent(raw_scheduled_event, guild=self)
             cache.add_scheduled_event(scheduled_event)
+
+        for raw_stage_instance in data.get("stage_instances", []):
+            stage_instance = StageInstance(raw_stage_instance, guild=self)
+            cache.add_stage_instance(stage_instance)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # I'm documenting these attributes here for future reference when we

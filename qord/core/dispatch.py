@@ -30,6 +30,7 @@ from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
 from qord.models.emojis import Emoji
 from qord.models.scheduled_events import ScheduledEvent
+from qord.models.stage_instances import StageInstance
 from qord.internal.helpers import parse_iso_timestamp
 from qord import events
 
@@ -880,5 +881,72 @@ class DispatchHandler:
             scheduled_event=scheduled_event,
             user=user,
             user_id=user_id,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("STAGE_INSTANCE_CREATE")
+    async def on_stage_instance_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        stage_instance = StageInstance(data, guild=guild)
+        event = events.StageInstanceCreate(
+            shard=shard,
+            guild=guild,
+            stage_instance=stage_instance,
+        )
+        guild._cache.add_stage_instance(stage_instance)
+        self.invoke(event)
+
+    @event_dispatch_handler("STAGE_INSTANCE_UPDATE")
+    async def on_stage_instance_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        stage_instance_id = int(data["id"])
+        stage_instance = guild._cache.get_stage_instance(stage_instance_id)
+
+        if stage_instance is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_UPDATE: Unknown stage instance with ID %s", stage_instance_id)
+            return
+
+        before = copy.copy(stage_instance)
+        stage_instance._update_with_data(data)
+        event = events.StageInstanceUpdate(
+            shard=shard,
+            guild=guild,
+            before=before,
+            after=stage_instance,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("STAGE_INSTANCE_DELETE")
+    async def on_stage_instance_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        stage_instance_id = int(data["id"])
+        stage_instance = guild._cache.delete_stage_instance(stage_instance_id)
+
+        if stage_instance is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_DELETE: Unknown stage instance with ID %s", stage_instance_id)
+            return
+
+        event = events.StageInstanceDelete(
+            shard=shard,
+            guild=guild,
+            stage_instance=stage_instance,
         )
         self.invoke(event)

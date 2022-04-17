@@ -16,3 +16,4 @@ from qord.events.users import *
 from qord.events.emojis import *
 from qord.events.reactions import *
 from qord.events.scheduled_events import *
+from qord.events.stage_instances import *
