@@ -8,6 +8,28 @@ This page details the changelog containing every notable change of every release
 - The release with "Unreleased" in title indicates that the release is not yet released and is under development.
 - The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release.
 
+v0.4.0
+------
+
+Additions
+~~~~~~~~~
+
+- Added support for guild scheduled events.
+- Added support for stage instances.
+- Added following shortcut properties to :class:`Guild`:
+  - :attr:`~Guild.afk_channel`
+  - :attr:`~Guild.system_channel`
+  - :attr:`~Guild.widget_channel`
+  - :attr:`~Guild.rules_channel`
+  - :attr:`~Guild.public_updates_channel`
+
+
+Fixes
+~~~~~
+
+- Fix crash with :exc:`KeyError` during :attr:`~GatewayEvent.MESSAGE_UPDATE` event.
+
+
 v0.3.0
 ------
 

@@ -30,6 +30,8 @@ from qord.models.guild_members import GuildMember
 from qord.models.channels import GuildChannel, PrivateChannel
 from qord.models.messages import Message
 from qord.models.emojis import Emoji
+from qord.models.scheduled_events import ScheduledEvent
+from qord.models.stage_instances import StageInstance
 
 import weakref
 import typing
@@ -167,7 +169,9 @@ class DefaultGuildCache(GuildCache):
         self._roles: typing.Dict[int, Role] = {}
         self._members: typing.Dict[int, GuildMember] = {}
         self._channels: typing.Dict[int, GuildChannel] = {}
-        self._emojis = dict()
+        self._emojis: typing.Dict[int, Emoji] = {}
+        self._scheduled_events: typing.Dict[int, ScheduledEvent] = {}
+        self._stage_instances: typing.Dict[int, StageInstance] = {}
 
     def roles(self) -> typing.List[Role]:
         roles = list(self._roles.values())
@@ -265,8 +269,50 @@ class DefaultGuildCache(GuildCache):
 
         self._emojis[emoji.id] = emoji
 
-    def delete_emoji(self, emoji_id: int) -> typing.Optional[GuildChannel]:
+    def delete_emoji(self, emoji_id: int) -> typing.Optional[Emoji]:
         if not isinstance(emoji_id, int):
             raise TypeError("Parameter emoji_id must be an integer.")
 
         return self._emojis.pop(emoji_id, None)
+
+    def scheduled_events(self) -> typing.List[ScheduledEvent]:
+        return list(self._scheduled_events.values())
+
+    def get_scheduled_event(self, scheduled_event_id: int) -> typing.Optional[ScheduledEvent]:
+        if not isinstance(scheduled_event_id, int):
+            raise TypeError("Parameter scheduled_event_id must be an integer.")
+
+        return self._scheduled_events.get(scheduled_event_id)
+
+    def add_scheduled_event(self, scheduled_event: ScheduledEvent) -> None:
+        if not isinstance(scheduled_event, ScheduledEvent):
+            raise TypeError("Parameter scheduled_event must be an instance of ScheduledEvent.")
+
+        self._scheduled_events[scheduled_event.id] = scheduled_event
+
+    def delete_scheduled_event(self, scheduled_event_id: int) -> typing.Optional[ScheduledEvent]:
+        if not isinstance(scheduled_event_id, int):
+            raise TypeError("Parameter scheduled_event_id must be an integer.")
+
+        return self._scheduled_events.pop(scheduled_event_id, None)
+
+    def stage_instances(self) -> typing.List[StageInstance]:
+        return list(self._stage_instances.values())
+
+    def get_stage_instance(self, stage_instance_id: int) -> typing.Optional[StageInstance]:
+        if not isinstance(stage_instance_id, int):
+            raise TypeError("Parameter stage_instance_id must be an integer.")
+
+        return self._stage_instances.get(stage_instance_id)
+
+    def add_stage_instance(self, stage_instance: StageInstance) -> None:
+        if not isinstance(stage_instance, StageInstance):
+            raise TypeError("Parameter stage_instance must be an instance of StageInstance.")
+
+        self._stage_instances[stage_instance.id] = stage_instance
+
+    def delete_stage_instance(self, stage_instance_id: int) -> typing.Optional[StageInstance]:
+        if not isinstance(stage_instance_id, int):
+            raise TypeError("Parameter stage_instance_id must be an integer.")
+
+        return self._stage_instances.pop(stage_instance_id, None)

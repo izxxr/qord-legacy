@@ -120,6 +120,29 @@ class GatewayEvent:
     REACTION_CLEAR_EMOJI = "reaction_clear_emoji"
     """Called whenever all reactions for a specific emoji are cleared from a message. See :class:`events.ReactionClearEmoji` for more info."""
 
+    SCHEDULED_EVENT_CREATE = "scheduled_event_create"
+    """Called whenever a scheduled event is created. See :class:`events.ScheduledEventCreate` for more info."""
+
+    SCHEDULED_EVENT_UPDATE = "scheduled_event_update"
+    """Called whenever a scheduled event is updated. See :class:`events.ScheduledEventUpdate` for more info."""
+
+    SCHEDULED_EVENT_DELETE = "scheduled_event_delete"
+    """Called whenever a scheduled event is deleted. See :class:`events.ScheduledEventDelete` for more info."""
+
+    SCHEDULED_EVENT_USER_ADD = "scheduled_event_user_add"
+    """Called whenever a user subscribe to a scheduled event. See :class:`events.ScheduledEventUserAdd` for more info."""
+
+    SCHEDULED_EVENT_USER_REMOVE = "scheduled_event_user_remove"
+    """Called whenever a user unsubscribes to a scheduled event. See :class:`events.ScheduledEventUserRemove` for more info."""
+
+    STAGE_INSTANCE_CREATE = "stage_instance_create"
+    """Called whenever a stage instance is created. See :class:`events.StageInstanceCreate` for more info."""
+
+    STAGE_INSTANCE_UPDATE = "stage_instance_update"
+    """Called whenever a stage instance is updated. See :class:`events.StageInstanceUpdate` for more info."""
+
+    STAGE_INSTANCE_DELETE = "stage_instance_delete"
+    """Called whenever a stage instance is deleted. See :class:`events.StageInstanceDelete` for more info."""
 
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.
@@ -448,3 +471,42 @@ class ChannelPermissionType:
 
     MEMBER = 1
     """Overwrite belonging to a guild member."""
+
+class EventPrivacyLevel:
+    """An enumeration that details privacy level of a :class:`ScheduledEvent`."""
+
+    GUILD_ONLY = 2
+    """The event is available guild members only."""
+
+class EventEntityType:
+    """An enumeration that details entity types of a :class:`ScheduledEvent`."""
+
+    STAGE_INSTANCE = 1
+    """The event is happening in a stage instance."""
+
+    VOICE = 2
+    """The event is happening in a voice channel."""
+
+    EXTERNAL = 3
+    """The event is happening externally."""
+
+class EventStatus:
+    """An enumeration that details status of a :class:`ScheduledEvent`"""
+
+    SCHEDULED = 1
+    """The event is currently scheduled."""
+
+    ACTIVE = 2
+    """The event is currently active."""
+
+    COMPLETED = 3
+    """The event has finished."""
+
+    CANCELED = 3
+    """The event was cancelled."""
+
+class StagePrivacyLevel:
+    """An enumeration that details privacy level of a :class:`StageInstance`."""
+
+    GUILD_ONLY = 2
+    """The stage instance is available guild members only."""

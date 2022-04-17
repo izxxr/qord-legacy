@@ -28,8 +28,10 @@ from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
 from qord.models.channels import _guild_channel_factory
 from qord.models.messages import Message
-from qord.models.emojis import Emoji, PartialEmoji
-from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
+from qord.models.emojis import Emoji
+from qord.models.scheduled_events import ScheduledEvent
+from qord.models.stage_instances import StageInstance
+from qord.internal.helpers import parse_iso_timestamp
 from qord import events
 
 from datetime import datetime
@@ -753,5 +755,198 @@ class DispatchHandler:
             message=message,
             reaction=reaction,
             emoji=reaction.emoji,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_CREATE")
+    async def on_guild_scheduled_event_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event = ScheduledEvent(data, guild=guild)
+        event = events.ScheduledEventCreate(
+            shard=shard,
+            guild=guild,
+            scheduled_event=scheduled_event,
+        )
+        guild._cache.add_scheduled_event(scheduled_event)
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_UPDATE")
+    async def on_guild_scheduled_event_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event_id = int(data["id"])
+        scheduled_event = guild._cache.get_scheduled_event(scheduled_event_id)
+
+        if scheduled_event is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_UPDATE: Unknown event with ID %s", scheduled_event_id)
+            return
+
+        before = copy.copy(scheduled_event)
+        scheduled_event._update_with_data(data)
+
+        event = events.ScheduledEventUpdate(
+            shard=shard,
+            guild=guild,
+            before=before,
+            after=scheduled_event,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_DELETE")
+    async def on_guild_scheduled_event_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event_id = int(data["id"])
+        scheduled_event = guild._cache.delete_scheduled_event(scheduled_event_id)
+
+        if scheduled_event is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_DELETE: Unknown event with ID %s", scheduled_event_id)
+            return
+
+        event = events.ScheduledEventDelete(
+            shard=shard,
+            guild=guild,
+            scheduled_event=scheduled_event,
+        )
+        self.invoke(event)
+
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_USER_ADD")
+    async def on_guild_scheduled_event_user_add(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_ADD: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event_id = int(data["guild_scheduled_event_id"])
+        scheduled_event = guild._cache.get_scheduled_event(scheduled_event_id)
+
+        if scheduled_event is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_ADD: Unknown event with ID %s", scheduled_event_id)
+            return
+
+        user_id = int(data["user_id"])
+        user = guild._cache.get_member(user_id)
+
+        event = events.ScheduledEventUserAdd(
+            shard=shard,
+            guild=guild,
+            scheduled_event=scheduled_event,
+            user=user,
+            user_id=user_id,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("GUILD_SCHEDULED_EVENT_USER_REMOVE")
+    async def on_guild_scheduled_event_user_remove(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_REMOVE: Unknown guild with ID %s", guild_id)
+            return
+
+        scheduled_event_id = int(data["guild_scheduled_event_id"])
+        scheduled_event = guild._cache.get_scheduled_event(scheduled_event_id)
+
+        if scheduled_event is None:
+            shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_USER_REMOVE: Unknown event with ID %s", scheduled_event_id)
+            return
+
+        user_id = int(data["user_id"])
+        user = guild._cache.get_member(user_id)
+
+        event = events.ScheduledEventUserRemove(
+            shard=shard,
+            guild=guild,
+            scheduled_event=scheduled_event,
+            user=user,
+            user_id=user_id,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("STAGE_INSTANCE_CREATE")
+    async def on_stage_instance_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        stage_instance = StageInstance(data, guild=guild)
+        event = events.StageInstanceCreate(
+            shard=shard,
+            guild=guild,
+            stage_instance=stage_instance,
+        )
+        guild._cache.add_stage_instance(stage_instance)
+        self.invoke(event)
+
+    @event_dispatch_handler("STAGE_INSTANCE_UPDATE")
+    async def on_stage_instance_update(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_UPDATE: Unknown guild with ID %s", guild_id)
+            return
+
+        stage_instance_id = int(data["id"])
+        stage_instance = guild._cache.get_stage_instance(stage_instance_id)
+
+        if stage_instance is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_UPDATE: Unknown stage instance with ID %s", stage_instance_id)
+            return
+
+        before = copy.copy(stage_instance)
+        stage_instance._update_with_data(data)
+        event = events.StageInstanceUpdate(
+            shard=shard,
+            guild=guild,
+            before=before,
+            after=stage_instance,
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("STAGE_INSTANCE_DELETE")
+    async def on_stage_instance_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        guild_id = int(data["guild_id"])
+        guild = self.cache.get_guild(guild_id)
+
+        if guild is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        stage_instance_id = int(data["id"])
+        stage_instance = guild._cache.delete_stage_instance(stage_instance_id)
+
+        if stage_instance is None:
+            shard._log(logging.DEBUG, "STAGE_INSTANCE_DELETE: Unknown stage instance with ID %s", stage_instance_id)
+            return
+
+        event = events.StageInstanceDelete(
+            shard=shard,
+            guild=guild,
+            stage_instance=stage_instance,
         )
         self.invoke(event)

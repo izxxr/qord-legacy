@@ -26,9 +26,12 @@ from qord.core.cache import GuildCache
 from qord.models.base import BaseModel
 from qord.models.roles import Role
 from qord.models.guild_members import GuildMember
-from qord.models.channels import _guild_channel_factory, GuildChannel
+from qord.models.channels import _guild_channel_factory, GuildChannel, VoiceChannel, StageChannel
 from qord.models.emojis import Emoji
+from qord.models.scheduled_events import ScheduledEvent
+from qord.models.stage_instances import StageInstance
 from qord.flags.system_channel import SystemChannelFlags
+from qord.enums import EventPrivacyLevel, EventEntityType
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
 from qord.internal.helpers import (
@@ -45,11 +48,12 @@ from qord.internal.helpers import (
 from datetime import datetime
 import typing
 
+
 if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
-    from qord.models.channels import CategoryChannel
+    from qord.models.channels import CategoryChannel, TextChannel
 
 
 __all__ = (
@@ -252,6 +256,14 @@ class Guild(BaseModel, Comparable, CreationTime):
             channel = cls(raw_channel, guild=self)
             cache.add_channel(channel)
 
+        for raw_scheduled_event in data.get("guild_scheduled_events", []):
+            scheduled_event = ScheduledEvent(raw_scheduled_event, guild=self)
+            cache.add_scheduled_event(scheduled_event)
+
+        for raw_stage_instance in data.get("stage_instances", []):
+            stage_instance = StageInstance(raw_stage_instance, guild=self)
+            cache.add_stage_instance(stage_instance)
+
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         # I'm documenting these attributes here for future reference when we
         # eventually implement these features.
@@ -407,6 +419,103 @@ class Guild(BaseModel, Comparable, CreationTime):
         """
         user_id = self._client.user.id # type: ignore # This is never None here
         return self._cache.get_member(user_id)
+
+    @property
+    def owner(self) -> typing.Optional[GuildMember]:
+        """Returns the owner of this guild.
+
+        This property utilizes members cache and as such requires
+        members intents to be enabled.
+
+        Returns
+        -------
+        Optional[:class:`GuildMember`]
+        """
+        owner_id = self.owner_id
+
+        if owner_id is None:
+            return
+
+        return self._cache.get_member(owner_id)
+
+    @property
+    def afk_channel(self) -> typing.Optional[VoiceChannel]:
+        """Returns the AFK channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`VoiceChannel`]
+        """
+        afk_channel_id = self.afk_channel_id
+
+        if afk_channel_id is None:
+            return None
+
+        # This shall always return VoiceChannel
+        return self._cache.get_channel(afk_channel_id)  # type: ignore
+
+    @property
+    def widget_channel(self) -> typing.Optional[GuildChannel]:
+        """Returns the widget channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`GuildChannel`]
+        """
+        widget_channel_id = self.widget_channel_id
+
+        if widget_channel_id is None:
+            return None
+
+        return self._cache.get_channel(widget_channel_id)  # type: ignore
+
+    @property
+    def system_channel(self) -> typing.Optional[TextChannel]:
+        """Returns the system channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`TextChannel`]
+        """
+        system_channel_id = self.system_channel_id
+
+        if system_channel_id is None:
+            return None
+
+        # This shall always return TextChannel
+        return self._cache.get_channel(system_channel_id)  # type: ignore
+
+    @property
+    def rules_channel(self) -> typing.Optional[TextChannel]:
+        """Returns the rules channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`TextChannel`]
+        """
+        rules_channel_id = self.rules_channel_id
+
+        if rules_channel_id is None:
+            return None
+
+        # This shall always return TextChannel
+        return self._cache.get_channel(rules_channel_id)  # type: ignore
+
+    @property
+    def public_updates_channel(self) -> typing.Optional[TextChannel]:
+        """Returns the public updates channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`TextChannel`]
+        """
+        public_updates_channel_id = self.public_updates_channel_id
+
+        if public_updates_channel_id is None:
+            return None
+
+        # This shall always return TextChannel
+        return self._cache.get_channel(public_updates_channel_id)  # type: ignore
 
     def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the icon URL for this guild.
@@ -998,3 +1107,177 @@ class Guild(BaseModel, Comparable, CreationTime):
             reason=reason,
         )
         return Emoji(data, guild=self)
+
+    async def fetch_scheduled_events(self, with_user_counts: bool = False) -> typing.List[ScheduledEvent]:
+        """Fetches the scheduled events currently scheduled or active in the guild.
+
+        Parameters
+        ----------
+        with_user_count: :class:`builtins.int`
+            Whether to include :attr:`ScheduledEvent.user_count` data in the returned
+            scheduled events.
+
+        Returns
+        -------
+        List[:class:`ScheduledEvent`]
+            The list of fetched events.
+
+        Raises
+        ------
+        HTTPException
+            Failed to fetch the events.
+        """
+        data = await self._rest.get_scheduled_events(
+            guild_id=self.id,
+            with_user_counts=with_user_counts
+        )
+        return [ScheduledEvent(e, guild=self) for e in data]
+
+    async def fetch_scheduled_event(self, scheduled_event_id: int, with_user_counts: bool = False) -> ScheduledEvent:
+        """Fetches the scheduled event by it's ID.
+
+        Parameters
+        ----------
+        scheduled_event_id: :class:`builtins.int`
+            The ID of event to fetch.
+        with_user_count: :class:`builtins.int`
+            Whether to include :attr:`ScheduledEvent.user_count` data in the returned
+            scheduled event.
+
+        Returns
+        -------
+        :class:`ScheduledEvent`
+            The requested event.
+
+        Raises
+        ------
+        HTTPNotFound
+            The event with that ID does not exist.
+        HTTPException
+            Failed to fetch the event.
+        """
+        data = await self._rest.get_scheduled_event(
+            guild_id=self.id,
+            scheduled_event_id=scheduled_event_id,
+            with_user_counts=with_user_counts
+        )
+        return ScheduledEvent(data, guild=self)
+
+    async def create_scheduled_event(
+        self,
+        *,
+        name: str,
+        starts_at: datetime,
+        ends_at: datetime = UNDEFINED,
+        description: str = UNDEFINED,
+        privacy_level: int = EventPrivacyLevel.GUILD_ONLY,
+        location: str = UNDEFINED,
+        entity_type: int = UNDEFINED,
+        cover_image: bytes = UNDEFINED,
+        channel: typing.Union[VoiceChannel, StageChannel] = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> ScheduledEvent:
+        """Creates a scheduled event in the guild.
+
+        This operation requires :attr:`~Permissions.manage_events` permission
+        in the guild.
+
+        The ``channel`` and ``location`` keyword arguments are mutually exlusive and
+        either one of them must be provided.
+
+        The value of ``entity_type`` keyword argument is inferred from what is being
+        passed from ``channel`` or ``location`` that is:
+
+        - If a :class:`VoiceChannel` is passed in ``channel``, The inferred value would be :attr:`EventEntityType.VOICE`
+        - If a :class:`StageChannel` is passed in ``channel``, The inferred value would be :attr:`EventEntityType.STAGE_INSTANCE`
+        - If a ``location`` is passed, The inferred value would be :attr:`EventEntityType.EXTERNAL`.
+
+        If the ``entity_type`` parameter is passed explicitly, the value is not inferred and
+        the given value is considered without validation.
+
+        ``ends_at`` keyword argument is required when passing the ``location`` argument.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of event.
+        starts_at: :class:`datetime.datetime`
+            The time when the event should start.
+        ends_at: :class:`datetime.datetime`
+            The time when the event should end. Required when passing ``location``,
+            optional otherwise.
+        description: :class:`builtins.str`
+            The description of event.
+        privacy_level: :class:`builtins.int`
+            The privacy level of the event. Defaults to :attr:`EventPrivacyLevel.GUILD_ONLY`.
+        location: :class:`builtins.str`
+            The location where the event is hosted.
+        entity_type: :class:`builtins.int`
+            The type of entity for this event. This parameter is inferred automatically
+            when not given, see above.
+        cover_image: :class:`builtins.bytes`
+            The bytes representing the cover image of event.
+        channel: Union[:class:`VoiceChannel`, :class:`StageChannel`]
+            The channel where the event is being hosted.
+        reason: :class:`builtins.str`
+            The reason for creating the event.
+
+        Returns
+        -------
+        :class:`ScheduledEvent`
+            The created event.
+
+        Raises
+        ------
+        TypeError
+            Invalid arguments passed.
+        HTTPForbidden
+            You are not allowed to create the event.
+        HTTPException
+            Failed to create the event.
+        """
+        if location is UNDEFINED and channel is UNDEFINED:
+            raise TypeError("Either one of channel or location arguments must be passed.")
+        if location is not UNDEFINED and channel is not UNDEFINED:
+            raise TypeError("location and channel keyword arguments cannot be mixed.")
+        if location is not UNDEFINED and ends_at is UNDEFINED:
+            raise TypeError("ends_at must be provided when providing location.")
+
+        json: typing.Dict[str, typing.Any] = {
+            "name": name,
+            "privacy_level": privacy_level,
+            "scheduled_start_time": starts_at.isoformat(),
+        }
+
+        if entity_type is UNDEFINED:
+            # No explicit value for entity_type is given, Inferring the value.
+            if location is not UNDEFINED:
+                entity_type = EventEntityType.EXTERNAL
+            else:
+                channel_tp = type(channel)
+                if channel_tp == StageChannel:
+                    entity_type = EventEntityType.STAGE_INSTANCE
+                elif channel_tp == VoiceChannel:
+                    entity_type = EventEntityType.VOICE
+                else:
+                    raise TypeError("channel must be an instance of StageChannel or VoiceChannel")
+
+        json["entity_type"] = entity_type
+
+        if ends_at is not UNDEFINED:
+            json["scheduled_end_time"] = ends_at.isoformat()
+
+        if description is not UNDEFINED:
+            json["description"] = description
+
+        if channel is not UNDEFINED:
+            json["channel_id"] = channel.id
+
+        if location is not UNDEFINED:
+            json["entity_metadata"] = {"location": location}
+
+        if cover_image is not UNDEFINED:
+            json["image"] = get_image_data(cover_image)
+
+        data = await self._rest.create_scheduled_event(guild_id=self.id, json=json, reason=reason)
+        return ScheduledEvent(data, guild=self)
