@@ -15,6 +15,13 @@ Additions
 ~~~~~~~~~
 
 - Added support for guild scheduled events.
+- Added following shortcut properties to :class:`Guild`:
+  - :attr:`~Guild.afk_channel`
+  - :attr:`~Guild.system_channel`
+  - :attr:`~Guild.widget_channel`
+  - :attr:`~Guild.rules_channel`
+  - :attr:`~Guild.public_updates_channel`
+
 
 Fixes
 ~~~~~

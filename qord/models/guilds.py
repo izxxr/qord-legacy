@@ -51,7 +51,7 @@ if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.core.client import Client
     from qord.flags.permissions import Permissions
-    from qord.models.channels import CategoryChannel
+    from qord.models.channels import CategoryChannel, TextChannel
 
 
 __all__ = (
@@ -413,6 +413,103 @@ class Guild(BaseModel, Comparable, CreationTime):
         """
         user_id = self._client.user.id # type: ignore # This is never None here
         return self._cache.get_member(user_id)
+
+    @property
+    def owner(self) -> typing.Optional[GuildMember]:
+        """Returns the owner of this guild.
+
+        This property utilizes members cache and as such requires
+        members intents to be enabled.
+
+        Returns
+        -------
+        Optional[:class:`GuildMember`]
+        """
+        owner_id = self.owner_id
+
+        if owner_id is None:
+            return
+
+        return self._cache.get_member(owner_id)
+
+    @property
+    def afk_channel(self) -> typing.Optional[VoiceChannel]:
+        """Returns the AFK channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`VoiceChannel`]
+        """
+        afk_channel_id = self.afk_channel_id
+
+        if afk_channel_id is None:
+            return None
+
+        # This shall always return VoiceChannel
+        return self._cache.get_channel(afk_channel_id)  # type: ignore
+
+    @property
+    def widget_channel(self) -> typing.Optional[GuildChannel]:
+        """Returns the widget channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`GuildChannel`]
+        """
+        widget_channel_id = self.widget_channel_id
+
+        if widget_channel_id is None:
+            return None
+
+        return self._cache.get_channel(widget_channel_id)  # type: ignore
+
+    @property
+    def system_channel(self) -> typing.Optional[TextChannel]:
+        """Returns the system channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`TextChannel`]
+        """
+        system_channel_id = self.system_channel_id
+
+        if system_channel_id is None:
+            return None
+
+        # This shall always return TextChannel
+        return self._cache.get_channel(system_channel_id)  # type: ignore
+
+    @property
+    def rules_channel(self) -> typing.Optional[TextChannel]:
+        """Returns the rules channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`TextChannel`]
+        """
+        rules_channel_id = self.rules_channel_id
+
+        if rules_channel_id is None:
+            return None
+
+        # This shall always return TextChannel
+        return self._cache.get_channel(rules_channel_id)  # type: ignore
+
+    @property
+    def public_updates_channel(self) -> typing.Optional[TextChannel]:
+        """Returns the public updates channel for this guild, if any.
+
+        Returns
+        -------
+        Optional[:class:`TextChannel`]
+        """
+        public_updates_channel_id = self.public_updates_channel_id
+
+        if public_updates_channel_id is None:
+            return None
+
+        # This shall always return TextChannel
+        return self._cache.get_channel(public_updates_channel_id)  # type: ignore
 
     def icon_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the icon URL for this guild.
