@@ -12,11 +12,15 @@ This page details the changelog containing every notable change of every release
 Latest
 ------
 
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Rename :class:`Cache` to :class:`ClientCache` and :class:`DefaultCache` to :class:`DefaultClientCache` for the sake of consistency with it's guild counterpart.
+
 Additions
 ~~~~~~~~~
 
 - Added :func:`qord.event` decorator for registering listeners in a subclassed :class:`Client`.
-
 
 v0.4.0
 ------
