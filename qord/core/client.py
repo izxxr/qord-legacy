@@ -34,6 +34,7 @@ from qord.exceptions import ClientSetupRequired
 from qord.events.base import BaseEvent
 
 import asyncio
+import inspect
 import logging
 import traceback
 import typing
@@ -160,6 +161,23 @@ class Client:
 
         # Following are set after initial connection
         self._user: typing.Optional[ClientUser] = None
+
+        # Using inspect.getmembers() on the client instance ends
+        # up calling the properties and possibly any other dynamic
+        # attributes of the client instance. Since we don't want
+        # that, here's a hacky approach for avoiding this unfortunate
+        # behaviour that uses getmembers() on parent class rather than
+        # the instance. See https://bugs.python.org/issue38337
+
+        for name, member in inspect.getmembers(self.__class__):
+            if hasattr(member, "__listener_event__"):
+                try:
+                    bound_method = getattr(self, name)
+                except AttributeError:
+                    # Not there somehow
+                    continue
+                else:
+                    self.register_event_listener(member.__listener_event__, bound_method)
 
     @property
     def session(self) -> typing.Optional[ClientSession]:

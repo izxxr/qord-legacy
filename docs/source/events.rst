@@ -8,11 +8,19 @@ over gateway. These events are generally used to track the state of various
 entities.
 
 The recommended way to register an event listener, is to use the :meth:`qord.Client.event`
-decorator to decorate the callback coroutine. Example::
+decorator to decorate the callback coroutine. However when subclassing :class:`Client`, consider
+using the :func:`qord.event` decorator. Example::
 
     @client.event(qord.GatewayEvent.MESSAGE_CREATE)
     async def on_message_create(event):
         pass
+
+    # ---- or ----
+
+    class MyClient(qord.Client):
+        @qord.event(qord.GatewayEvent.MESSAGE_CREATE)
+        async def on_message_create(event):
+            pass
 
 All event listeners must take a single ``event`` parameter that is an instance
 of :class:`qord.BaseEvent` and represents the context of event and contains data
@@ -52,6 +60,12 @@ You can then invoke the event somewhere else::
 
     event = ApplicationSubmit(id=1, name="Jake")
     client.invoke_event(event)
+
+Decorators
+~~~~~~~~~~
+
+.. autofunction:: qord.event
+
 
 Events Structures
 -----------------

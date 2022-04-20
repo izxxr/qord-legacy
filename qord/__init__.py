@@ -7,6 +7,7 @@ A high level library for building Discord bots.
 
 from qord import events, utils
 from qord.bases import *
+from qord.decorators import *
 from qord.enums import *
 from qord.exceptions import *
 from qord.project_info import *

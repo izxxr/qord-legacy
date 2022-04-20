@@ -20,9 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import annotations
 
-__version__ = "0.5.0a1"
-__license__ = "MIT"
-__notice__  = "Copyright (c) nerdguyahmad 2022-present. Under the MIT license."
-__author__  = "nerdguyahmad <nerdguyahmad.contact@gmail.com> <nerdguyahmad#3195>"
-__github__  = "https://github.com/nerdguyahmad/qord"
+
+def event(event_name: str):
+    """A decorator for registering event listeners in a :class:`Client`.
+
+    This decorator is exactly same in behaviour as :meth:`Client.event` but
+    is meant to be used when registering event listeners in a subclassed
+    :class:`Client`.
+
+    Parameters
+    ----------
+    event_name: :class:`builtins.str`
+        The name of event to register.
+    """
+    def wrap(func):
+        func.__listener_event__ = event_name
+        return func
+
+    return wrap
