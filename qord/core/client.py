@@ -25,7 +25,7 @@ from __future__ import annotations
 from qord.core.dispatch import DispatchHandler
 from qord.core.rest import RestClient
 from qord.core.shard import Shard
-from qord.core.cache_impl import DefaultCache, DefaultGuildCache
+from qord.core.cache_impl import DefaultClientCache, DefaultGuildCache
 from qord.flags.intents import Intents
 from qord.models.users import User
 from qord.models.guilds import Guild
@@ -43,7 +43,7 @@ if typing.TYPE_CHECKING:
     from aiohttp import ClientSession
     from qord.models.users import ClientUser
     from qord.models.channels import GuildChannel, PrivateChannel
-    from qord.core.cache import Cache, GuildCache
+    from qord.core.cache import ClientCache, GuildCache
 
 
 __all__ = (
@@ -108,9 +108,9 @@ class Client:
     intents: :class:`Intents`
         The intents for this client. By default, Only unprivileged intents are
         enabled using :meth:`Intents.unprivileged` method.
-    cache: :class:`Cache`
+    cache: :class:`ClientCache`
         The cache handler to use for the client. If not provided, Defaults to
-        :class:`DefaultCache`.
+        :class:`DefaultClientCache`.
     """
     if typing.TYPE_CHECKING:
         _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
@@ -120,7 +120,7 @@ class Client:
         session: typing.Optional[ClientSession] = None,
         shards_count: typing.Optional[int] = None,
         intents: typing.Optional[Intents] = None,
-        cache: typing.Optional[Cache] = None,
+        cache: typing.Optional[ClientCache] = None,
         session_owner: bool = False,
         max_retries: int = 5,
         debug_events: bool = False,
@@ -130,15 +130,15 @@ class Client:
 
         if shards_count is not None and shards_count < 1:
             raise ValueError("Parameter shards_count must be an integer greater then or equal to 1.")
-        if cache is not None and not isinstance(cache, Cache):
-            raise TypeError("Parameter cache must be an instance of Cache. Not %r" % cache.__class__)
+        if cache is not None and not isinstance(cache, ClientCache):
+            raise TypeError("Parameter cache must be an instance of ClientCache. Not %r" % cache.__class__)
 
         self._rest: RestClient = RestClient(
             session=session,
             session_owner=session_owner,
             max_retries=max_retries,
         )
-        self._cache: Cache = cache or DefaultCache()
+        self._cache: ClientCache = cache or DefaultClientCache()
         self._dispatch: DispatchHandler = DispatchHandler(
             client=self,
             ready_timeout=ready_timeout,
@@ -251,12 +251,12 @@ class Client:
         return self._user
 
     @property
-    def cache(self) -> Cache:
+    def cache(self) -> ClientCache:
         """Returns the cache handler associated to this client.
 
         Returns
         -------
-        :class:`Cache`
+        :class:`ClientCache`
         """
         return self._cache
 
