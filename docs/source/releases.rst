@@ -5,8 +5,9 @@ Releases
 
 This page details the changelog containing every notable change of every releases.
 
-- The release with "Unreleased" in title indicates that the release is not yet released and is under development.
-- The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release.
+.. note::
+    The releases with "Pre-release" in title or if the version ends with an identifier
+    indicates that the release was a pre-release.
 
 
 Latest
