@@ -104,12 +104,12 @@
 
 ## [Guild Scheduled Event](https://discord.com/developers/docs/resources/guild-scheduled-event)
 
-- [ ] List Scheduled Events for Guild
-- [ ] Create Guild Scheduled Event
-- [ ] Get Guild Scheduled Event
-- [ ] Modify Guild Scheduled Event
-- [ ] Delete Guild Scheduled Event
-- [ ] Get Guild Scheduled Users
+- [x] List Scheduled Events for Guild
+- [x] Create Guild Scheduled Event
+- [x] Get Guild Scheduled Event
+- [x] Modify Guild Scheduled Event
+- [x] Delete Guild Scheduled Event
+- [x] Get Guild Scheduled Users
 
 ## [Guild Template](https://discord.com/developers/docs/resources/guild-template)
 
@@ -128,10 +128,10 @@
 
 ## [Stage Instance](https://discord.com/developers/docs/resources/stage-instance)
 
-- [ ] Create Stage Instance
-- [ ] Get Stage Instance
-- [ ] Modify Stage Instance
-- [ ] Delete Stage Instance
+- [x] Create Stage Instance
+- [x] Get Stage Instance
+- [x] Modify Stage Instance
+- [x] Delete Stage Instance
 
 ## [Sticker](https://discord.com/developers/docs/resources/sticker)
 
@@ -207,11 +207,11 @@
 - [x] Guild Role Create
 - [x] Guild Role Update
 - [x] Guild Role Delete
-- [ ] Guild Scheduled Event Create
-- [ ] Guild Scheduled Event Update
-- [ ] Guild Scheduled Event Delete
-- [ ] Guild Scheduled Event User Add
-- [ ] Guild Scheduled Event User Remove
+- [x] Guild Scheduled Event Create
+- [x] Guild Scheduled Event Update
+- [x] Guild Scheduled Event Delete
+- [x] Guild Scheduled Event User Add
+- [x] Guild Scheduled Event User Remove
 - [ ] Integration Create
 - [ ] Integration Update
 - [ ] Integration Delete
@@ -227,9 +227,9 @@
 - [x] Message Reaction Remove All
 - [x] Message Reaction Remove Emoji
 - [ ] Presence Update
-- [ ] Stage Instance Create
-- [ ] Stage Instance Delete
-- [ ] Stage Instance Update
+- [x] Stage Instance Create
+- [x] Stage Instance Delete
+- [x] Stage Instance Update
 - [x] Typing Start
 - [ ] User Update
 - [ ] Voice State Update
