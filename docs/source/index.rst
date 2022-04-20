@@ -12,8 +12,8 @@ Qord is a high level library for building Discord Bots.
    :maxdepth: 2
    :caption: Contents:
 
-   reference
-   events
+   api/index
+   getting_started
    releases
 
 Indices and tables

@@ -1,11 +1,19 @@
 .. currentmodule:: qord
 
-Events API Reference
-====================
+.. _api-events:
 
-Qord implements a rich interface for handling the events sent by Discord
-over gateway. These events are generally used to track the state of various
-entities.
+Events (``qord.events``)
+=========================
+
+Qord exposes a rich interface via :class:`Client` class that allows you to listen
+to specific gateway events and perform certain operations on those events. In addition
+to this, This interface also allows you to create and invoke custom events.
+
+
+.. _api-events-registering-event-listeners:
+
+Registering event listeners
+---------------------------
 
 The recommended way to register an event listener, is to use the :meth:`qord.Client.event`
 decorator to decorate the callback coroutine. However when subclassing :class:`Client`, consider
@@ -23,27 +31,40 @@ using the :func:`qord.event` decorator. Example::
             pass
 
 All event listeners must take a single ``event`` parameter that is an instance
-of :class:`qord.BaseEvent` and represents the context of event and contains data
-relevant to the invoked event.
+of one of :ref:`api-events-event-objects` representing the context of event and
+contains data relevant to the invoked event.
 
 The :class:`qord.GatewayEvent` enumeration details the event names that are sent over gateway.
 
 .. note::
     Toggling certain :class:`Intents` flags will also disable or enable related
-    events to that intent for your bot. It is recommended to keep at least the
-    :attr:`Intents.guilds` intent enabled for proper functioning of library.
+    gateway events to that intent for your bot. It is recommended to keep at
+    least the :attr:`Intents.guilds` intent enabled for proper functioning of library.
+
+.. autofunction:: qord.event
+
+
+.. _api-events-custom-events:
 
 Custom events
 -------------
 
 Custom events are useful for several use cases and library allows you to create
-them and easily invoke them::
+them and easily invoke them.
+
+Inherit a class from :class:`events.BaseEvent` with ``event_name`` parameter
+being the name of event. The instance of this class will be passed to the
+event listeners as the context of this event.
+
+.. warning::
+
+    Make sure **not** to use an already reserved event name from :class:`GatewayEvent`
+    or any other event names provided by the library.
+
+Example::
 
     from qord import events
     from dataclasses import dataclass
-
-    # For `event_name` parameter, make sure not to use an existing
-    # event name reserved by the library.
 
     @dataclass
     class ApplicationSubmit(events.BaseEvent, event_name="application_submit"):
@@ -51,28 +72,23 @@ them and easily invoke them::
         name: str
 
     @client.event("application_submit")
-    async def on_application_submit(event):
+    async def on_application_submit(event: ApplicationSubmit):
         print("Application submitted.")
         print(f"Name: {event.name}")
         print(f"ID: {event.id}")
 
-You can then invoke the event somewhere else::
+You can then invoke the event somewhere else using :meth:`Client.invoke_event` method
+and passing the event object::
 
     event = ApplicationSubmit(id=1, name="Jake")
     client.invoke_event(event)
 
-Decorators
-~~~~~~~~~~
+.. _api-events-base-classes:
 
-.. autofunction:: qord.event
+Base Classes
+------------
 
-
-Events Structures
------------------
-
-These classes define the structures of various events that are sent over
-Discord gateway.
-
+These are some base classes for the :ref:`api-events-event-objects`
 
 BaseEvent
 ~~~~~~~~~
@@ -85,6 +101,15 @@ BaseGatewayEvent
 
 .. autoclass:: qord.events.BaseGatewayEvent()
     :members:
+
+
+.. _api-events-event-objects:
+
+Event Objects
+-------------
+
+The classes documented below expose the data related to a specific gateway event. The
+instance of these classes are passed to the event listener coroutines.
 
 GatewayDispatch
 ~~~~~~~~~~~~~~~
