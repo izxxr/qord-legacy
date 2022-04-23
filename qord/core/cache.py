@@ -38,20 +38,25 @@ if typing.TYPE_CHECKING:
 
 
 __all__ = (
-    "Cache",
+    "ClientCache",
     "GuildCache",
 )
 
-class Cache(ABC):
-    """Base class for creating custom cache handlers.
+class ClientCache(ABC):
+    """Cache handler for a :class:`Client`.
 
-    This class is exposed to allow users to create implement custom cache handlers
-    and configure them in a :class:`Client` using the ``cache`` parameter.
+    This cache handler stores the global entities such as guilds, users, messages
+    and private channels etc.
+
+    In a :class:`Client`, This can be accessed through the :attr:`~Client.cache` attribute.
+
+    In order to implement custom cache handlers, This class must be inherited and all
+    abstract methods should be implemented. The instance of this class is passed in
+    the ``cache`` parameter of :class:`Client` initialization.
 
     Example::
 
-        class MyCache(qord.Cache):
-            # Implement abstract methods.
+        class MyCache(qord.ClientCache):
             ...
 
         cache = MyCache()
@@ -303,11 +308,25 @@ class Cache(ABC):
 
 
 class GuildCache(ABC):
-    """Abstract base class for creating custom cache handler for guilds.
+    """Cache handler for a :class:`Guild`.
 
-    You can use this class to implement custom cache handlers for caching guild
-    related entities and configure them in a :class:`Client` by overriding the
-    :meth:`.get_guild_cache` method.
+    This cache handler stores entites related to a specific guild such as channels,
+    members, roles etc.
+
+    In a :class:`Guild`, This can be accessed through the :attr:`~Guild.cache` attribute.
+
+    In order to implement custom cache handlers, This class must be inherited and all
+    abstract methods should be implemented. The instance of this class should be returned
+    by the :meth:`Client.get_guild_cache` method.
+
+    Example::
+
+        class MyGuildCache(qord.GuildCache):
+            ...
+
+        class MyClient(qord.Client):
+            def get_guild_cache(self, guild):
+                return MyGuildCache(guild=guild)
 
     Parameters
     ----------

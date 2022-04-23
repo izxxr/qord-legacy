@@ -5,18 +5,27 @@ Releases
 
 This page details the changelog containing every notable change of every releases.
 
-- The release with "Unreleased" in title indicates that the release is not yet released and is under development.
-- The releases with "Pre-release" in title or if the version ends with an identifier, It indicates that the release was a pre-release.
+.. tip::
+    Want to stay notified when a new release is published? Join our `Discord server <|discord-guild-invite|>`_
+    to stay in touch with all the changes in the library.
+
+.. note::
+    The releases with "Pre-release" in title or if the version ends with an identifier
+    indicates that the release was a pre-release.
 
 
 Latest
 ------
 
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Rename :class:`Cache` to :class:`ClientCache` and :class:`DefaultCache` to :class:`DefaultClientCache` for the sake of consistency with it's guild counterpart.
+
 Additions
 ~~~~~~~~~
 
 - Added :func:`qord.event` decorator for registering listeners in a subclassed :class:`Client`.
-
 
 v0.4.0
 ------
@@ -88,7 +97,7 @@ Improvements/Misc.
 ~~~~~~~~~~~~~~~~~~
 
 - :attr:`User.mention` string no longer includes ``!``, This is done in order to comply with the recent change done to Discord client. For more information, see `this issue <https://github.com/discord/discord-api-docs/issues/4734>`_
-- :attr:`DefaultCache.private_channels` cache is now bound to limit of 256 channels.
+- :attr:`DefaultClientCache.private_channels` cache is now bound to limit of 256 channels.
 - :class:`File` constructor no longer raises :exc:`RuntimeError` on failing to resolve file name and now fallbacks to ``untitled``
 
 Fixes

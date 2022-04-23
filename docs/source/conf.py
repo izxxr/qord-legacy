@@ -66,6 +66,7 @@ supports_comparison = "This class supports equality comparison between instances
 rst_prolog = f"""
 .. |embed-restricted-field| replace:: {embed_restricted_field}
 .. |supports-comparison| replace:: {supports_comparison}
+.. |discord-guild-invite| replace:: https://discord.gg/nE9cGtzayA
 """
 
 autodoc_type_aliases = {

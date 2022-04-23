@@ -22,7 +22,7 @@
 
 from __future__ import annotations
 
-from qord.core.cache import Cache, GuildCache
+from qord.core.cache import ClientCache, GuildCache
 from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.roles import Role
@@ -37,18 +37,18 @@ import weakref
 import typing
 
 __all__ = (
-    "DefaultCache",
+    "DefaultClientCache",
     "DefaultGuildCache",
 )
 
-class DefaultCache(Cache):
-    r"""In-memory cache implementation.
+class DefaultClientCache(ClientCache):
+    """Default in-memory cache implementation of :class:`ClientClient`.
 
     This is the default cache handler used by the :class:`Client` that
-    implements basic "in memory" caching. Obtainable through :attr:`Client.cache`.
+    stores the global entities in memory.
 
     .. tip::
-        If you want to implement custom cache handlers, See the :class:`Cache`
+        If you want to implement custom cache handlers, See the :class:`ClientCache`
         documentation.
     """
 
@@ -154,16 +154,16 @@ class DefaultCache(Cache):
 
 
 class DefaultGuildCache(GuildCache):
-    r"""In-memory cache implementation for guilds.
+    """Default in-memory cache implementation of :class:`GuildClient`.
 
-    This is the default cache handler used by the :class:`Client` that
-    implements basic "in memory" caching for entities related to :class:`Guild`. Obtainable
-    through :attr:`Guild.cache`.
+    This is the default cache handler used by the :class:`Guild` that
+    stores the guild specific entities in memory.
 
     .. tip::
         If you want to implement custom cache handlers, See the :class:`GuildCache`
         documentation.
     """
+
 
     def clear(self) -> None:
         self._roles: typing.Dict[int, Role] = {}
