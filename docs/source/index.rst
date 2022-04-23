@@ -32,11 +32,5 @@ Python library for Discord API based around asyncio.
 
    api/index
    getting_started
+   contributing
    releases
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

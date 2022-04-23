@@ -5,6 +5,10 @@ Releases
 
 This page details the changelog containing every notable change of every releases.
 
+.. tip::
+    Want to stay notified when a new release is published? Join our `Discord server <|discord-guild-invite|>`_
+    to stay in touch with all the changes in the library.
+
 .. note::
     The releases with "Pre-release" in title or if the version ends with an identifier
     indicates that the release was a pre-release.
