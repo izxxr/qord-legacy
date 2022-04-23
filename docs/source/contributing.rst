@@ -11,7 +11,7 @@ We'd appreciate any help by the users in making the library better. If you are f
 want to suggest a new feature or contribute directly to the codebase, This page is meant for
 you. We also want to appreciate your interest in contributing to the library.
 
-.. _contributing_discord_server:
+.. _contributing-discord-server:
 
 Discord Server
 --------------
@@ -27,7 +27,7 @@ server.
 `Join the Discord Server <|discord-guild-invite|>`_
 
 
-.. _contributing_suggesting_features_or_reporting_bugs:
+.. _contributing-suggesting-features-or-reporting-bugs:
 
 Suggesting features or Reporting Bugs
 -------------------------------------
@@ -35,7 +35,7 @@ Suggesting features or Reporting Bugs
 We love to hear your creative ideas about implementing a specific feature in the library. We
 also appreciate bug reports as it helps us keeping the library as stable as possible.
 
-In order to keep track of feature requests and bug reports, We use `GitHub issues tracker <https://github.com/nerdguyahmad/qord/issues>`.
+In order to keep track of feature requests and bug reports, We use `GitHub issues tracker <https://github.com/nerdguyahmad/qord/issues>`_.
 
 When creating issues, make sure to describe your issue in detail. When suggesting a new feature,
 you should give a brief detail of the feature and also provide some solid reasons of how the
@@ -46,7 +46,7 @@ Contributing to codebase
 ------------------------
 
 If you know how to fix a certain bug or implement a specific feature, consider `opening a pull
-request <https://github.com/nerdguyahmad/qord/pulls>` for your change.
+request <https://github.com/nerdguyahmad/qord/pulls>`_ for your change.
 
 When making code changes make sure to:
 
