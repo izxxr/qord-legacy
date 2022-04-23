@@ -30,8 +30,6 @@
 - [x] Get Pinned Messages
 - [x] Pin Message
 - [x] Unpin Message
-- [ ] ~~Group DM Add Recipient~~
-- [ ] ~~Group DM Remove Recipient~~
 - [ ] Start Thread with a Message
 - [ ] Start Thread without a Message
 - [ ] Join Thread
@@ -69,10 +67,8 @@
 - [x] Get Guild Member
 - [x] List Guild Members
 - [x] Search Guild Members
-- [ ] ~~Add Guild Member~~
 - [x] Modify Guild Member
 - [x] Modify Current Member
-- [ ] ~~Modify Current User Nick~~
 - [x] Add Guild Member Role
 - [x] Remove Guild Member Role
 - [x] Remove Guild Member
@@ -151,8 +147,6 @@
 - [ ] Get Current User Guilds
 - [x] Leave Guild
 - [x] Create DM
-- [ ] ~~Create Group DM~~
-- [ ] ~~Get User Connections~~
 
 ## [Voice](https://discord.com/developers/docs/resources/voice)
 
@@ -170,8 +164,6 @@
 - [ ] Delete Webhook
 - [ ] Delete Webhook with Token
 - [ ] Execute Webhook
-- [ ] ~~Execute Slack-Compatible Webhook~~
-- [ ] ~~Execute Github-Compatible Webhook~~
 - [ ] Get Webhook Message
 - [ ] Edit Webhook Message
 - [ ] Delete Webhook Message
