@@ -24,11 +24,10 @@ The complete lifetime of 0.x version is considered the development phase. More i
 ## Installation
 Qord is installed using Python's traditional package manager, pip.
 ```bash
-pip install -U qord
+python -m pip install -U qord
 ```
-> ℹ️ On Windows and Mac, you might need to prefix the above command with `python -m` for it work.
 
-Qord requires **Python 3.8 or higher.** The dependencies are handled by pip automatically, See complete list of dependencies in [here](https://github.com/nerdguyahmad/qord/blob/main/requirements.txt).
+Qord requires **Python 3.8 or higher.** The dependencies are handled by pip automatically, See complete list of dependencies [here](https://github.com/nerdguyahmad/qord/blob/main/requirements.txt).
 
 ## Usage
 To whet your appetite, Let's get a quickstart with an example of a simple "Ping-Pong" bot.
