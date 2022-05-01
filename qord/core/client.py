@@ -45,6 +45,9 @@ if typing.TYPE_CHECKING:
     from qord.models.channels import GuildChannel, PrivateChannel
     from qord.core.cache import ClientCache, GuildCache
 
+    BE = typing.TypeVar("BE", bound="BaseEvent")
+    EventListener = typing.Callable[[BE], typing.Any]
+
 
 __all__ = (
     "Client",
@@ -113,7 +116,7 @@ class Client:
         :class:`DefaultClientCache`.
     """
     if typing.TYPE_CHECKING:
-        _event_listeners: typing.Dict[str, typing.List[typing.Callable[..., typing.Any]]]
+        _event_listeners: typing.Dict[str, typing.List[EventListener]]
 
     def __init__(self,
         *,
@@ -287,7 +290,7 @@ class Client:
         """
         return DefaultGuildCache(guild=guild)
 
-    def get_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
+    def get_event_listeners(self, event_name: str, /) -> typing.List[EventListener]:
         """Gets the list of all events listener for the provided event.
 
         Parameters
@@ -301,7 +304,7 @@ class Client:
         """
         return self._event_listeners.get(event_name, [])
 
-    def clear_event_listeners(self, event_name: str, /) -> typing.List[typing.Callable[..., typing.Any]]:
+    def clear_event_listeners(self, event_name: str, /) -> typing.List[EventListener]:
         """Clears all events listener for the provided event.
 
         Parameters
@@ -315,7 +318,7 @@ class Client:
         """
         return self._event_listeners.pop(event_name, [])
 
-    def walk_event_listeners(self) -> typing.List[typing.Tuple[str, typing.List[typing.Callable[..., typing.Any]]]]:
+    def walk_event_listeners(self) -> typing.List[typing.Tuple[str, typing.List[EventListener]]]:
         """Returns a list of tuples with first element being event name and second
         element being the list of event listeners for that event.
 
@@ -326,7 +329,7 @@ class Client:
         """
         return list(self._event_listeners.items())
 
-    def register_event_listener(self, event_name: str, callback: typing.Callable[..., typing.Any], /) -> None:
+    def register_event_listener(self, event_name: str, callback: EventListener, /) -> None:
         """Registers an event listener for provided event.
 
         Parameters
@@ -377,7 +380,7 @@ class Client:
         for listener in listeners:
             loop.create_task(self._wrapped_callable(listener, event))
 
-    def event(self, event_name: str):
+    def event(self, event_name: str) -> typing.Callable[[EventListener], EventListener]:
         """A decorator that registers an event listener for provided event.
 
         The decorated function must be a coroutine. Example::
@@ -392,7 +395,7 @@ class Client:
             The name of event to register listener for. See :class:`GatewayEvent` for
             names of various gateway events.
         """
-        def wrap(func):
+        def wrap(func: EventListener):
             self.register_event_listener(event_name, func)
             return func
 
