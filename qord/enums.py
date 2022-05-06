@@ -144,6 +144,7 @@ class GatewayEvent:
     STAGE_INSTANCE_DELETE = "stage_instance_delete"
     """Called whenever a stage instance is deleted. See :class:`events.StageInstanceDelete` for more info."""
 
+
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.
 
@@ -159,6 +160,7 @@ class PremiumType:
 
     NITRO = 2
     """User has nitro subscription."""
+
 
 class DefaultAvatar:
     """An enumeration that details values for a user's default avatar.
@@ -197,6 +199,7 @@ class DefaultAvatar:
     As such, If Discord adds a new avatar colour, This index will increment.
     """
 
+
 class ImageExtension:
     """An enumeration that details values for a various image extensions supported
     on the Discord CDN URLs.
@@ -216,6 +219,7 @@ class ImageExtension:
 
     GIF = "gif"
     """GIF extension. This is only supported for animated image resources."""
+
 
 class VerificationLevel:
     """An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.verification_level`
@@ -238,6 +242,7 @@ class VerificationLevel:
     VERY_HIGH = 4
     """Users must also have a verified phone number bound to their account."""
 
+
 class NotificationLevel:
     """An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.notification_level`
 
@@ -250,6 +255,7 @@ class NotificationLevel:
 
     ONLY_MENTIONS = 1
     """Members will receive notifications for only messages that mentions them."""
+
 
 class ExplicitContentFilter:
     """An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.explicit_content_filter`
@@ -266,6 +272,7 @@ class ExplicitContentFilter:
 
     ALL_MEMBERS = 2
     """Scanning will be done for all messages."""
+
 
 class NSFWLevel:
     """An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.nsfw_level`
@@ -286,6 +293,7 @@ class NSFWLevel:
     AGE_RESTRICTED = 3
     """Guild is marked as age restricted."""
 
+
 class PremiumTier:
     """An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.premium_tier`
 
@@ -304,6 +312,7 @@ class PremiumTier:
     TIER_3 = 3
     """Guild has unlocked boost level 3 perks."""
 
+
 class MFALevel:
     """An enumeration that details values for a :class:`Guild`'s :attr:`~Guild.mfa_level`
 
@@ -316,6 +325,7 @@ class MFALevel:
 
     ELEVATED = 1
     """2FA is required for performing moderative actions.."""
+
 
 class ChannelType:
     """An enumeration that details the types of channels."""
@@ -353,6 +363,7 @@ class ChannelType:
     STAGE = 13
     """The channel is a guild's stage channel."""
 
+
 class VideoQualityMode:
     """An enumeration that details the video quality mode of a :class:`VoiceChannel`."""
 
@@ -361,6 +372,7 @@ class VideoQualityMode:
 
     FULL = 2
     """720p quality."""
+
 
 class MessageType:
     """An enumeration that details the type of a :class:`Message`."""
@@ -463,6 +475,7 @@ class TimestampStyle:
     RELATIVE_TIME = "R"
     """Relative time e.g 2 months ago"""
 
+
 class ChannelPermissionType:
     """An enumeration that details type of target in a :class:`ChannelPermission` object."""
 
@@ -472,11 +485,13 @@ class ChannelPermissionType:
     MEMBER = 1
     """Overwrite belonging to a guild member."""
 
+
 class EventPrivacyLevel:
     """An enumeration that details privacy level of a :class:`ScheduledEvent`."""
 
     GUILD_ONLY = 2
     """The event is available guild members only."""
+
 
 class EventEntityType:
     """An enumeration that details entity types of a :class:`ScheduledEvent`."""
@@ -489,6 +504,7 @@ class EventEntityType:
 
     EXTERNAL = 3
     """The event is happening externally."""
+
 
 class EventStatus:
     """An enumeration that details status of a :class:`ScheduledEvent`"""
@@ -504,6 +520,7 @@ class EventStatus:
 
     CANCELED = 3
     """The event was cancelled."""
+
 
 class StagePrivacyLevel:
     """An enumeration that details privacy level of a :class:`StageInstance`."""
