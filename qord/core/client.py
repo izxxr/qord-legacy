@@ -117,6 +117,7 @@ class Client:
     """
     if typing.TYPE_CHECKING:
         _event_listeners: typing.Dict[str, typing.List[EventListener]]
+        _event_futures: typing.Dict[str, typing.List[typing.Tuple[typing.Callable[[BaseEvent], bool], asyncio.Future[BaseEvent]]]]
 
     def __init__(self,
         *,
@@ -148,6 +149,7 @@ class Client:
             debug_events=debug_events,
         )
         self._event_listeners = {}
+        self._event_futures = {}
         self._setup = False
         self._closed = True
         self._shards_fut = None
@@ -353,6 +355,86 @@ class Client:
         except Exception:
             traceback.print_exc()
 
+    async def wait_for_event(
+        self,
+        event_name: str,
+        *,
+        check: typing.Optional[typing.Callable[[BE], bool]] = None,
+        timeout: typing.Optional[float] = None,
+    ) -> BE:
+        """Waits for an event to invoke.
+
+        If no ``check`` is passed, the first event that invokes after
+        calling this method is returned otherwise the ``check`` function
+        is called every time the event happens until the check isn't met.
+
+        This method is useful when awaiting user input such as a message
+        or reaction.
+
+        Example::
+
+            def check(event):
+                return event.message.content.isdigit()
+
+            await channel.send("Say a number within 60 seconds!")
+            try:
+                event = await client.wait_for_event(
+                    qord.GatewayEvent.MESSAGE_CREATE,
+                    check=check,
+                    timeout=60.0
+                )
+            except asyncio.TimeoutError:
+                await channel.send("You didn't respond in time...")
+            else:
+                await channel.send(f"You said a number: {event.message.content}")
+
+        Parameters
+        ----------
+        event_name: :class:`builtins.str`
+            The name of event to wait for.
+        check: Callable[[:class:`BaseEvent`], :class:`builtins.bool`]
+            A function to check against before returning the result.
+            This function takes a single :class:`BaseEvent` instance.
+        timeout: Optional[:class:`builtins.float`]
+            The number of seconds after which :class:`asyncio.TimeoutError`
+            is raised if the event has not occured. ``None`` (default) indicates
+            no timeout.
+
+        Returns
+        -------
+        :class:`BaseEvent`
+            The event that met the check.
+
+        Raises
+        ------
+        asyncio.TimeoutError
+            Timed out waiting for the event to invoke.
+        """
+
+        if check is None:
+            check = lambda e: True
+
+        try:
+            futures = self._event_futures[event_name]
+        except KeyError:
+            self._event_futures[event_name] = futures = []
+
+        future = asyncio.Future()
+        tup = (check, future)
+        futures.append(tup)
+
+        try:
+            result = await asyncio.wait_for(future, timeout=timeout)
+        except asyncio.TimeoutError:
+            # Make sure to properly remove the stored future
+            try:
+                futures.remove(tup)
+            except ValueError:
+                pass
+            raise
+        else:
+            return result
+
     def invoke_event(self, event: BaseEvent, /) -> None:
         """Invokes an event by calling all of it's listeners.
 
@@ -369,16 +451,23 @@ class Client:
             event_name = event.__event_name__
         except AttributeError:
             raise TypeError("Parameter 'event' must be an instance of events.BaseEvent") from None
-        else:
-            listeners = self._event_listeners.get(event_name)
-
-        if not listeners:
-            return
 
         loop = asyncio.get_running_loop()
 
+        listeners = self._event_listeners.get(event_name, [])
         for listener in listeners:
             loop.create_task(self._wrapped_callable(listener, event))
+
+        futures = self._event_futures.get(event_name, [])
+        for tup in futures:
+            check, future = tup
+            if check(event):
+                if not future.done():
+                    future.set_result(event)
+                try:
+                    futures.remove(tup)
+                except ValueError:
+                    pass
 
     def event(self, event_name: str, /) -> typing.Callable[[EventListener], EventListener]:
         """A decorator that registers an event listener for provided event.
