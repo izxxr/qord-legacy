@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import typing
 
 __all__ = (
@@ -32,6 +33,8 @@ __all__ = (
 )
 
 REST_BASE_URL = "https://discord.com/api/v10"
+_LOGGER = logging.getLogger(__name__)
+
 
 class Route:
     __slots__ = ("method", "path", "requires_auth", "params")
@@ -55,10 +58,10 @@ class Route:
 
     @property
     def ratelimit_path(self) -> str:
-        # This is used in ratelimit handling for mapping with ratelimit bucket hashes
-        # Ratelimits may be different across various HTTP methods of same
-        # endpoint so we would also include the HTTP method in this string too.
-        return f"{self.method}-{self.path}"
+        params = self.params
+        guild_id = params.get("guild_id")
+        channel_id = params.get("channel_id")
+        return f"{self.method}-{self.path}-{guild_id}:{channel_id}"
 
     def __repr__(self) -> str:
         return f"{self.method} {self.url}"
@@ -133,6 +136,7 @@ class RatelimitHandler:
         try:
             return self.locks[key]
         except KeyError:
+            _LOGGER.debug(f"Creating lock for {key}")
             self.locks[key] = lock = asyncio.Lock()
             return lock
 
@@ -147,6 +151,7 @@ class RatelimitHandler:
         except KeyError:
             pass
         else:
+            _LOGGER.debug(f"Removing fallback lock for {path} and storing with {bucket}")
             self.locks[bucket] = lock
 
         self.buckets[path] = bucket
