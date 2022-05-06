@@ -25,13 +25,12 @@ from __future__ import annotations
 from qord.flags.permissions import Permissions
 import typing
 
-if typing.TYPE_CHECKING:
-    _OverwriteValue = typing.Optional[bool]
-
-
 __all__ = (
     "PermissionOverwrite",
 )
+
+
+_OverwriteValue = typing.Optional[bool]
 
 
 class PermissionOverwrite:

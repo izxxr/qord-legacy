@@ -82,19 +82,14 @@ class File:
         if isinstance(content, str):
             with open(content, "rb") as f:
                 self.content = f.read()
-
             if name is None:
                 name = os.path.basename(content)
-
         elif isinstance(content, bytes):
             self.content = content
-
         elif isinstance(content, BufferedReader):
             if not content.readable():
                 raise RuntimeError("content is not readable.")
-
             self.content = content.read()
-
             if name is None:
                 name = content.name
 
@@ -106,7 +101,7 @@ class File:
         self.spoiler = spoiler or name.startswith("SPOILER_")
 
     @property
-    def proper_name(self) -> str:
+    def display_name(self) -> str:
         """Returns the proper name of file with required prefixes attached if any."""
 
         if self.spoiler and not self.name.startswith("SPOILER_"):
