@@ -401,7 +401,8 @@ class Message(BaseModel, Comparable):
                 "webhook_id", "application_id", "created_at", "guild", "content", "tts",
                 "mention_everyone", "mentioned_role_ids", "mentioned_channels", "nonce",
                 "pinned", "edited_at", "author", "mentions", "mentioned_roles", "attachments",
-                "embeds", "flags", "message_reference", "referenced_message", "reactions")
+                "embeds", "flags", "message_reference", "referenced_message", "reactions",
+                "_referenced_message_deleted",)
 
     def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
         self.channel = channel
@@ -514,22 +515,20 @@ class Message(BaseModel, Comparable):
 
     def _handle_mention_roles(self, data) -> None:
         guild = self.guild
-
-        if guild is None:
-            return
-
         mentioned_roles = []
 
-        for role_id in self.mentioned_role_ids:
-            role = guild._cache.get_role(role_id) # type: ignore
-            if role is not None:
-                mentioned_roles.append(role)
+        if guild is not None:
+            for role_id in self.mentioned_role_ids:
+                role = guild._cache.get_role(role_id) # type: ignore
+                if role is not None:
+                    mentioned_roles.append(role)
 
         self.mentioned_roles = mentioned_roles
 
     def _handle_referenced_message(self, data) -> None:
+        self.referenced_message = None
+
         if not self.type in (MessageType.THREAD_STARTER_MESSAGE, MessageType.REPLY):
-            self.referenced_message = None
             return
 
         try:
@@ -537,12 +536,10 @@ class Message(BaseModel, Comparable):
         except KeyError:
             # If the key is absent on message reply, it indicates that the
             # message was not attempted to be fetched by API.
-            self.referenced_message = None
             return
         else:
             if referenced_message_data is None:
                 # Replied message deleted.
-                self.referenced_message = None
                 return
 
         if self.type is MessageType.REPLY:
@@ -559,7 +556,6 @@ class Message(BaseModel, Comparable):
                 channel = guild._cache.get_channel(channel_id)
 
         if channel is None:
-            self.referenced_message = None
             return
 
         self.referenced_message = self.__class__(referenced_message_data, channel=channel) # type: ignore
