@@ -353,7 +353,7 @@ class Client:
         except Exception:
             traceback.print_exc()
 
-    def invoke_event(self, event: BaseEvent) -> None:
+    def invoke_event(self, event: BaseEvent, /) -> None:
         """Invokes an event by calling all of it's listeners.
 
         This method is exposed to documentation to allow users
@@ -380,7 +380,7 @@ class Client:
         for listener in listeners:
             loop.create_task(self._wrapped_callable(listener, event))
 
-    def event(self, event_name: str) -> typing.Callable[[EventListener], EventListener]:
+    def event(self, event_name: str, /) -> typing.Callable[[EventListener], EventListener]:
         """A decorator that registers an event listener for provided event.
 
         The decorated function must be a coroutine. Example::
@@ -528,7 +528,7 @@ class Client:
         exc = await asyncio.wait_for(future, timeout=None)
         raise exc
 
-    async def close(self, clear_setup: bool = True) -> None:
+    async def close(self, *, clear_setup: bool = True) -> None:
         """Gracefully closes the client.
 
         The entire closing process includes:
@@ -564,7 +564,7 @@ class Client:
 
         self._closed = True
 
-    def start(self, token: str) -> None:
+    def start(self, token: str, /) -> None:
         """Setups the client with provided token and then starts it.
 
         Unlike :meth:`.launch`, This method is not a coroutine and aims to
