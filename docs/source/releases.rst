@@ -27,6 +27,12 @@ Additions
 
 - Added :func:`qord.event` decorator for registering listeners in a subclassed :class:`Client`.
 
+Bug fixes
+~~~~~~~~~
+
+- Fix HTTP ratelimits state being incorrectly stored. Route's major parameters are respected now
+  while storing ratelimit data internally.
+
 v0.4.0
 ------
 
