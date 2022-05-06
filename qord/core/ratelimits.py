@@ -23,7 +23,6 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 import typing
 
 __all__ = (
@@ -33,7 +32,6 @@ __all__ = (
 )
 
 REST_BASE_URL = "https://discord.com/api/v10"
-_LOGGER = logging.getLogger(__name__)
 
 
 class Route:
@@ -73,32 +71,6 @@ class RatelimitHandler:
         self.global_ratelimit_cleared = asyncio.Event()
         self.global_ratelimit_cleared.set()
 
-        # "Bucket hash" is sent by Discord in X-Ratelimit-Bucket header.
-        # It is a unique string identifier for ratelimit that is being enountered.
-        # This header is generally different across routes but also can be same in
-        # routes (mostly similar purposed routes) that share same ratelimits.
-        #
-        # For example at the time of writing this, Routes like "Send Message" and
-        # "Add Reaction" share the same ratelimit bucket.
-        #
-        # We use this header for storing the asyncio Locks used for blocking the
-        # requests to exhausted ratelimit buckets.
-        #
-        # - The `locks` mapping contains the bucket hash to asyncio.Lock instance
-        #   relevant to that bucket's hash. It may has route's path as key when the
-        #   bucket hash is unknown as a workaround or fallback.
-        #
-        # - `buckets` mapping on the other hand includes the bucket hashes
-        #   for different routes. The key of this mapping is route's path without
-        #   major parameters values included and the HTTP method of the route.
-        #
-        # - When `get_lock()` method is called, it looks up the bucket's in buckets
-        #   mapping. If the bucket hash exists, it creates (or gets existing) and returns
-        #   the asyncio.Lock instance for that bucket. If the bucket hash is
-        #   not found in look up, It indicates that ratelimit state for that route is not
-        #   yet stored in memory and is thus, unknown. In which case, The route's path
-        #   is used as a "fallback" until a bucket hash is stored.
-
         # { bucket_hash | ratelimit_path : asyncio.Lock }
         self.locks: typing.Dict[str, asyncio.Lock] = {}
 
@@ -136,7 +108,6 @@ class RatelimitHandler:
         try:
             return self.locks[key]
         except KeyError:
-            _LOGGER.debug(f"Creating lock for {key}")
             self.locks[key] = lock = asyncio.Lock()
             return lock
 
@@ -151,7 +122,6 @@ class RatelimitHandler:
         except KeyError:
             pass
         else:
-            _LOGGER.debug(f"Removing fallback lock for {path} and storing with {bucket}")
             self.locks[bucket] = lock
 
         self.buckets[path] = bucket
