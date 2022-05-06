@@ -32,6 +32,7 @@ Bug fixes
 
 - Fix HTTP ratelimits state being incorrectly stored. Route's major parameters are respected now
   while storing ratelimit data internally.
+- Fix :attr:`Message.referenced_message` being unbound when message type does not meet the criteria for it.
 
 v0.4.0
 ------
