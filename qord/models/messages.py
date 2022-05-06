@@ -529,6 +529,7 @@ class Message(BaseModel, Comparable):
 
     def _handle_referenced_message(self, data) -> None:
         if not self.type in (MessageType.THREAD_STARTER_MESSAGE, MessageType.REPLY):
+            self.referenced_message = None
             return
 
         try:
