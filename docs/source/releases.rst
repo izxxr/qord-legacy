@@ -25,6 +25,7 @@ Breaking Changes
 Additions
 ~~~~~~~~~
 
+- Added support for applications.
 - Added :func:`qord.event` decorator for registering listeners in a subclassed :class:`Client`.
 - Added :meth:`Client.wait_for_event` method to allow waiting for event invocations.
 
