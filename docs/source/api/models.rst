@@ -27,6 +27,36 @@ BaseMessageChannel
 .. autoclass:: BaseMessageChannel()
     :members:
 
+Applications
+------------
+
+Application
+~~~~~~~~~~~
+
+.. autoclass:: Application()
+    :members:
+    :inherited-members:
+
+ApplicationInstallParams
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ApplicationInstallParams()
+    :members:
+    :inherited-members:
+
+Team
+~~~~
+
+.. autoclass:: Team()
+    :members:
+    :inherited-members:
+
+TeamMember
+~~~~~~~~~~
+
+.. autoclass:: TeamMember()
+    :members:
+    :inherited-members:
 
 Users
 -----

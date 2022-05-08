@@ -122,3 +122,9 @@ MessageFlags
 
 .. autoclass:: MessageFlags()
     :members:
+
+ApplicationFlags
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: ApplicationFlags()
+    :members:

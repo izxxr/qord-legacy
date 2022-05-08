@@ -123,3 +123,9 @@ StagePrivacyLevel
 .. autoclass:: StagePrivacyLevel()
     :members:
 
+TeamMembershipState
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: TeamMembershipState()
+    :members:
+
