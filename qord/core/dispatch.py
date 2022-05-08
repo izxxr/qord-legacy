@@ -124,9 +124,13 @@ class DispatchHandler:
 
     @event_dispatch_handler("READY")
     async def on_ready(self, shard: Shard, data: typing.Any) -> None:
-        user = ClientUser(data["user"], client=self.client)
+        client = self.client
+        user = ClientUser(data["user"], client=client)
+        application = data["application"]
+        client._user = user
+        client._application_id = int(application["id"])
+        client._application_flags = application["flags"]
         self.cache.add_user(user)
-        self.client._user = user
 
         shard._log(logging.INFO, "Lazy loading cache for ~%s guilds in background." % len(data["guilds"]))
 

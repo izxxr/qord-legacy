@@ -527,3 +527,13 @@ class StagePrivacyLevel:
 
     GUILD_ONLY = 2
     """The stage instance is available guild members only."""
+
+
+class TeamMembershipState:
+    """An enumeration that details the membership state of a :class:`TeamMember`"""
+
+    INVITED = 1
+    """The member is invited and not yet part of team."""
+
+    ACCEPTED = 2
+    """The member has accepted the invite and is part of team."""

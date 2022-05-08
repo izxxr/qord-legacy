@@ -764,3 +764,8 @@ class RestClient:
         route = Route("DELETE", "/channels/{channel_id}/messages/{message_id}/reactions/{emoji}",
                       channel_id=channel_id, message_id=message_id, emoji=emoji)
         await self.request(route)
+
+    async def get_current_application(self):
+        route = Route("GET", "/oauth2/applications/@me")
+        data = await self.request(route)
+        return data

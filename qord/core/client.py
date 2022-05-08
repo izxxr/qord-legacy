@@ -27,9 +27,11 @@ from qord.core.rest import RestClient
 from qord.core.shard import Shard
 from qord.core.cache_impl import DefaultClientCache, DefaultGuildCache
 from qord.flags.intents import Intents
+from qord.flags.applications import ApplicationFlags
 from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.channels import _is_guild_channel, _guild_channel_factory, _private_channel_factory
+from qord.models.applications import Application
 from qord.exceptions import ClientSetupRequired
 from qord.events.base import BaseEvent
 
@@ -166,6 +168,8 @@ class Client:
 
         # Following are set after initial connection
         self._user: typing.Optional[ClientUser] = None
+        self._application_id: typing.Optional[int] = None
+        self._application_flags: typing.Optional[int] = None
 
         # Using inspect.getmembers() on the client instance ends
         # up calling the properties and possibly any other dynamic
@@ -254,6 +258,35 @@ class Client:
         typing.Optional[:class:`ClientUser`]
         """
         return self._user
+
+    @property
+    def application_id(self) -> typing.Optional[int]:
+        """The application ID of connected client.
+
+        This is only available after initial connection has been
+        made with the Discord gateway.
+
+        Returns
+        -------
+        typing.Optional[:class:`int`]
+        """
+        return self._application_id
+
+    @property
+    def application_flags(self) -> typing.Optional[ApplicationFlags]:
+        """The application flags of connected client.
+
+        This is only available after initial connection has been
+        made with the Discord gateway.
+
+        Returns
+        -------
+        typing.Optional[:class:`ApplicationFlags`]
+        """
+        flags = self._application_flags
+        if flags is None:
+            return None
+        return ApplicationFlags(flags)
 
     @property
     def cache(self) -> ClientCache:
@@ -723,6 +756,26 @@ class Client:
         return self._shards.get(shard_id)
 
     # API calls
+
+    async def fetch_current_application(self) -> Application:
+        """Fetches the current bot's application.
+
+        This requires the client to be setup with a proper bot
+        token via :meth:`.setup`.
+
+        .. tip::
+
+            If you just need the application ID and flags, see
+            the :attr:`.application_id` and :attr:`.application_flags`
+            properties.
+
+        Returns
+        -------
+        :class:`Application`
+            The application for current bot.
+        """
+        data = await self._rest.get_current_application()
+        return Application(data, client=self)
 
     async def fetch_user(self, user_id: int, /) -> User:
         """Fetches a :class:`User` by it's ID via REST API.

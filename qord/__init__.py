@@ -21,6 +21,7 @@ from qord.flags.permissions import *
 from qord.flags.users import *
 from qord.flags.system_channel import *
 from qord.flags.messages import *
+from qord.flags.applications import *
 from qord.models.base import *
 from qord.models.channels import *
 from qord.models.users import *
@@ -29,6 +30,7 @@ from qord.models.guild_members import *
 from qord.models.roles import *
 from qord.models.messages import *
 from qord.models.emojis import *
+from qord.models.applications import *
 from qord.models.scheduled_events import *
 from qord.models.stage_instances import *
 from qord.dataclasses.allowed_mentions import *
