@@ -101,7 +101,7 @@ class File:
         self.spoiler = spoiler or name.startswith("SPOILER_")
 
     @property
-    def display_name(self) -> str:
+    def proper_name(self) -> str:
         """Returns the proper name of file with required prefixes attached if any."""
 
         if self.spoiler and not self.name.startswith("SPOILER_"):
