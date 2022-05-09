@@ -40,6 +40,8 @@ if typing.TYPE_CHECKING:
 __all__ = (
     "ApplicationInstallParams",
     "Application",
+    "Team",
+    "TeamMember",
 )
 
 
@@ -138,6 +140,7 @@ class Team(BaseModel, CreationTime, Comparable):
         icon: typing.Optional[str]
 
     __slots__ = (
+        "_client",
         "id",
         "name",
         "owner_id",
@@ -275,6 +278,7 @@ class Application(BaseModel, CreationTime, Comparable):
         name: str
         flags: ApplicationFlags
         owner: typing.Optional[User]
+        team: typing.Optional[Team]
         icon: typing.Optional[str]
         description: typing.Optional[str]
         terms_of_service_url: typing.Optional[str]
@@ -311,6 +315,7 @@ class Application(BaseModel, CreationTime, Comparable):
         "flags",
         "owner",
         "install_params",
+        "team",
     )
 
     def __init__(self, data: typing.Dict[str, typing.Any], client: Client) -> None:
@@ -338,10 +343,10 @@ class Application(BaseModel, CreationTime, Comparable):
 
         owner = data.get("owner")
         install_params = data.get("install_params")
+        team = data.get("team")
         self.owner = User(owner, client=self._client) if owner is not None else None
         self.install_params = ApplicationInstallParams(install_params, client=self._client) if install_params is not None else None
-
-        # TODO: Add support for 'team' attribute
+        self.team = Team(team, client=self._client) if team is not None else None
 
     def __repr__(self) -> str:
         return "Application(id=%r, name=%r, icon=%r)" % (self.id, self.name, self.icon)
