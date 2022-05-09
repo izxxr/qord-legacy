@@ -112,6 +112,9 @@ class TeamMember(BaseModel):
         self.membership_state = data["membership_state"]
         self.user = User(data["user"], client=self._client)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(membership_state={self.membership_state}, user={self.user}, team={self.team})"
+
 
 class Team(BaseModel, CreationTime, Comparable):
     """Represents a team.
@@ -349,7 +352,7 @@ class Application(BaseModel, CreationTime, Comparable):
         self.team = Team(team, client=self._client) if team is not None else None
 
     def __repr__(self) -> str:
-        return "Application(id=%r, name=%r, icon=%r)" % (self.id, self.name, self.icon)
+        return f"{self.__class__.__name__}(id={self.id}, name={self.name}, icon={self.icon})"
 
     @property
     def guild(self) -> typing.Optional[Guild]:
