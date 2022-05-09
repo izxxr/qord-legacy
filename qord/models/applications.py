@@ -274,6 +274,8 @@ class Application(BaseModel, CreationTime, Comparable):
 
         Other attributes may have the value of ``None`` regardless of whether the user
         has that feature or not.
+    team: Optional[:class:`Team`]
+        The team that owns the application, if any.
     """
 
     if typing.TYPE_CHECKING:
