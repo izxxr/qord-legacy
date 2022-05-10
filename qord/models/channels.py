@@ -587,6 +587,7 @@ class NewsChannel(TextChannel):
 
     __slots__ = ()
 
+
 class CategoryChannel(GuildChannel):
     """Represents a category channel that holds other guild channels.
 
@@ -672,8 +673,6 @@ class VoiceChannel(GuildChannel, BaseMessageChannel):
 
     Attributes
     ----------
-    nsfw: :class:`builtins.bool`
-        Whether the channel is marked as NSFW.
     bitrate: :class:`builtins.int`
         The bitrate of this channel, in bits.
     user_limit: :class:`builtins.int`
@@ -686,12 +685,20 @@ class VoiceChannel(GuildChannel, BaseMessageChannel):
     video_quality_mode: :class:`builtins.int`
         The video quality mode of this channel. See :class:`VideoQualityMode` for
         more information.
+    nsfw: :class:`builtins.bool`
+        Whether the channel is marked as NSFW.
+    last_message_id: Optional[:class:`builtins.int`]
+        The ID of last message sent in this channel. Due to Discord limitation, This
+        may not point to the actual last message of the channel.
+    slowmode_delay: :class:`builtins.int`
+        The slowmode per user (in seconds) that is set on this channel.
     """
     if typing.TYPE_CHECKING:
         nsfw: bool
         bitrate: int
         user_limit: int
         video_quality_mode: int
+        last_message_id: typing.Optional[int]
         rtc_region: typing.Optional[str]
 
     __slots__ = (
@@ -700,16 +707,20 @@ class VoiceChannel(GuildChannel, BaseMessageChannel):
         "user_limit",
         "video_quality_mode",
         "nsfw",
+        "last_message_id",
+        "slowmode_delay",
     )
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         super()._update_with_data(data)
 
         self.nsfw = data.get("nsfw", False)
+        self.last_message_id = get_optional_snowflake(data, "last_message_id")
         self.bitrate = data.get("bitrate") # type: ignore
         self.rtc_region = data.get("rtc_region")
         self.user_limit = data.get("user_limit", 0)
         self.video_quality_mode = data.get("video_quality_mode", 1)
+        self.slowmode_delay = data.get("rate_limit_per_user", 0)
 
     async def _get_message_channel(self) -> typing.Any:
         return self
@@ -721,6 +732,7 @@ class VoiceChannel(GuildChannel, BaseMessageChannel):
         position: int = UNDEFINED,
         bitrate: int = UNDEFINED,
         nsfw: bool = UNDEFINED,
+        slowmode_delay: typing.Optional[int] = UNDEFINED,
         parent: typing.Optional[CategoryChannel] = UNDEFINED,
         rtc_region: typing.Optional[str] = UNDEFINED,
         user_limit: typing.Optional[int] = UNDEFINED,
@@ -747,6 +759,9 @@ class VoiceChannel(GuildChannel, BaseMessageChannel):
             remove current category of this channel.
         nsfw: :class:`builtins.bool`
             Whether the channel should be marked as NSFW.
+        slowmode_delay: :class:`builtins.int`
+            The slowmode delay of this channel (in seconds). ``None`` can be used to
+            disable it. Cannot be greater then 21600 seconds.
         bitrate: :class:`builtins.int`
             The bitrate of this channel in bits. This value can be in range of 8000
             and 96000 (128000 for VIP servers).
@@ -786,6 +801,12 @@ class VoiceChannel(GuildChannel, BaseMessageChannel):
 
         if nsfw is not UNDEFINED:
             json["nsfw"] = nsfw
+
+        if slowmode_delay is not UNDEFINED:
+            if slowmode_delay is None:
+                slowmode_delay = 0
+
+            json["rate_limit_per_user"] = slowmode_delay
 
         if rtc_region is not UNDEFINED:
             json["rtc_region"] = rtc_region
@@ -859,6 +880,7 @@ class StageChannel(GuildChannel):
         for stage_instance in self.guild._cache.stage_instances():
             if stage_instance.channel_id == self.id:
                 return stage_instance
+
     async def edit(
         self,
         *,
