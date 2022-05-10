@@ -31,7 +31,8 @@ from dataclasses import dataclass
 if typing.TYPE_CHECKING:
     from qord.core.shard import Shard
     from qord.models.guilds import Guild
-    from qord.models.messages import Message, MessageableT
+    from qord.models.messages import Message
+    from qord.internal.types import MessageChannelT
 
 
 __all__ = (
@@ -115,7 +116,7 @@ class MessageBulkDelete(BaseEvent, event_name=GatewayEvent.MESSAGE_BULK_DELETE):
     they have been deleted.
     """
 
-    channel: MessageableT
+    channel: MessageChannelT
     """The channel in which messages were bulk deleted."""
 
     guild: typing.Optional[Guild]

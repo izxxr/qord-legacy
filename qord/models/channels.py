@@ -183,7 +183,6 @@ class GuildChannel(BaseModel, Comparable, CreationTime):
         type: int
         name: str
         position: int
-        nsfw: bool
         parent_id: typing.Optional[int]
         _permissions: typing.Dict[int, ChannelPermission]
 
@@ -666,13 +665,15 @@ class CategoryChannel(GuildChannel):
                 self._update_with_data(data)
 
 
-class VoiceChannel(GuildChannel):
+class VoiceChannel(GuildChannel, BaseMessageChannel):
     """Represents a voice channel in a guild.
 
     This class inherits the :class:`GuildChannel` class.
 
     Attributes
     ----------
+    nsfw: :class:`builtins.bool`
+        Whether the channel is marked as NSFW.
     bitrate: :class:`builtins.int`
         The bitrate of this channel, in bits.
     user_limit: :class:`builtins.int`
@@ -687,6 +688,7 @@ class VoiceChannel(GuildChannel):
         more information.
     """
     if typing.TYPE_CHECKING:
+        nsfw: bool
         bitrate: int
         user_limit: int
         video_quality_mode: int
@@ -697,15 +699,20 @@ class VoiceChannel(GuildChannel):
         "rtc_region",
         "user_limit",
         "video_quality_mode",
+        "nsfw",
     )
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
         super()._update_with_data(data)
 
+        self.nsfw = data.get("nsfw", False)
         self.bitrate = data.get("bitrate") # type: ignore
         self.rtc_region = data.get("rtc_region")
         self.user_limit = data.get("user_limit", 0)
         self.video_quality_mode = data.get("video_quality_mode", 1)
+
+    async def _get_message_channel(self) -> typing.Any:
+        return self
 
     async def edit(
         self,
@@ -713,6 +720,7 @@ class VoiceChannel(GuildChannel):
         name: str = UNDEFINED,
         position: int = UNDEFINED,
         bitrate: int = UNDEFINED,
+        nsfw: bool = UNDEFINED,
         parent: typing.Optional[CategoryChannel] = UNDEFINED,
         rtc_region: typing.Optional[str] = UNDEFINED,
         user_limit: typing.Optional[int] = UNDEFINED,
@@ -737,6 +745,8 @@ class VoiceChannel(GuildChannel):
         parent: Optional[:class:`CategoryChannel`]
             The parent category in which this channel should be moved to. ``None`` to
             remove current category of this channel.
+        nsfw: :class:`builtins.bool`
+            Whether the channel should be marked as NSFW.
         bitrate: :class:`builtins.int`
             The bitrate of this channel in bits. This value can be in range of 8000
             and 96000 (128000 for VIP servers).
@@ -773,6 +783,9 @@ class VoiceChannel(GuildChannel):
 
         if position is not UNDEFINED:
             json["position"] = position
+
+        if nsfw is not UNDEFINED:
+            json["nsfw"] = nsfw
 
         if rtc_region is not UNDEFINED:
             json["rtc_region"] = rtc_region

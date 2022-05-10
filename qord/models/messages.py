@@ -43,8 +43,7 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.dataclasses.allowed_mentions import AllowedMentions
     from qord.dataclasses.files import File
-
-    MessageableT = typing.Union[TextChannel, DMChannel]
+    from qord.internal.types import MessageChannelT
 
 
 __all__ = (
@@ -300,7 +299,7 @@ class Message(BaseModel, Comparable):
 
     Attributes
     ----------
-    channel: Union[:class:`TextChannel`, :class:`DMChannel`]
+    channel: Union[:class:`TextChannel`, :class:`DMChannel`, :class:`VoiceChannel`]
         The channel in which message was sent.
     id: :class:`builtins.int`
         The ID of this message.
@@ -370,7 +369,7 @@ class Message(BaseModel, Comparable):
     """
 
     if typing.TYPE_CHECKING:
-        channel: MessageableT
+        channel: MessageChannelT
         id: int
         type: int
         channel_id: int
@@ -404,7 +403,7 @@ class Message(BaseModel, Comparable):
                 "embeds", "flags", "message_reference", "referenced_message", "reactions",
                 "_referenced_message_deleted",)
 
-    def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageableT) -> None:
+    def __init__(self, data: typing.Dict[str, typing.Any], channel: MessageChannelT) -> None:
         self.channel = channel
         self._client = channel._client
         self._rest = channel._rest

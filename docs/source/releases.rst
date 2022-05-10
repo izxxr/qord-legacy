@@ -20,12 +20,15 @@ Latest
 Breaking Changes
 ~~~~~~~~~~~~~~~~
 
+- :class:`StageChannel` no longer inherits :class:`VoiceChannel` and is now a completely independent channel type.
+- :attr:`Message.channel` and other message related channel attributes can now return :class:`VoiceChannel`.
 - Rename :class:`Cache` to :class:`ClientCache` and :class:`DefaultCache` to :class:`DefaultClientCache` for the sake of consistency with it's guild counterpart.
 
 Additions
 ~~~~~~~~~
 
 - Added support for applications.
+- Added support for messages in :class:`VoiceChannel`.
 - Added :func:`qord.event` decorator for registering listeners in a subclassed :class:`Client`.
 - Added :meth:`Client.wait_for_event` method to allow waiting for event invocations.
 

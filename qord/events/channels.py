@@ -35,7 +35,7 @@ if typing.TYPE_CHECKING:
     from qord.models.guilds import Guild
     from qord.models.guild_members import GuildMember
     from qord.models.users import User
-    from qord.models.messages import MessageableT
+    from qord.internal.types import MessageChannelT
 
 
 __all__ = (
@@ -96,7 +96,7 @@ class ChannelPinsUpdate(BaseEvent, event_name=GatewayEvent.CHANNEL_PINS_UPDATE):
     """
     shard: Shard
 
-    channel: MessageableT
+    channel: MessageChannelT
     """The channel whose pins were updated."""
 
     guild: typing.Optional[Guild]
@@ -131,7 +131,7 @@ class TypingStart(BaseEvent, event_name=GatewayEvent.TYPING_START):
     """
     shard: Shard
 
-    channel: MessageableT
+    channel: MessageChannelT
     """The channel in which typing started in."""
 
     started_at: datetime

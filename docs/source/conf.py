@@ -70,7 +70,7 @@ rst_prolog = f"""
 """
 
 autodoc_type_aliases = {
-    "MessageableT": "Union[TextChannel, DMChannel]",
+    "MessageChannelT": "Union[TextChannel, DMChannel, VoiceChannel]",
     "_OverwriteValue": "Optional[bool]",
 }
 
