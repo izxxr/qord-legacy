@@ -808,14 +808,32 @@ class VoiceChannel(GuildChannel):
                 self._update_with_data(data)
 
 
-class StageChannel(VoiceChannel):
+class StageChannel(GuildChannel):
     """Represents a stage channel in a guild.
 
-    This class is a subclass of :class:`VoiceChannel` as such all attributes
-    of :class:`VoiceChannel` and :class:`GuildChannel` are valid in this class too.
+    Attributes
+    ----------
+    bitrate: :class:`builtins.int`
+        The bitrate of this channel, in bits.
+    rtc_region: Optional[:class:`builtins.str`]
+        The string representation of RTC region of the voice channel. This
+        is only available when a region is explicitly set. ``None`` indicates
+        that region is chosen automatically.
     """
+    if typing.TYPE_CHECKING:
+        bitrate: int
+        rtc_region: typing.Optional[str]
 
-    __slots__ = ()
+    __slots__ = (
+        "bitrate",
+        "rtc_region",
+    )
+
+    def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
+        super()._update_with_data(data)
+
+        self.bitrate = data.get("bitrate") # type: ignore
+        self.rtc_region = data.get("rtc_region")
 
     @property
     def stage_instance(self) -> typing.Optional[StageInstance]:
@@ -828,6 +846,87 @@ class StageChannel(VoiceChannel):
         for stage_instance in self.guild._cache.stage_instances():
             if stage_instance.channel_id == self.id:
                 return stage_instance
+    async def edit(
+        self,
+        *,
+        name: str = UNDEFINED,
+        position: int = UNDEFINED,
+        bitrate: int = UNDEFINED,
+        parent: typing.Optional[CategoryChannel] = UNDEFINED,
+        rtc_region: typing.Optional[str] = UNDEFINED,
+        permission_overwrites: typing.Dict[typing.Union[GuildMember, User, Role], PermissionOverwrite] = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> None:
+        """Edits the channel.
+
+        This operation requires the :attr:`~Permissions.manage_channels` permission
+        for the client user in the parent guild.
+
+        When the request is successful, This channel is updated in place with
+        the returned data.
+
+        Parameters
+        ----------
+        name: :class:`builtins.str`
+            The name of this channel.
+        position: :class:`builtins.int`
+            The position of this channel in channels list.
+        parent: Optional[:class:`CategoryChannel`]
+            The parent category in which this channel should be moved to. ``None`` to
+            remove current category of this channel.
+        bitrate: :class:`builtins.int`
+            The bitrate of this channel in bits. This value can be in range of 8000
+            and 96000 (128000 for VIP servers).
+        rtc_region: Optional[:class:`builtins.str`]
+            The RTC region of this voice channel. ``None`` can be used to
+            set this to automatic selection of regions.
+        permission_overwrites: Dict[Union[:class:`GuildMember`, :class:`User`, :class:`Role`], :class:`PermissionOverwrite`]
+            The permission overwrites of this channel. This is a dictionary with key being the
+            target whose permission overwrite is being edited and value is the new
+            permission overwrite.
+        reason: :class:`builtins.str`
+            The reason for performing this action that shows up on guild's audit log.
+
+        Raises
+        ------
+        ValueError
+            Invalid values supplied in some arguments.
+        HTTPForbidden
+            Missing permissions.
+        HTTPException
+            Failed to perform this action.
+        """
+        json = {}
+
+        if name is not UNDEFINED:
+            json["name"] = name
+
+        if position is not UNDEFINED:
+            json["position"] = position
+
+        if rtc_region is not UNDEFINED:
+            json["rtc_region"] = rtc_region
+
+        if bitrate is not UNDEFINED:
+            if bitrate < 8000 or bitrate > 128000:
+                raise ValueError("Parameter 'bitrate' must be in range of 8000 and 128000")
+
+            json["bitrate"] = bitrate
+
+        if parent is not UNDEFINED:
+            json["parent_id"] = parent.id if parent is not None else None
+
+        if permission_overwrites is not UNDEFINED:
+            json["permission_overwrites"] = self._edit_permission_overwrites_payload(permission_overwrites)
+
+        if json:
+            data = await self._rest.edit_channel(
+                channel_id=self.id,
+                json=json,
+                reason=reason
+            )
+            if data:
+                self._update_with_data(data)
 
     async def fetch_stage_instance(self) -> StageInstance:
         """Fetches the stage instance for this channel.

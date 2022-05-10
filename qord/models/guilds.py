@@ -1254,10 +1254,9 @@ class Guild(BaseModel, Comparable, CreationTime):
             if location is not UNDEFINED:
                 entity_type = EventEntityType.EXTERNAL
             else:
-                channel_tp = type(channel)
-                if channel_tp == StageChannel:
+                if isinstance(channel, StageChannel):
                     entity_type = EventEntityType.STAGE_INSTANCE
-                elif channel_tp == VoiceChannel:
+                elif isinstance(channel, VoiceChannel):
                     entity_type = EventEntityType.VOICE
                 else:
                     raise TypeError("channel must be an instance of StageChannel or VoiceChannel")
