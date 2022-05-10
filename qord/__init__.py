@@ -33,6 +33,7 @@ from qord.models.emojis import *
 from qord.models.applications import *
 from qord.models.scheduled_events import *
 from qord.models.stage_instances import *
+from qord.models.invites import *
 from qord.dataclasses.allowed_mentions import *
 from qord.dataclasses.embeds import *
 from qord.dataclasses.files import *
