@@ -572,6 +572,8 @@ class Invite(BaseModel):
         if self.channel is UNDEFINED:
             self.channel = PartialInviteChannel(data["channel"], client=self._client)
 
+    def __repr__(self) -> str:
+        return f"<Invite code={self.code}>"
 
     @property
     def url(self) -> str:
@@ -583,3 +585,18 @@ class Invite(BaseModel):
         """
         return f"https://discord.gg/{self.code}"
 
+    async def delete(self) -> None:
+        """Deletes or revokes the invite.
+
+        This requires :attr:`~Permissions.manage_channels` in the invite's
+        channel or :attr:`~Permissions.manage_guilds` permission to delete
+        any invite across the guild.
+
+        Raises
+        ------
+        HTTPForbidden
+            You are not allowed to do this.
+        HTTPException
+            The action failed.
+        """
+        await self._client._rest.delete_invite(invite_code=self.code)

@@ -25,8 +25,9 @@ from __future__ import annotations
 from qord.models.base import BaseModel
 from qord.models.users import User
 from qord.models.stage_instances import StageInstance
+from qord.models.invites import Invite
 from qord.bases import BaseMessageChannel
-from qord.enums import ChannelPermissionType, ChannelType, StagePrivacyLevel
+from qord.enums import ChannelPermissionType, ChannelType, StagePrivacyLevel, InviteTargetType
 from qord.internal.helpers import get_optional_snowflake, parse_iso_timestamp
 from qord.internal.undefined import UNDEFINED
 from qord.internal.mixins import Comparable, CreationTime
@@ -410,6 +411,108 @@ class GuildChannel(BaseModel, Comparable, CreationTime):
     # TODO: Refactor this to take common parameters like name and permission_overwrites
     async def edit(self, **kwargs) -> None:
         raise NotImplementedError("edit() must be implemented by subclasses.")
+
+    async def fetch_invites(self) -> typing.List[Invite]:
+        """Fetches the invites from this channel.
+
+        This requires the :attr:`~Permissions.manage_channels` permission.
+
+        Returns
+        -------
+        List[:class:`Invite`]
+            The requested invites.
+
+        Raises
+        ------
+        HTTPForbidden
+            You don't have permissions to do this.
+        HTTPException
+            Failed to fetch the invites.
+        """
+        invites = await self._rest.get_channel_invites(channel_id=self.id)
+        return [Invite(data, guild=self.guild, channel=self, client=self._client) for data in invites]
+
+    async def create_invite(
+        self,
+        *,
+        max_age: typing.Optional[int] = UNDEFINED,
+        max_uses: typing.Optional[int] = UNDEFINED,
+        temporary: bool = UNDEFINED,
+        unique: bool = UNDEFINED,
+        target_user_id: int = UNDEFINED,
+        target_application_id: int = UNDEFINED,
+        reason: typing.Optional[str] = None,
+    ) -> Invite:
+        """Creates an invite in the channel.
+
+        This requires the :attr:`~Permissions.create_instant_invite` permission.
+
+        Parameters
+        ----------
+        max_age: Optional[:class:`builtins.int`]
+            The maximum age of this invite in seconds. The value of ``None`` or
+            ``0`` will create an invite with unlimited age. Defaults to ``86400``.
+        max_uses: Optional[:class:`builtins.int`]
+            The maximum uses of this invite in seconds. The value of ``None`` or
+            ``0`` will create an invite with unlimited uses. Defaults to ``0``.
+        temporary: :class:`builtins.bool`
+            Whether the invite grants temporary membership.
+        unique: :class:`builtins.bool`
+            Whether the invite is unique and does not allow re-use of similar invite.
+        target_user_id: :class:`builtins.int`
+            The ID of user whose stream should be viewed by this invite. The user
+            must be streaming. This parameter cannot be mixed with ``target_application_id``.
+        target_application_id: :class:`builtins.int`
+            The ID of embedded application for activities. The application must have
+            the :attr:`~ApplicationFlags.embedded` flag. This parameter cannot be mixed
+            with ``target_user_id``.
+        reason: :class:`builtins.str`
+            The reason for this action, is showed on audit log.
+
+        Raises
+        ------
+        HTTPForbidden
+            Missing permissions to create invite.
+        HTTPException
+            Failed to create the invite.
+        TypeError
+            Invalid set of arguments given.
+
+        Returns
+        -------
+        :class:`Invite`
+            The created invite.
+        """
+        json = {}
+
+        if max_age is not UNDEFINED:
+            if max_age is None:
+                max_age = 0
+
+            json["max_age"] = max_age
+
+        if max_uses is not UNDEFINED:
+            if max_uses is None:
+                max_age = 0
+
+            json["max_uses"] = max_uses
+
+        if temporary is not UNDEFINED:
+            json["temporary"] = temporary
+
+        if unique is not UNDEFINED:
+            json["unique"] = unique
+
+        if target_user_id is not UNDEFINED:
+            json["target_user_id"] = target_user_id
+            json["target_type"] = InviteTargetType.STREAM
+
+        if target_application_id is not UNDEFINED:
+            json["target_application_id"] = target_application_id
+            json["target_type"] = InviteTargetType.EMBEDDED_APPLICATION
+
+        data = await self._rest.create_invite(channel_id=self.id, json=json, reason=reason)
+        return Invite(data, guild=self.guild, channel=self, client=self._client)
 
 
 class TextChannel(GuildChannel, BaseMessageChannel):

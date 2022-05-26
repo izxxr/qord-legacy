@@ -534,6 +534,43 @@ class RestClient:
         data = await self.request(route, params=params)
         return data
 
+    # --- Invites --- #
+
+    async def get_guild_invites(self, guild_id: int):
+        route = Route("GET", "/guilds/{guild_id}/invites", guild_id=guild_id)
+        data = await self.request(route)
+        return data
+
+    async def get_channel_invites(self, channel_id: int):
+        route = Route("GET", "/channels/{channel_id}/invites", channel_id=channel_id)
+        data = await self.request(route)
+        return data
+
+    async def get_invite(
+        self,
+        invite_code: str,
+        with_counts: bool = False,
+        with_expiration: bool = False,
+    ):
+        params = {
+            "with_counts": int(with_counts),
+            "with_expiration": int(with_expiration),
+        }
+
+        route = Route("GET", "/invites/{invite_code}", invite_code=invite_code)
+        data = await self.request(route, params=params)
+        return data
+
+    async def delete_invite(self, invite_code: str):
+        route = Route("DELETE", "/invites/{invite_code}", invite_code=invite_code)
+        data = await self.request(route)
+        return data
+
+    async def create_invite(self, channel_id: int, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
+        route = Route("POST", "/channels/{channel_id}/invites", channel_id=channel_id)
+        data = await self.request(route, json=json, reason=reason)
+        return data
+
     # --- Stage instance -- #
 
     async def create_stage_instance(self, json: typing.Dict[str, typing.Any], reason: typing.Optional[str] = None):
