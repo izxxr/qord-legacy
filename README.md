@@ -17,9 +17,9 @@ Python library for Discord API based around asyncio.
 - Supports automatic gateway sharding.
 
 ## Development stage
-Qord is currently under it's initial development (alpha) stage. During this phase, There may be breaking changes and public user-facing API should not be considered stable. There would be no efforts in keeping backward compatibility. While the library currently supports the basic functionalities required to build a bot, many essential features are yet to be implemented and for this reason, Qord isn't yet a library to choose for making full fledged bots.
+Qord is currently under it's initial development (alpha) stage. During this phase, there may be breaking changes and public user-facing API should not be considered stable. There would be no efforts in keeping backward compatibility. While the library currently supports the basic functionalities required to build a bot, many essential features are yet to be implemented and for this reason, Qord isn't yet a library to choose for making full fledged bots.
 
-The complete lifetime of 0.x version is considered the development phase. More info about this [semantic versioning specification is here](https://semver.org/#spec-item-4)
+The complete lifetime of 0.x version is considered the development phase. More info about this semantic versioning specification can be found [here](https://semver.org/#spec-item-4).
 
 ## Installation
 Qord is installed using Python's traditional package manager, pip.
@@ -27,10 +27,10 @@ Qord is installed using Python's traditional package manager, pip.
 python -m pip install -U qord
 ```
 
-Qord requires **Python 3.8 or higher.** The dependencies are handled by pip automatically, See complete list of dependencies [here](https://github.com/nerdguyahmad/qord/blob/main/requirements.txt).
+Qord requires **Python 3.8 or higher**. The dependencies are handled by pip automatically, see complete list of dependencies [here](https://github.com/nerdguyahmad/qord/blob/main/requirements.txt).
 
 ## Usage
-To whet your appetite, Let's get a quickstart with an example of a simple "Ping-Pong" bot.
+To whet your appetite, let's get a quickstart with an example of a simple "Ping-Pong" bot.
 ```py
 import qord
 
@@ -59,10 +59,10 @@ async def on_message_create(event):
 client.start("BOT_TOKEN")
 ```
 
-For a brief explanation of this example, see [it's explanation](https://github.com/nerdguyahmad/qord/blob/master/examples/basic.py). More examples in the [`examples`](https://github.com/nerdguyahmad/qord/blob/master/examples) directory.
+For a brief explanation of this example, go to [this page](https://github.com/nerdguyahmad/qord/blob/master/examples/basic.py). More examples can be found in the [`examples`](https://github.com/nerdguyahmad/qord/blob/master/examples) directory.
 
 ## Contributing
-Qord is under heavy development. You can help us in reaching 100% coverage of Discord API by reporting bugs, suggesting features or even directly contributing to the code base, See [Contribution Guidelines](https://github.com/nerdguyahmad/qord/blob/main/CONTRIBUTING.MD).
+Qord is under heavy development. You can help us in reaching 100% coverage of Discord API by reporting bugs, suggesting features or even directly contributing to the code base. Please read the [Contribution Guidelines](https://github.com/nerdguyahmad/qord/blob/main/CONTRIBUTING.MD).
 
 ----
 
