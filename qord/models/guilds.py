@@ -30,6 +30,7 @@ from qord.models.channels import _guild_channel_factory, GuildChannel, VoiceChan
 from qord.models.emojis import Emoji
 from qord.models.scheduled_events import ScheduledEvent
 from qord.models.stage_instances import StageInstance
+from qord.models.invites import Invite
 from qord.flags.system_channel import SystemChannelFlags
 from qord.enums import EventPrivacyLevel, EventEntityType
 from qord.internal.undefined import UNDEFINED
@@ -1280,3 +1281,23 @@ class Guild(BaseModel, Comparable, CreationTime):
 
         data = await self._rest.create_scheduled_event(guild_id=self.id, json=json, reason=reason)
         return ScheduledEvent(data, guild=self)
+
+    async def fetch_invites(self) -> typing.List[Invite]:
+        """Fetches the invites from this guild.
+
+        This requires the :attr:`~Permissions.manage_guilds` permission.
+
+        Returns
+        -------
+        List[:class:`Invite`]
+            The requested invites.
+
+        Raises
+        ------
+        HTTPForbidden
+            You don't have permissions to do this.
+        HTTPException
+            Failed to fetch the invites.
+        """
+        invites = await self._rest.get_guild_invites(guild_id=self.id)
+        return [Invite(data, guild=self, client=self._client) for data in invites]

@@ -31,7 +31,9 @@ from qord.models.messages import Message
 from qord.models.emojis import Emoji
 from qord.models.scheduled_events import ScheduledEvent
 from qord.models.stage_instances import StageInstance
+from qord.models.invites import Invite
 from qord.internal.helpers import parse_iso_timestamp
+from qord.internal.undefined import UNDEFINED
 from qord import events
 
 from datetime import datetime
@@ -954,3 +956,59 @@ class DispatchHandler:
             stage_instance=stage_instance,
         )
         self.invoke(event)
+
+    @event_dispatch_handler("INVITE_CREATE")
+    async def on_invite_create(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            # Group DM
+            return
+
+        channel_id = int(data["channel_id"])
+        guild = self.cache.get_guild(guild_id)
+        if guild is None:
+            shard._log(logging.DEBUG, "INVITE_CREATE: Unknown guild with ID %s", guild_id)
+            return
+
+        channel = guild.cache.get_channel(channel_id)
+        if channel is None:
+            shard._log(logging.DEBUG, "INVITE_CREATE: Unknown channel with ID %s", channel_id)
+            return
+
+        invite = Invite(data=data, guild=guild, channel=channel, client=self.client)
+        event = events.InviteCreate(
+            invite=invite,
+            guild=guild,
+            channel=channel,
+            shard=shard
+        )
+        self.invoke(event)
+
+    @event_dispatch_handler("INVITE_DELETE")
+    async def on_invite_delete(self, shard: Shard, data: typing.Dict[str, typing.Any]) -> None:
+        try:
+            guild_id = int(data["guild_id"])
+        except KeyError:
+            # Group DM
+            return
+
+        channel_id = int(data["channel_id"])
+        guild = self.cache.get_guild(guild_id)
+        if guild is None:
+            shard._log(logging.DEBUG, "INVITE_DELETE: Unknown guild with ID %s", guild_id)
+            return
+
+        channel = guild.cache.get_channel(channel_id)
+        if channel is None:
+            shard._log(logging.DEBUG, "INVITE_DELETE: Unknown channel with ID %s", channel_id)
+            return
+
+        event = events.InviteDelete(
+            shard=shard,
+            code=data["code"],
+            guild=guild,
+            channel=channel,
+        )
+        self.invoke(event)
+

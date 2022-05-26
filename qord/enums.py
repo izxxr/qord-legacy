@@ -144,6 +144,12 @@ class GatewayEvent:
     STAGE_INSTANCE_DELETE = "stage_instance_delete"
     """Called whenever a stage instance is deleted. See :class:`events.StageInstanceDelete` for more info."""
 
+    INVITE_CREATE = "invite_create"
+    """Called whenever an invite is created. See :class:`events.InviteCreate` for more info."""
+
+    INVITE_DELETE = "invite_delete"
+    """Called whenever an invite is deleted. See :class:`events.InviteDelete` for more info."""
+
 
 class PremiumType:
     """An enumeration that details values for a user's premium aka nitro subscription.
@@ -537,3 +543,13 @@ class TeamMembershipState:
 
     ACCEPTED = 2
     """The member has accepted the invite and is part of team."""
+
+
+class InviteTargetType:
+    """An enumeration that details the target type of an :class:`Invite`"""
+
+    STREAM = 1
+    """The invite points to a stream."""
+
+    EMBEDDED_APPLICATION = 2
+    """The invite points to an embedded application."""

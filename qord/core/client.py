@@ -32,6 +32,7 @@ from qord.models.users import User
 from qord.models.guilds import Guild
 from qord.models.channels import _is_guild_channel, _guild_channel_factory, _private_channel_factory
 from qord.models.applications import Application
+from qord.models.invites import Invite
 from qord.exceptions import ClientSetupRequired
 from qord.events.base import BaseEvent
 
@@ -119,7 +120,7 @@ class Client:
     """
     if typing.TYPE_CHECKING:
         _event_listeners: typing.Dict[str, typing.List[EventListener]]
-        _event_futures: typing.Dict[str, typing.List[typing.Tuple[typing.Callable[[BaseEvent], bool], asyncio.Future[BaseEvent]]]]
+        _event_futures: typing.Dict[str, typing.List[typing.Tuple[EventListener, asyncio.Future[BaseEvent]]]]
 
     def __init__(self,
         *,
@@ -392,7 +393,7 @@ class Client:
         self,
         event_name: str,
         *,
-        check: typing.Optional[typing.Callable[[BE], bool]] = None,
+        check: typing.Optional[typing.Callable[[BE], typing.Any]] = None,
         timeout: typing.Optional[float] = None,
     ) -> BE:
         """Waits for an event to invoke.
@@ -888,3 +889,41 @@ class Client:
             cls = _private_channel_factory(channel_type)
             return cls(data, client=self)
 
+    async def fetch_invite(
+        self,
+        invite_code: str,
+        /,
+        *,
+        with_expiration: bool = False,
+        with_counts: bool = False,
+    ) -> Invite:
+        """Fetches an invite from the given invite code.
+
+        Parameters
+        ----------
+        invite_code: :class:`builtins.str`
+            The code of invite to fetch.
+        with_counts: :class:`builtins.bool`
+            Whether the invite should include the :attr:`Invite.approximate_member_count`
+            and other approximated counts.
+        with_expiration: :class:`builtins.bool`
+            Whether the invite should include the :attr:`Invite.expires_at`.
+
+        Raises
+        ------
+        HTTPNotFound
+            No invite exists for the given code.
+        HTTPException
+            The fetching failed.
+
+        Returns
+        -------
+        :class:`Invite`
+            The requested invite.
+        """
+        data = await self._rest.get_invite(
+            invite_code=invite_code,
+            with_counts=with_counts,
+            with_expiration=with_expiration,
+        )
+        return Invite(data, client=self)
