@@ -129,3 +129,8 @@ TeamMembershipState
 .. autoclass:: TeamMembershipState()
     :members:
 
+InviteTargetType
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: InviteTargetType()
+    :members:

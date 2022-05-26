@@ -224,3 +224,34 @@ PartialEmoji
 
 .. autoclass:: PartialEmoji()
     :members:
+
+Invites
+-------
+
+Invite
+~~~~~~
+
+.. autoclass:: Invite()
+    :members:
+    :inherited-members:
+
+PartialInviteGuild
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PartialInviteGuild()
+    :members:
+    :inherited-members:
+
+PartialInviteChannel
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PartialInviteChannel()
+    :members:
+    :inherited-members:
+
+PartialInviteApplication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: PartialInviteApplication()
+    :members:
+    :inherited-members:
