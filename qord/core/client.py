@@ -33,6 +33,7 @@ from qord.models.guilds import Guild
 from qord.models.channels import _is_guild_channel, _guild_channel_factory, _private_channel_factory
 from qord.models.applications import Application
 from qord.models.invites import Invite
+from qord.internal.undefined import UNDEFINED
 from qord.exceptions import ClientSetupRequired
 from qord.events.base import BaseEvent
 
@@ -896,6 +897,7 @@ class Client:
         *,
         with_expiration: bool = False,
         with_counts: bool = False,
+        scheduled_event_id: int = UNDEFINED,
     ) -> Invite:
         """Fetches an invite from the given invite code.
 
@@ -908,6 +910,8 @@ class Client:
             and other approximated counts.
         with_expiration: :class:`builtins.bool`
             Whether the invite should include the :attr:`Invite.expires_at`.
+        scheduled_event: :class:`builtins.int`
+            The ID of scheduled event to attach to given invite.
 
         Raises
         ------
@@ -925,5 +929,6 @@ class Client:
             invite_code=invite_code,
             with_counts=with_counts,
             with_expiration=with_expiration,
+            scheduled_event_id=scheduled_event_id,
         )
         return Invite(data, client=self)

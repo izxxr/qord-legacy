@@ -551,11 +551,15 @@ class RestClient:
         invite_code: str,
         with_counts: bool = False,
         with_expiration: bool = False,
+        scheduled_event_id: int = UNDEFINED,
     ):
-        params = {
+        params: typing.Dict[str, typing.Any] = {
             "with_counts": int(with_counts),
             "with_expiration": int(with_expiration),
         }
+
+        if scheduled_event_id is not UNDEFINED:
+            params["guild_scheduled_event_id"] = scheduled_event_id,
 
         route = Route("GET", "/invites/{invite_code}", invite_code=invite_code)
         data = await self.request(route, params=params)

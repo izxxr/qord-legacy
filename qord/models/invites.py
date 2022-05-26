@@ -24,6 +24,7 @@ from __future__ import annotations
 
 from qord.models.base import BaseModel
 from qord.models.users import User
+from qord.models.scheduled_events import ScheduledEvent
 from qord.flags.applications import ApplicationFlags
 from qord.internal.undefined import UNDEFINED
 from qord.internal.helpers import (
@@ -496,6 +497,9 @@ class Invite(BaseModel):
         The time when the invite was created.
         This attribute is only available in :attr:`~GatewayEvent.INVITE_CREATE` event
         or when invite is fetched through :meth:`Guild.fetch_invites` or :meth:`GuildChannel.fetch_invites`.
+    scheduled_event: Optional[:class:`ScheduledEvent`]
+        The scheduled event attached to this invite. Only present when ``scheduled_event_id``
+        is given in :meth:`Client.fetch_invite`.
     """
 
     if typing.TYPE_CHECKING:
@@ -514,6 +518,7 @@ class Invite(BaseModel):
         target_application: typing.Optional[PartialInviteApplication]
         guild: typing.Optional[typing.Union[Guild, PartialInviteGuild]]
         channel: typing.Union[GuildChannel, PartialInviteChannel]
+        scheduled_event: typing.Optional[ScheduledEvent]
 
     __slots__ = (
         "_client",
@@ -533,6 +538,7 @@ class Invite(BaseModel):
         "created_at",
         "guild",
         "channel",
+        "scheduled_event",
     )
 
     def __init__(
@@ -580,6 +586,17 @@ class Invite(BaseModel):
         if self.channel is UNDEFINED:
             self.channel = PartialInviteChannel(data["channel"], client=self._client)
 
+        self.scheduled_event = None
+
+        event = data.get("guild_scheduled_event")
+        if event:
+            from qord.models.guilds import Guild  # Circular import
+            guild = self.guild
+            if guild and isinstance(guild, Guild):
+                self.scheduled_event = ScheduledEvent(event, guild=guild, client=self._client)
+            else:
+                self.scheduled_event = ScheduledEvent(event, client=self._client)
+
     def __repr__(self) -> str:
         return f"<Invite code={self.code}>"
 
@@ -591,7 +608,11 @@ class Invite(BaseModel):
         -------
         :class:`builtins.str`
         """
-        return f"https://discord.gg/{self.code}"
+        ret = f"https://discord.gg/{self.code}"
+        event = self.scheduled_event
+        if event is not None:
+            return ret + f"?event={event.id}"
+        return ret
 
     async def delete(self) -> None:
         """Deletes or revokes the invite.

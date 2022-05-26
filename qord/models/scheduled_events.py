@@ -41,6 +41,7 @@ from datetime import datetime
 import typing
 
 if typing.TYPE_CHECKING:
+    from qord.core.client import Client
     from qord.models.channels import VoiceChannel, StageChannel
     from qord.models.guilds import Guild
 
@@ -57,8 +58,9 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
 
     Attributes
     ----------
-    guild: :class:`Guild`
-        The guild that belongs to this scheduled event.
+    guild: Optional[:class:`Guild`]
+        The guild that belongs to this scheduled event. This attribute may be ``None``
+        if the scheduled event is obtained from an invite.
     id: :class:`builtins.int`
         The ID of this scheduled event.
     guild_id: :class:`builtins.int`
@@ -135,9 +137,14 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
         "ends_at",
     )
 
-    def __init__(self, data: typing.Dict[str, typing.Any], guild: Guild) -> None:
+    def __init__(
+        self,
+        data: typing.Dict[str, typing.Any],
+        client: Client,
+        guild: typing.Optional[Guild] = None,
+    ) -> None:
+        self._client = client
         self.guild = guild
-        self._client = guild._client
         self._update_with_data(data)
 
     def _update_with_data(self, data: typing.Dict[str, typing.Any]) -> None:
@@ -172,17 +179,24 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
     def channel(self) -> typing.Optional[typing.Union[VoiceChannel, StageChannel]]:
         """The channel in which event is hosted.
 
+        This may return ``None`` depending on whether the channel is cached
+        or not. In which case consider fetching it via :attr:`Client.fetch_channel`.
+
         Returns
         -------
         Optional[Union[:class:`VoiceChannel`, :class:`StageChannel`]]
         """
+        guild = self.guild
+
+        if guild is None:
+            return None
+
         channel_id = self.channel_id
 
         if channel_id is None:
             return None
 
-        # This will always return VoiceChannel or StageChannel
-        return self.guild.cache.get_channel(channel_id)  # type: ignore
+        return guild.cache.get_channel(channel_id)  # type: ignore
 
     def cover_image_url(self, extension: str = UNDEFINED, size: int = UNDEFINED) -> typing.Optional[str]:
         """Returns the cover image's URL for this event.
@@ -481,12 +495,13 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
             The subscribed user.
             When ``with_member`` is ``True``, :class:`GuildMember` object will
             be yielded when available. In some cases such as when member has left
-            the guild, :class:`User` may still be yielded. When ``with_member``
-            is ``False``, :class:`User` is always yielded.
+            the guild or guild isn't available, :class:`User` may still be yielded.
+            When ``with_member`` is ``False``, :class:`User` is always yielded.
         """
 
         getter = self._client._rest.get_scheduled_event_users
         guild_id = self.guild_id
+        guild = self.guild
         event_id = self.id
 
         if isinstance(after, datetime):
@@ -518,7 +533,7 @@ class ScheduledEvent(BaseModel, Comparable, CreationTime):
             after = int(data[-1]["user"]["id"])
 
             for item in data:
-                try:
-                    yield GuildMember(item["member"], guild=self.guild)
-                except KeyError:
+                if guild is None or not "member" in item:
                     yield User(item["user"], client=self._client)
+                else:
+                    yield GuildMember(item["member"], guild=guild)
