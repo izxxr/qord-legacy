@@ -245,7 +245,8 @@ class Guild(BaseModel, Comparable, CreationTime):
         self.member_count = data.get("member_count")
 
         cache = self._cache
-        client_cache = self._client_cache
+        client = self._client
+        client_cache = client._cache
 
         for raw_member in data.get("members", []):
             member = GuildMember(raw_member, guild=self)
@@ -258,7 +259,7 @@ class Guild(BaseModel, Comparable, CreationTime):
             cache.add_channel(channel)
 
         for raw_scheduled_event in data.get("guild_scheduled_events", []):
-            scheduled_event = ScheduledEvent(raw_scheduled_event, guild=self)
+            scheduled_event = ScheduledEvent(raw_scheduled_event, guild=self, client=client)
             cache.add_scheduled_event(scheduled_event)
 
         for raw_stage_instance in data.get("stage_instances", []):
@@ -1132,7 +1133,7 @@ class Guild(BaseModel, Comparable, CreationTime):
             guild_id=self.id,
             with_user_counts=with_user_counts
         )
-        return [ScheduledEvent(e, guild=self) for e in data]
+        return [ScheduledEvent(e, guild=self, client=self._client) for e in data]
 
     async def fetch_scheduled_event(self, scheduled_event_id: int, with_user_counts: bool = False) -> ScheduledEvent:
         """Fetches the scheduled event by it's ID.
@@ -1162,7 +1163,7 @@ class Guild(BaseModel, Comparable, CreationTime):
             scheduled_event_id=scheduled_event_id,
             with_user_counts=with_user_counts
         )
-        return ScheduledEvent(data, guild=self)
+        return ScheduledEvent(data, guild=self, client=self._client)
 
     async def create_scheduled_event(
         self,
@@ -1280,7 +1281,7 @@ class Guild(BaseModel, Comparable, CreationTime):
             json["image"] = get_image_data(cover_image)
 
         data = await self._rest.create_scheduled_event(guild_id=self.id, json=json, reason=reason)
-        return ScheduledEvent(data, guild=self)
+        return ScheduledEvent(data, guild=self, client=self._client)
 
     async def fetch_invites(self) -> typing.List[Invite]:
         """Fetches the invites from this guild.

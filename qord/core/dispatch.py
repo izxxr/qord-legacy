@@ -774,7 +774,7 @@ class DispatchHandler:
             shard._log(logging.DEBUG, "GUILD_SCHEDULED_EVENT_CREATE: Unknown guild with ID %s", guild_id)
             return
 
-        scheduled_event = ScheduledEvent(data, guild=guild)
+        scheduled_event = ScheduledEvent(data, guild=guild, client=self.client)
         event = events.ScheduledEventCreate(
             shard=shard,
             guild=guild,
