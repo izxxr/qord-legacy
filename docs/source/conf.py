@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.abspath('../../'))
 # -- Project information -----------------------------------------------------
 
 project = 'Qord'
-copyright = '2022, nerdguyahmad'
-author = 'nerdguyahmad'
+copyright = '2022, izxxr'
+author = 'izxxr'
 
 
 # -- General configuration ---------------------------------------------------
