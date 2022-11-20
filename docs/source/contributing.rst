@@ -35,7 +35,7 @@ Suggesting features or Reporting Bugs
 We love to hear your creative ideas about implementing a specific feature in the library. We
 also appreciate bug reports as it helps us keeping the library as stable as possible.
 
-In order to keep track of feature requests and bug reports, We use `GitHub issues tracker <https://github.com/nerdguyahmad/qord/issues>`_.
+In order to keep track of feature requests and bug reports, We use `GitHub issues tracker <https://github.com/izxxr/qord/issues>`_.
 
 When creating issues, make sure to describe your issue in detail. When suggesting a new feature,
 you should give a brief detail of the feature and also provide some solid reasons of how the
@@ -46,7 +46,7 @@ Contributing to codebase
 ------------------------
 
 If you know how to fix a certain bug or implement a specific feature, consider `opening a pull
-request <https://github.com/nerdguyahmad/qord/pulls>`_ for your change.
+request <https://github.com/izxxr/qord/pulls>`_ for your change.
 
 When making code changes make sure to:
 
