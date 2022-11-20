@@ -13,7 +13,7 @@ Qord is installed using Python's traditional package manager, pip::
    python -m pip install -U qord
 
 Qord requires **Python 3.8 or higher.** The dependencies are handled by pip automatically,
-See complete list of dependencies in `here <https://github.com/nerdguyahmad/qord/blob/main/requirements.txt>`_.
+See complete list of dependencies in `here <https://github.com/izxxr/qord/blob/main/requirements.txt>`_.
 
 Usage
 -----
