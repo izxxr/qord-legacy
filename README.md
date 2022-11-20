@@ -4,7 +4,7 @@
 <div>
   <img src="https://img.shields.io/discord/940601074031677448?color=%234069e2&label=Discord">
   <img src="https://img.shields.io/pypi/dm/qord?color=%233674a5">
-  <img src="https://img.shields.io/github/commit-activity/w/nerdguyahmad/qord">
+  <img src="https://img.shields.io/github/commit-activity/w/izxxr/qord">
 </div><br>
 
 Python library for Discord API based around asyncio.
@@ -27,7 +27,7 @@ Qord is installed using Python's traditional package manager, pip.
 python -m pip install -U qord
 ```
 
-Qord requires **Python 3.8 or higher**. The dependencies are handled by pip automatically, see complete list of dependencies [here](https://github.com/nerdguyahmad/qord/blob/main/requirements.txt).
+Qord requires **Python 3.8 or higher**. The dependencies are handled by pip automatically, see complete list of dependencies [here](https://github.com/izxxr/qord/blob/main/requirements.txt).
 
 ## Usage
 To whet your appetite, let's get a quickstart with an example of a simple "Ping-Pong" bot.
@@ -59,17 +59,17 @@ async def on_message_create(event):
 client.start("BOT_TOKEN")
 ```
 
-For a brief explanation of this example, go to [this page](https://github.com/nerdguyahmad/qord/blob/master/examples/basic.py). More examples can be found in the [`examples`](https://github.com/nerdguyahmad/qord/blob/master/examples) directory.
+For a brief explanation of this example, go to [this page](https://github.com/izxxr/qord/blob/master/examples/basic.py). More examples can be found in the [`examples`](https://github.com/izxxr/qord/blob/master/examples) directory.
 
 ## Contributing
-Qord is under heavy development. You can help us in reaching 100% coverage of Discord API by reporting bugs, suggesting features or even directly contributing to the code base. Please read the [Contribution Guidelines](https://github.com/nerdguyahmad/qord/blob/main/CONTRIBUTING.MD).
+Qord is under heavy development. You can help us in reaching 100% coverage of Discord API by reporting bugs, suggesting features or even directly contributing to the code base. Please read the [Contribution Guidelines](https://github.com/izxxr/qord/blob/main/CONTRIBUTING.MD).
 
 ----
 
 <br>
 <div align="center">
   <a href="https://qord.rtfd.io">Documentation</a> • <a href="https://discord.gg/nE9cGtzayA">Discord Server</a> • <a href="https://pypi.org/project/qord">PyPi</a>
-  • <a href="https://github.com/nerdguyahmad/qord">GitHub</a> • <a href="https://github.com/nerdguyahmad/qord/issues">Issues Tracker</a>
+  • <a href="https://github.com/izxxr/qord">GitHub</a> • <a href="https://github.com/izxxr/qord/issues">Issues Tracker</a>
   <br><br>
-  <sup>Copyright (C) nerdguyahmad and contributors 2022, Under the MIT license.</sup>
+  <sup>Copyright (C) izxxr and contributors 2022, Under the MIT license.</sup>
 </p>
