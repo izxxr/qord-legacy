@@ -4,7 +4,7 @@ with open("README.MD", "r", encoding="utf-8") as f:
     LONG_DESCRIPTION = f.read()
 
 VERSION = "0.5.0a1"
-GITHUB = "https://github.com/nerdguyahmad/qord"
+GITHUB = "https://github.com/izxxr/qord"
 DOCUMENTATION = "https://qord.readthedocs.io"
 LICENSE = "MIT"
 
@@ -26,7 +26,7 @@ PACKAGES = [
 
 setup(
     name="qord",
-    author="nerdguyahmad",
+    author="izxxr",
     version=VERSION,
     license=LICENSE,
     url=GITHUB,
